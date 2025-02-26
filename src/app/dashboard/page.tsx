@@ -1,7 +1,29 @@
-import Image from "next/image";
+'use client';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { logout } from '../login/action';
+import { toast, Toaster } from 'sonner';
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 
-export default function Home() {
-  return (
+export default function Dashboard() {
+	const searchParams = useSearchParams();
+	const loginSuccess = searchParams.get('loginSuccess');
+	const [toastShown, setToastShown] = useState(false); // Tambahin state
+
+	useEffect(() => {
+		if (loginSuccess && !toastShown) {
+			toast.success('Successfully logged in!', {
+				description: 'Welcome to your dashboard!',
+			});
+			setToastShown(true); // Set supaya toast ga muncul lagi
+
+			// Hapus query param biar ga kepanggil lagi
+			window.history.replaceState({}, '', '/dashboard');
+		}
+	}, [loginSuccess, toastShown]); // Tambahin toastShown ke dependency biar hanya sekali
+	return (
 		<div className='justify-items-center items-center gap-16 grid grid-rows-[20px_1fr_20px] p-8 sm:p-20 pb-20 min-h-screen font-[family-name:var(--plus-jakarta-sans)]'>
 			<main className='flex flex-col items-center sm:items-start gap-8 row-start-2'>
 				<Image
@@ -47,6 +69,27 @@ export default function Home() {
 					>
 						Read our docs
 					</a>
+				</div>
+
+				<div>
+					<Toaster richColors position='top-right' />
+				</div>
+				<div>
+					<Button onClick={() => logout()}>Log Out</Button>
+					<Button
+						variant='outline'
+						onClick={() =>
+							toast('Event has been created', {
+								description: 'Sunday, December 03, 2023 at 9:00 AM',
+								action: {
+									label: 'Undo',
+									onClick: () => console.log('Undo'),
+								},
+							})
+						}
+					>
+						Show Toast
+					</Button>
 				</div>
 			</main>
 			<footer className='flex flex-wrap justify-center items-center gap-6 row-start-3'>
