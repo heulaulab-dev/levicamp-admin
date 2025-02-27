@@ -64,9 +64,11 @@ export function NavMain({
 								<CollapsibleTrigger asChild>
 									<SidebarMenuButton
 										tooltip={item.title}
-										className={
-											isActiveParent ? 'text-foreground font-medium' : ''
-										}
+										className={`hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${
+											isActiveItem
+												? 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200 text-foreground font-medium'
+												: 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200'
+										}`}
 									>
 										{item.icon && <item.icon />}
 										<span>{item.title}</span>
@@ -104,7 +106,11 @@ export function NavMain({
 							<SidebarMenuButton asChild tooltip={item.title}>
 								<Link
 									href={item.url}
-									className={isActiveItem ? 'text-foreground font-medium' : ''}
+									className={`hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${
+										isActiveItem
+											? 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200 text-foreground font-medium'
+											: 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200'
+									}`}
 								>
 									{item.icon && <item.icon />}
 									<span>{item.title}</span>

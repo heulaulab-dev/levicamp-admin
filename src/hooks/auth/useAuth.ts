@@ -2,13 +2,14 @@
 import { create } from 'zustand';
 import api from '@/lib/api';
 import { useEffect } from 'react';
+import router from 'next/router';
 
 type User = {
 	username: string;
 	name: string;
 	roleName: string;
 	roleCode: string;
-	profile_img: string;
+	profile_img: { url: string };
 	email: string;
 	position?: string;
 	code: string;
@@ -19,7 +20,7 @@ type AuthState = {
 	accessToken: string | null;
 	isLoading: boolean;
 	login: (data: { username: string; password: string }) => Promise<boolean>;
-	fetchUser: () => Promise<void>;
+	fetchUser: () => Promise<boolean>;
 	logout: () => void;
 };
 
@@ -94,13 +95,19 @@ export const useAuthStore = create<AuthState>((set) => ({
 		if (!token) {
 			console.warn('No token found, skipping fetchUser');
 			set({ isLoading: false });
-			return;
+			return false;
 		}
 
 		try {
 			const res = await api.get('/auth/account', {
 				headers: { Authorization: `Bearer ${token}` },
 			});
+
+			if (res.status === 401) {
+				localStorage.removeItem('token'); // Hapus token
+				router.push('/login'); // Redirect ke login
+				return false;
+			}
 
 			// Update user dengan data lengkap dari fetch akun
 			set({
@@ -119,8 +126,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 		} catch (error) {
 			console.error('Failed to fetch user:', error);
 			set({ user: null });
+			return false;
 		} finally {
 			set({ isLoading: false });
+			return true;
 		}
 	},
 

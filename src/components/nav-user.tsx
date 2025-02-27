@@ -29,7 +29,7 @@ export function NavUser({
 		name: string;
 		roleName: string;
 		roleCode: string;
-		profile_img: string;
+		profile_img: { url: string };
 		email: string;
 		code: string;
 	};
@@ -56,9 +56,9 @@ export function NavUser({
 							size='lg'
 							className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
 						>
-							<Avatar className='rounded-lg w-8 h-8'>
-								<AvatarImage src={user.profile_img} alt={user.name} />
-								<AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+							<Avatar className='w-8 h-8'>
+								<AvatarImage src={user.profile_img?.url} alt={user.name} />
+								<AvatarFallback>CN</AvatarFallback>
 							</Avatar>
 							<div className='flex-1 grid text-sm text-left leading-tight'>
 								<span className='font-semibold truncate'>{user.name}</span>
@@ -75,9 +75,9 @@ export function NavUser({
 					>
 						<DropdownMenuLabel className='p-0 font-normal'>
 							<div className='flex items-center gap-2 px-1 py-1.5 text-sm text-left'>
-								<Avatar className='rounded-lg w-8 h-8'>
-									<AvatarImage src={user.profile_img} alt={user.name} />
-									<AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+								<Avatar className='w-8 h-8'>
+									<AvatarImage src={user.profile_img?.url} alt={user.name} />
+									<AvatarFallback>CN</AvatarFallback>
 								</Avatar>
 								<div className='flex-1 grid text-sm text-left leading-tight'>
 									<span className='font-semibold truncate'>{user.name}</span>
