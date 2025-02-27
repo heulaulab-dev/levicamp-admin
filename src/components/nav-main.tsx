@@ -65,7 +65,7 @@ export function NavMain({
 									<SidebarMenuButton
 										tooltip={item.title}
 										className={`hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${
-											isActiveItem
+											isActiveParent
 												? 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200 text-foreground font-medium'
 												: 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200'
 										}`}
@@ -85,11 +85,11 @@ export function NavMain({
 													<SidebarMenuSubButton asChild>
 														<Link
 															href={subItem.url}
-															className={
+															className={`hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${
 																isSubItemActive
-																	? 'text-foreground font-medium'
-																	: ''
-															}
+																	? 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200 text-foreground font-medium'
+																	: 'hover:bg-accent hover:text-accent-foreground transition-colors duration-200'
+															}`}
 														>
 															<span>{subItem.title}</span>
 														</Link>
