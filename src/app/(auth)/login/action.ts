@@ -23,7 +23,7 @@ export async function login(prevState: unknown, formData: FormData) {
 
 	const { username, password } = result.data;
 
-	const res = await fetch(`${process.env.API_URL}/auth/login`, {
+	const res = await fetch(`${process.env.API_BASE_URL}/auth/login`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ username, password, isNative: false }),
@@ -41,8 +41,10 @@ export async function login(prevState: unknown, formData: FormData) {
 
 	console.log('Token from API:', data.accessToken);
 	await createSession(data.accessToken);
+
 	console.log('Session created, redirecting to dashboard...');
-	redirect('/dashboard?loginSuccess=true');
+
+	redirect('/overview?loginSuccess=true');
 }
 
 export async function logout() {

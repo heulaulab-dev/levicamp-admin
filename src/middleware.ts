@@ -2,7 +2,13 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/session';
 
-const protectedRouted = ['/dashboard'];
+const protectedRouted = [
+	'/admin-management',
+	'/overview',
+	'/reservation-management',
+	'/settings',
+	'/tent-management',
+];
 const publicRoutes = ['/login'];
 
 export default async function middleware(req: NextRequest) {
@@ -19,7 +25,7 @@ export default async function middleware(req: NextRequest) {
 	}
 
 	if (isPublicRoute && session?.userId) {
-		return NextResponse.redirect(new URL('/dashboard', req.nextUrl));
+		return NextResponse.redirect(new URL('/overview', req.nextUrl));
 	}
 
 	return NextResponse.next();
