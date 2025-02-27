@@ -29,12 +29,10 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang='en'>
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans} antialiased`}
-			>
-				{children}
-			</body>
-		</html>
+		<div
+			className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans} antialiased`}
+		>
+			{children}
+		</div>
 	);
 }

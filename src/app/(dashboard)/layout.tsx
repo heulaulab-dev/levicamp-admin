@@ -18,57 +18,13 @@ import {
 } from '@/components/ui/sidebar';
 import { Toaster } from 'sonner';
 import { usePathname } from 'next/navigation';
-import React from 'react';
-import {
-	CalendarFold,
-	LucideHome,
-	PieChartIcon,
-	SettingsIcon,
-	Users,
-} from 'lucide-react';
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-
-const NavigationItem = [
-	{
-		title: 'Overview',
-		url: '/overview',
-		icon: PieChartIcon,
-		isActive: true,
-	},
-	{
-		title: 'Reservation Management',
-		url: '/reservation-management',
-		icon: CalendarFold,
-	},
-	{
-		title: 'Tent Management',
-		url: '#',
-		icon: LucideHome,
-		items: [
-			{
-				title: 'Tent Categories',
-				url: '/tent-management/tent-categories',
-			},
-			{
-				title: 'Tents',
-				url: '/tent-management/tents',
-			},
-		],
-	},
-	{
-		title: 'Admin Management',
-		url: '/admin-management',
-		icon: Users,
-	},
-];
-
-const user = {
-	name: 'shadcn',
-	email: 'tazkiyadigitalarchive@gmail.com',
-	avatar: '/avatars/shadcn.jpg',
-};
+import { useAuthStore, useInitAuth } from '@/hooks/auth/useAuth';
+import React from 'react';
+import { NavigationItem } from '@/constants/navigation';
+import { SettingsIcon } from 'lucide-react';
 
 export default function DashboardLayout({
 	children,
@@ -87,6 +43,10 @@ export default function DashboardLayout({
 			segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
 		return { name, href };
 	});
+
+	useInitAuth();
+
+	const { user } = useAuthStore();
 
 	return (
 		<SidebarProvider items={NavigationItem}>
@@ -125,7 +85,7 @@ export default function DashboardLayout({
 								</Button>
 							</Link>
 							<Separator orientation='vertical' className='mr-2 h-4' />
-							<NavUser user={user} />
+							{user && <NavUser user={user} />}
 						</div>
 					</header>
 					<div className='flex flex-col flex-1 gap-4 p-4 pt-0'>

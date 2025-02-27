@@ -1,26 +1,45 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { login } from '@/app/(auth)/login/action';
-import { useFormStatus } from 'react-dom';
-import { useActionState, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { PasswordInput } from './ui/password-input';
 import { toast, Toaster } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/hooks/auth/useAuth';
+import { useRouter } from 'next/navigation';
 
 export function LoginForm({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<'form'>) {
+	const router = useRouter();
+	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
-	const [state, loginAction] = useActionState(login, undefined);
+	const { login } = useAuthStore();
+
+	const handleLogin = async (e: React.FormEvent) => {
+		e.preventDefault();
+		try {
+			const loginSuccess = await login({ username, password });
+
+			if (loginSuccess) {
+				router.push('/overview?loginSuccess=true');
+			} else {
+				toast.error('Invalid username or password');
+			}
+		} catch (error) {
+			console.error('Login error:', error);
+			toast.error((error as any)?.message || 'Login failed');
+		}
+	};
 
 	return (
 		<form
-			action={loginAction}
+			onSubmit={handleLogin}
 			className={cn('flex flex-col gap-6 font-plus_jakarta_sans', className)}
 			{...props}
 		>
@@ -36,9 +55,11 @@ export function LoginForm({
 					<Label htmlFor='username'>Username</Label>
 					<Input
 						id='username'
-						type='username'
+						type='text'
 						name='username'
 						placeholder='Enter your username'
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
 					/>
 				</div>
 				<div className='gap-2 grid'>
@@ -53,7 +74,7 @@ export function LoginForm({
 						onChange={(e) => setPassword(e.target.value)}
 					/>
 				</div>
-				<SubmitButton errors={state?.errors} />
+				<SubmitButton />
 			</div>
 			<div className='text-muted-foreground text-sm text-center'>
 				No account? Contact management to get started.
@@ -62,27 +83,12 @@ export function LoginForm({
 	);
 }
 
-function SubmitButton({ errors }: { errors?: Record<string, string[]> }) {
-	const { pending } = useFormStatus();
-
-	useEffect(() => {
-		if (errors && Object.keys(errors).length > 0) {
-			toast.error('Login failed', {
-				description:
-					errors.username?.[0] ||
-					errors.password?.[0] ||
-					'Invalid username or password',
-				action: {
-					label: 'Try again',
-					onClick: () => console.log('Try again'),
-				},
-			});
-		}
-	}, [errors]);
+function SubmitButton() {
+	const { isLoading } = useAuthStore();
 
 	return (
-		<Button disabled={pending} type='submit' className='w-full'>
-			{pending ? (
+		<Button disabled={isLoading} type='submit' className='w-full'>
+			{isLoading ? (
 				<>
 					<Loader2 className='mr-2 animate-spin' size={16} />
 					Please wait

@@ -18,18 +18,34 @@ import {
 	useSidebar,
 } from '@/components/ui/sidebar';
 
-import { logout } from '@/app/(auth)/login/action';
+import { useAuthStore } from '@/hooks/auth/useAuth';
+import { useRouter } from 'next/navigation';
 
 export function NavUser({
 	user,
 }: {
 	user: {
+		username: string;
 		name: string;
+		roleName: string;
+		roleCode: string;
+		profile_img: string;
 		email: string;
-		avatar: string;
+		code: string;
 	};
 }) {
 	const { isMobile } = useSidebar();
+	const { logout } = useAuthStore();
+	const router = useRouter();
+
+	const handleLogout = async () => {
+		try {
+			await logout();
+			router.push('/login'); // Redirect ke login setelah logout
+		} catch (error) {
+			console.error('Logout failed:', error);
+		}
+	};
 
 	return (
 		<SidebarMenu>
@@ -41,7 +57,7 @@ export function NavUser({
 							className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
 						>
 							<Avatar className='rounded-lg w-8 h-8'>
-								<AvatarImage src={user.avatar} alt={user.name} />
+								<AvatarImage src={user.profile_img} alt={user.name} />
 								<AvatarFallback className='rounded-lg'>CN</AvatarFallback>
 							</Avatar>
 							<div className='flex-1 grid text-sm text-left leading-tight'>
@@ -60,7 +76,7 @@ export function NavUser({
 						<DropdownMenuLabel className='p-0 font-normal'>
 							<div className='flex items-center gap-2 px-1 py-1.5 text-sm text-left'>
 								<Avatar className='rounded-lg w-8 h-8'>
-									<AvatarImage src={user.avatar} alt={user.name} />
+									<AvatarImage src={user.profile_img} alt={user.name} />
 									<AvatarFallback className='rounded-lg'>CN</AvatarFallback>
 								</Avatar>
 								<div className='flex-1 grid text-sm text-left leading-tight'>
@@ -70,7 +86,7 @@ export function NavUser({
 							</div>
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={() => logout()}>
+						<DropdownMenuItem onClick={handleLogout}>
 							<LogOut />
 							Log out
 						</DropdownMenuItem>

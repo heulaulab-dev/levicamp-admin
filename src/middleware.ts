@@ -1,32 +1,25 @@
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { decrypt } from '@/lib/session';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const protectedRouted = [
-	'/admin-management',
-	'/overview',
-	'/reservation-management',
-	'/settings',
-	'/tent-management',
-];
-const publicRoutes = ['/login'];
+export function middleware(request: NextRequest) {
+	const token = request.cookies.get('token')?.value;
+	const isLoginPage = request.nextUrl.pathname === '/login';
 
-export default async function middleware(req: NextRequest) {
-	const path = req.nextUrl.pathname;
-	const isProtectedRoute = protectedRouted.includes(path);
-	const isPublicRoute = publicRoutes.includes(path);
-
-	const cookie = (await cookies()).get('session')?.value;
-
-	const session = await decrypt(cookie);
-
-	if (isProtectedRoute && !session?.userId) {
-		return NextResponse.redirect(new URL('/login', req.nextUrl));
+	// Kalau user sudah login dan akses login page, redirect ke dashboard
+	if (token && isLoginPage) {
+		return NextResponse.redirect(new URL('/overview', request.url));
 	}
 
-	if (isPublicRoute && session?.userId) {
-		return NextResponse.redirect(new URL('/overview', req.nextUrl));
+	// Kalau user belum login dan akses halaman selain login, redirect ke login page
+	if (!token && !isLoginPage) {
+		return NextResponse.redirect(new URL('/login', request.url));
 	}
 
+	// Lanjutkan request
 	return NextResponse.next();
 }
+
+// Middleware berlaku untuk semua halaman kecuali static files & API routes
+export const config = {
+	matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+};
