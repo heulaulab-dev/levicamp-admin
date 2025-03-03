@@ -6,6 +6,12 @@ const api = axios.create({
 	headers: { 'Content-Type': 'application/json' },
 });
 
+const leviapi = axios.create({
+	baseURL: process.env.NEXT_PUBLIC_TEST_API_URL,
+	headers: { 'Content-Type': 'application/json' },
+	withCredentials: true,
+});
+
 // // Interceptor buat auto refresh token
 // api.interceptors.response.use(
 // 	(response) => response,
@@ -32,3 +38,4 @@ const api = axios.create({
 // );
 
 export default api;
+export { leviapi };
