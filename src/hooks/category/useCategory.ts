@@ -92,16 +92,14 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
 
 	// API Actions
 	getCategories: async () => {
+		if (get().categories.length > 0) return; // 🚀 Skip kalau sudah pernah fetch
+
 		set({ isLoading: true });
 		try {
 			const res = await leviapi.get('/categories');
-			console.log('API response:', res.data);
-
-			// Extract just the data array from the response
 			if (res.data && res.data.data) {
 				set({ categories: res.data.data });
 			} else {
-				console.error('Unexpected API response format:', res.data);
 				set({ categories: [] });
 			}
 		} catch (error) {
@@ -201,7 +199,7 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
 			set({
 				categories: [...categories, res.data.data],
 				isLoading: false,
-				isEditOpen: false, //
+				isEditOpen: false,
 			});
 
 			// Return success status and message

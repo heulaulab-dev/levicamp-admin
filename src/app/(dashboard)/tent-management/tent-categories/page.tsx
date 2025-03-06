@@ -7,7 +7,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useEffect } from 'react';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useCategoryStore } from '../../../../hooks/category/useCategory';
 import {
 	Dialog,
 	DialogContent,

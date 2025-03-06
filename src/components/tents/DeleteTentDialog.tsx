@@ -10,7 +10,7 @@ import {
 
 import { useCategoryStore } from '../../hooks/category/useCategory';
 
-export function DeleteCategoryDialog() {
+export function DeleteTentDialog() {
 	const { selectedCategory, isLoading, deleteCategory, setIsDeleteOpen } =
 		useCategoryStore();
 

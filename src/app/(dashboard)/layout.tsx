@@ -52,7 +52,7 @@ export default function DashboardLayout({
 		<SidebarProvider items={NavigationItem}>
 			<UISidebarProvider>
 				<AppSidebar />
-				<SidebarInset>
+				<SidebarInset className='overflow-hidden'>
 					<header className='group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex justify-between items-center gap-2 shadow-sm w-full h-16 transition-[width,height] ease-linear shrink-0'>
 						<div className='flex items-center gap-2 px-4'>
 							<SidebarTrigger className='-ml-1' />

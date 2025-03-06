@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 import { TentCategory } from '@/types/types';
-import { Dialog } from '@/components/tent-categories/CustomDialog';
+import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 import {
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EditCategoryForm } from '@/components/tent-categories/EditCategoryForm';
 import { DeleteCategoryDialog } from '@/components/tent-categories/DeleteCategoryDialog';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useCategoryStore } from '../../../../hooks/category/useCategory';
 
 export const columns: ColumnDef<TentCategory>[] = [
 	{
