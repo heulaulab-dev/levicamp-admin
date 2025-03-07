@@ -57,11 +57,16 @@ export const useTentStore = create<TentState>((set, get) => ({
 
 	// Actions
 	setIsCreateOpen: (isOpen: boolean) => {
-		set({
+		set((state) => ({
+			...state,
 			isCreateOpen: isOpen,
-			selectedTent: null,
-			formData: defaultFormData,
-		});
+			...(isOpen
+				? {
+						selectedTent: null,
+						formData: { ...defaultFormData },
+				  }
+				: {}),
+		}));
 	},
 	setIsEditOpen: (isOpen: boolean) => set({ isEditOpen: isOpen }),
 	setIsDeleteOpen: (isOpen: boolean) => set({ isDeleteOpen: isOpen }),
@@ -78,27 +83,27 @@ export const useTentStore = create<TentState>((set, get) => ({
 				},
 			});
 		} else {
-			set({ formData: defaultFormData });
+			set({ formData: { ...defaultFormData } });
 		}
 	},
 	setFormData: (data) => {
-		set((state) => {
-			const updatedFormData = {
-				...state.formData,
-				...data,
-			};
-
-			return { formData: updatedFormData };
-		}, false);
+		set(
+			(state) => ({
+				formData: {
+					...state.formData,
+					...data,
+				},
+			}),
+			false,
+		);
 	},
-	resetForm: () =>
-		set({
-			formData: defaultFormData,
+	resetForm: () => {
+		set((state) => ({
+			...state,
+			formData: { ...defaultFormData },
 			selectedTent: null,
-			isCreateOpen: false,
-			isEditOpen: false,
-			isDeleteOpen: false,
-		}),
+		}));
+	},
 
 	// API Actions
 	getTents: async () => {
