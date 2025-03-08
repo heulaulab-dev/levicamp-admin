@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/common/PageHeader';
 import { Payment, columns } from './columns';
 import { DataTable } from './data-table';
 
@@ -108,6 +109,7 @@ export default async function ReservationManagementPage() {
 
 	return (
 		<div className='mx-auto py-10 container'>
+			<PageHeader title='Reservation Management' />
 			<DataTable columns={columns} data={data} />
 		</div>
 	);

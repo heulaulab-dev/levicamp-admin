@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCategoryStore } from '../../hooks/category/useCategory';
+import { useCategoryStore } from '@/hooks/category/useCategory';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {

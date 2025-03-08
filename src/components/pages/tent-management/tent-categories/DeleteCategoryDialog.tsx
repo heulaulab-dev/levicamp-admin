@@ -8,7 +8,7 @@ import {
 	DialogFooter,
 } from '@/components/ui/dialog';
 
-import { useCategoryStore } from '../../hooks/category/useCategory';
+import { useCategoryStore } from '@/hooks/category/useCategory';
 
 export function DeleteCategoryDialog() {
 	const { selectedCategory, isLoading, deleteCategory, setIsDeleteOpen } =

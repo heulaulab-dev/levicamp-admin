@@ -16,8 +16,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EditTentForm } from '@/components/tents/EditTentForm';
-import { DeleteTentDialog } from '@/components/tents/DeleteTentDialog';
+import { EditTentForm } from '@/components/pages/tent-management/tents/EditTentForm';
+import { DeleteTentDialog } from '@/components/pages/tent-management/tents/DeleteTentDialog';
 import { useTentStore } from '@/hooks/tents/useTents';
 
 export const columns: ColumnDef<Tents>[] = [

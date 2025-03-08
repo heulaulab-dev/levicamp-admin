@@ -14,9 +14,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EditCategoryForm } from '@/components/tent-categories/EditCategoryForm';
-import { DeleteCategoryDialog } from '@/components/tent-categories/DeleteCategoryDialog';
-import { useCategoryStore } from '../../../../hooks/category/useCategory';
+import { EditCategoryForm } from '@/components/pages/tent-management/tent-categories/EditCategoryForm';
+import { DeleteCategoryDialog } from '@/components/pages/tent-management/tent-categories/DeleteCategoryDialog';
+import { useCategoryStore } from '@/hooks/category/useCategory';
 
 export const columns: ColumnDef<TentCategory>[] = [
 	{

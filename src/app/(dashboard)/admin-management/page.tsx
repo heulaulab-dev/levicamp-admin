@@ -1,7 +1,6 @@
 import { columns, Admin } from './columns';
 import { DataTable } from '@/components/ui/data-table';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PageHeader } from '@/components/common/PageHeader';
 
 async function getData(): Promise<Admin[]> {
 	// Fetch data from your API here.
@@ -28,13 +27,7 @@ export default async function AdminManagementPage() {
 
 	return (
 		<div className='mx-auto py-10 container'>
-			<div className='flex justify-between items-center mb-6'>
-				<h1 className='font-semibold text-2xl'>Admin Management</h1>
-				<Button>
-					<PlusCircle size={16} />
-					<span>Add Admin</span>
-				</Button>
-			</div>
+			<PageHeader title='Admin Management' />
 
 			<DataTable columns={columns} data={data} />
 		</div>
