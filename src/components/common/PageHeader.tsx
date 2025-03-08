@@ -4,6 +4,7 @@ import { PlusCircle } from 'lucide-react';
 
 type PageHeaderProps = {
 	title: string;
+	subtitle?: string;
 	buttonLabel?: string;
 	onButtonClick?: () => void;
 	isLoading?: boolean;
@@ -12,6 +13,7 @@ type PageHeaderProps = {
 
 export function PageHeader({
 	title,
+	subtitle,
 	buttonLabel,
 	onButtonClick,
 	isLoading,
@@ -19,7 +21,8 @@ export function PageHeader({
 }: PageHeaderProps) {
 	return (
 		<div className='flex justify-between items-center mb-6'>
-			<h1 className='font-semibold text-2xl'>{title}</h1>
+			<h1 className='font-bold text-3xl tracking-tight'>{title}</h1>
+			<p className='text-muted-foreground'>{subtitle}</p>
 
 			{/* Render button hanya jika ada buttonLabel & onButtonClick */}
 			{buttonLabel && onButtonClick && (

@@ -1,4 +1,10 @@
-import { CalendarFold, LucideHome, PieChartIcon, Users } from 'lucide-react';
+import {
+	CalendarFold,
+	LucideHome,
+	PieChartIcon,
+	ReceiptText,
+	Users,
+} from 'lucide-react';
 
 export const NavigationItem = [
 	{
@@ -31,5 +37,10 @@ export const NavigationItem = [
 		title: 'Admin Management',
 		url: '/admin-management',
 		icon: Users,
+	},
+	{
+		title: 'Refund Management',
+		url: '/refund-management',
+		icon: ReceiptText,
 	},
 ];

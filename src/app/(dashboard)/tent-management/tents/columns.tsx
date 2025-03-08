@@ -73,7 +73,7 @@ export const columns: ColumnDef<Tents>[] = [
 					? 'secondary'
 					: 'default';
 
-			return <Badge variant={statusColor}>{row.original.status}</Badge>;
+			return <Badge variant={statusColor}>{status}</Badge>;
 		},
 	},
 	{
