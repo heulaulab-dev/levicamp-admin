@@ -109,7 +109,10 @@ export default async function ReservationManagementPage() {
 
 	return (
 		<div className='mx-auto py-10 container'>
-			<PageHeader title='Reservation Management' />
+			<PageHeader
+				title='Booking Management'
+				subtitle='Streamline and oversee all reservations effortlessly'
+			/>
 			<DataTable columns={columns} data={data} />
 		</div>
 	);

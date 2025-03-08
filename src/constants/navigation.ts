@@ -14,8 +14,8 @@ export const NavigationItem = [
 		isActive: true,
 	},
 	{
-		title: 'Reservation Management',
-		url: '/reservation-management',
+		title: 'Booking Management',
+		url: '/booking-management',
 		icon: CalendarFold,
 	},
 	{
