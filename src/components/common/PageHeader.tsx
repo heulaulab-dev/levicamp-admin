@@ -21,8 +21,10 @@ export function PageHeader({
 }: PageHeaderProps) {
 	return (
 		<div className='flex justify-between items-center mb-6'>
-			<h1 className='font-bold text-3xl tracking-tight'>{title}</h1>
-			<p className='text-muted-foreground'>{subtitle}</p>
+			<div className='flex flex-col gap-2'>
+				<h1 className='font-bold text-3xl tracking-tight'>{title}</h1>
+				<p className='text-muted-foreground'>{subtitle}</p>
+			</div>
 
 			{/* Render button hanya jika ada buttonLabel & onButtonClick */}
 			{buttonLabel && onButtonClick && (

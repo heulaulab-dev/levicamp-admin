@@ -11,6 +11,7 @@ import { Refund } from '@/types';
 import { baseColumns } from './base-columns';
 import { successColumns } from './success-columns';
 import { DataTable } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/common/PageHeader';
 
 // Mock data - Replace with actual data from your API
 const pendingRefunds: Refund[] = [
@@ -61,13 +62,11 @@ const successfulRefunds: Refund[] = [
 
 export default function RefundManagement() {
 	return (
-		<div className='mx-auto py-8 container'>
-			<div className='mb-8'>
-				<h1 className='font-bold text-3xl tracking-tight'>Refund Management</h1>
-				<p className='text-muted-foreground'>
-					Manage and track customer refund requests
-				</p>
-			</div>
+		<div className='mx-auto py-10 container'>
+			<PageHeader
+				title='Refund Management'
+				subtitle='Manage and track guest refund request.'
+			/>
 
 			<Tabs defaultValue='pending' className='space-y-4'>
 				<TabsList>
