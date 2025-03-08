@@ -34,13 +34,13 @@ export const NavigationItem = [
 		],
 	},
 	{
-		title: 'Admin Management',
-		url: '/admin-management',
-		icon: Users,
-	},
-	{
 		title: 'Refund Management',
 		url: '/refund-management',
 		icon: ReceiptText,
+	},
+	{
+		title: 'Admin Management',
+		url: '/admin-management',
+		icon: Users,
 	},
 ];

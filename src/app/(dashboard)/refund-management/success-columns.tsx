@@ -27,6 +27,11 @@ export const successColumns: ColumnDef<Refund>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Amount' />
 		),
+		cell: ({ row }) =>
+			new Intl.NumberFormat('id-ID', {
+				style: 'currency',
+				currency: 'IDR',
+			}).format(row.original.amount),
 	},
 	{
 		accessorKey: 'reason',
