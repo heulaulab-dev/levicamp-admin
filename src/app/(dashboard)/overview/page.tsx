@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { PageHeader } from '@/components/common/PageHeader';
+import { Overview } from '@/components/pages/overview/overview';
 
-export default function Overview() {
+export default function OverviewPage() {
 	const searchParams = useSearchParams();
 	const loginSuccess = searchParams.get('loginSuccess');
 	const [toastShown, setToastShown] = useState(false);
@@ -24,10 +24,7 @@ export default function Overview() {
 
 	return (
 		<>
-			<div className='gap-4 grid md:grid-cols-3 auto-rows-min'>
-				{/* Your dashboard content here */}
-				<PageHeader title='Dashboard Overview' />
-			</div>
+			<Overview />
 		</>
 	);
 }
