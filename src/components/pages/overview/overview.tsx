@@ -1,96 +1,83 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RevenueChart } from '@/components/pages/overview/revenue-chart';
-import { RevenueBreakdown } from '@/components/pages/overview/revenue-breakdown';
 import { BookingList } from '@/components/pages/overview/booking-list';
-import { DollarSign, Users, Tent, TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp } from 'lucide-react';
+import { OverviewCard } from './OverviewCard';
+import { TotalGuestChart } from './TotalGuestChart';
+import { RevenueChart } from './RevenueChart';
+import { RevenueBreakdown } from './RevenueBreakdown';
+
+const overviewData = {
+	total_revenue: {
+		amount: 12500,
+		change: 12.5,
+		period: 'last_month',
+	},
+	total_bookings: {
+		total: 573,
+		change: -10,
+		period: 'last_month',
+	},
+	active_tents: {
+		total: 24,
+		change: 3,
+		period: 'last_month',
+	},
+	growth_rate: {
+		percentage: 12.5,
+		change: 2.1,
+		period: 'last_month',
+	},
+};
 
 export function Overview() {
+	const data = overviewData;
 	return (
 		<div className='space-y-4'>
 			<div className='gap-4 grid md:grid-cols-2 lg:grid-cols-4'>
-				<Card>
-					<CardHeader className='flex flex-row justify-between items-center space-y-0 pb-2'>
-						<CardTitle className='font-medium text-sm'>Total Revenue</CardTitle>
-						<DollarSign className='w-4 h-4 text-muted-foreground' />
-					</CardHeader>
-					<CardContent>
-						<div className='font-bold text-2xl'>$45,231.89</div>
-						<p className='text-muted-foreground text-xs'>
-							+20.1% from last month
-						</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className='flex flex-row justify-between items-center space-y-0 pb-2'>
-						<CardTitle className='font-medium text-sm'>Bookings</CardTitle>
-						<Users className='w-4 h-4 text-muted-foreground' />
-					</CardHeader>
-					<CardContent>
-						<div className='font-bold text-2xl'>+573</div>
-						<p className='text-muted-foreground text-xs'>
-							+201 since last hour
-						</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className='flex flex-row justify-between items-center space-y-0 pb-2'>
-						<CardTitle className='font-medium text-sm'>Active Tents</CardTitle>
-						<Tent className='w-4 h-4 text-muted-foreground' />
-					</CardHeader>
-					<CardContent>
-						<div className='font-bold text-2xl'>24</div>
-						<p className='text-muted-foreground text-xs'>+3 from yesterday</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className='flex flex-row justify-between items-center space-y-0 pb-2'>
-						<CardTitle className='font-medium text-sm'>Growth Rate</CardTitle>
-						<TrendingUp className='w-4 h-4 text-muted-foreground' />
-					</CardHeader>
-					<CardContent>
-						<div className='font-bold text-2xl'>+12.5%</div>
-						<p className='text-muted-foreground text-xs'>
-							+2.1% from last month
-						</p>
-					</CardContent>
-				</Card>
+				<OverviewCard
+					title='Revenue'
+					amount={`RP.${data.total_revenue.amount.toLocaleString('id-ID')}`}
+					percentage={`${data.total_revenue.change > 0 ? '+' : ''}${
+						data.total_revenue.change
+					}% from last month`}
+					icon={data.total_revenue.change < 0 ? TrendingDown : TrendingUp}
+					tooltip='Total revenue generated from bookings'
+				/>
+				<OverviewCard
+					title='Bookings'
+					amount={`+${data.total_bookings.total}`}
+					percentage={`${data.total_bookings.change > 0 ? '+' : ''}${
+						data.total_bookings.change
+					} from last month`}
+					icon={data.total_bookings.change < 0 ? TrendingDown : TrendingUp}
+					tooltip='Total number of bookings made'
+				/>
+				<OverviewCard
+					title='Active Tents'
+					amount={`${data.active_tents.total}`}
+					percentage={`${data.active_tents.change > 0 ? '+' : ''}${
+						data.active_tents.change
+					} from last month`}
+					icon={data.active_tents.change < 0 ? TrendingDown : TrendingUp}
+					tooltip='Total number of active tents'
+				/>
+				<OverviewCard
+					title='Growth Rate'
+					amount={`${data.growth_rate.percentage}%`}
+					percentage={`${data.growth_rate.change > 0 ? '+' : ''}${
+						data.growth_rate.change
+					}% from last month`}
+					icon={data.growth_rate.change < 0 ? TrendingDown : TrendingUp}
+					tooltip='Growth rate of the business'
+				/>
 			</div>
 			<div className='gap-4 grid md:grid-cols-2 lg:grid-cols-7'>
-				<Card className='col-span-4'>
-					<CardHeader>
-						<CardTitle>Revenue Overview</CardTitle>
-					</CardHeader>
-					<CardContent className='pl-2'>
-						<Tabs defaultValue='daily' className='space-y-4'>
-							<TabsList>
-								<TabsTrigger value='daily'>Daily</TabsTrigger>
-								<TabsTrigger value='weekly'>Weekly</TabsTrigger>
-								<TabsTrigger value='monthly'>Monthly</TabsTrigger>
-							</TabsList>
-							<TabsContent value='daily' className='space-y-4'>
-								<RevenueChart />
-							</TabsContent>
-							<TabsContent value='weekly' className='space-y-4'>
-								<RevenueChart />
-							</TabsContent>
-							<TabsContent value='monthly' className='space-y-4'>
-								<RevenueChart />
-							</TabsContent>
-						</Tabs>
-					</CardContent>
-				</Card>
-				<Card className='col-span-3'>
-					<CardHeader>
-						<CardTitle>Revenue Breakdown</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<RevenueBreakdown />
-					</CardContent>
-				</Card>
+				<RevenueChart />
+				<RevenueBreakdown />
 			</div>
+			<TotalGuestChart />
 			<div className='gap-4 grid'>
 				<Card>
 					<CardHeader>

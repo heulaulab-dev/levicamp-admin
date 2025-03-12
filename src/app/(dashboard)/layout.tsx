@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -17,14 +18,15 @@ import {
 	SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Toaster } from 'sonner';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useAuthStore, useInitAuth } from '@/hooks/auth/useAuth';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationItem } from '@/constants/navigation';
 import { SettingsIcon } from 'lucide-react';
+import { BottomProgress } from '@/components/ui/progress-bar';
 
 export default function DashboardLayout({
 	children,
@@ -32,6 +34,29 @@ export default function DashboardLayout({
 	children: React.ReactNode;
 }) {
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const [isLoading, setIsLoading] = useState(false);
+
+	// Show loading bar on route changes
+	useEffect(() => {
+		const handleRouteChangeStart = () => {
+			setIsLoading(true);
+		};
+
+		const handleRouteChangeComplete = () => {
+			setIsLoading(false);
+		};
+
+		// This effect runs when the route changes
+		setIsLoading(true);
+
+		// Small delay to ensure the loading bar is visible
+		const timeout = setTimeout(() => {
+			setIsLoading(false);
+		}, 500);
+
+		return () => clearTimeout(timeout);
+	}, [pathname, searchParams]);
 
 	// Create breadcrumb segments from pathname
 	const pathSegments = pathname.split('/').filter(Boolean);
@@ -90,6 +115,7 @@ export default function DashboardLayout({
 					</header>
 					<div className='flex flex-col flex-1 gap-4 p-4 pt-0'>
 						<Toaster richColors position='top-right' />
+						<BottomProgress isLoading={isLoading} />
 						{children}
 					</div>
 				</SidebarInset>
