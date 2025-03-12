@@ -91,7 +91,7 @@ function MobileDialogContent({ className }: React.ComponentProps<'div'>) {
 	return (
 		<div className={className}>
 			{/* Desktop Preview Image */}
-			<div className='bg-[#146C94] mb-6 p-4 rounded-lg overflow-hidden'>
+			<div className='mb-6 p-4 rounded-lg overflow-hidden'>
 				<Image
 					src='/placeholder.svg'
 					alt='Desktop Version Preview'
