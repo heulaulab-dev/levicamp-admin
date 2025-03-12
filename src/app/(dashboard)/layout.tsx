@@ -27,6 +27,7 @@ import React, { useEffect, useState } from 'react';
 import { NavigationItem } from '@/constants/navigation';
 import { SettingsIcon } from 'lucide-react';
 import { BottomProgress } from '@/components/ui/progress-bar';
+import { MobileDetectionDialog } from '@/components/common/mobile-detection-dialog';
 
 export default function DashboardLayout({
 	children,
@@ -116,6 +117,8 @@ export default function DashboardLayout({
 					<div className='flex flex-col flex-1 gap-4 p-4 pt-0'>
 						<Toaster richColors position='top-right' />
 						<BottomProgress isLoading={isLoading} />
+						{/* Mobile detection dialog */}
+						<MobileDetectionDialog />
 						{children}
 					</div>
 				</SidebarInset>
