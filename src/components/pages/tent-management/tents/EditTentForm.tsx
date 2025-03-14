@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -66,6 +66,10 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const [isUploading, setIsUploading] = useState(false);
 	const [previewUrl, setPreviewUrl] = useState('');
+	const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+	// Track if data is being fetched to prevent multiple requests
+	const isFetchingRef = useRef(false);
 
 	// Memoized default facilities
 	const defaultFacilities = useMemo(
@@ -74,61 +78,108 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 	);
 
 	const [facilities, setFacilities] = useState<string[]>(defaultFacilities);
-	const [selectedFacilities, setSelectedFacilities] = useState<string[]>(
-		formData.facilities || [],
-	);
+	const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
 	const [customFacility, setCustomFacility] = useState('');
-
-	// Fetch initial data
-	const fetchInitialData = useCallback(async () => {
-		try {
-			// Fetch categories only if not already loaded
-			if (categories.length === 0) {
-				await getCategories();
-			}
-
-			// Fetch tent details
-			if (tentId) {
-				const result = await getTentDetails(tentId);
-				if (!result) {
-					toast.error('Failed to load tent details');
-					setIsEditOpen(false);
-				}
-			} else {
-				toast.error('No tent selected for editing');
-				setIsEditOpen(false);
-			}
-		} catch (error) {
-			toast.error('Failed to load tent details');
-			setIsEditOpen(false);
-		}
-	}, [tentId, categories.length, getCategories, getTentDetails, setIsEditOpen]);
-
-	// Fetch data when component mounts
-	useEffect(() => {
-		fetchInitialData();
-
-		// Reset form and local state when component mounts
-		return () => {
-			resetForm();
-			resetLocalState();
-		};
-	}, [fetchInitialData, resetForm]);
 
 	// Reset local state
 	const resetLocalState = useCallback(() => {
 		setUploadProgress(0);
 		setIsUploading(false);
 		setPreviewUrl('');
+		setSelectedFacilities([]);
 		setCustomFacility('');
-	}, []);
+		setFacilities([...defaultFacilities]);
+		setIsDataLoaded(false);
+	}, [defaultFacilities]);
+
+	// CONSOLIDATED DATA FETCHING - only one place to fetch data
+	useEffect(() => {
+		// Skip if we're already fetching or if there's no tentId
+		if (isFetchingRef.current || !tentId) return;
+
+		const loadInitialData = async () => {
+			try {
+				isFetchingRef.current = true;
+
+				// Create an array of promises to run in parallel
+				const fetchPromises = [];
+
+				// Only fetch categories if needed
+				if (categories.length === 0) {
+					fetchPromises.push(getCategories());
+				}
+
+				// Always fetch tent details
+				fetchPromises.push(getTentDetails(tentId));
+
+				// Wait for all promises to resolve
+				const results = await Promise.all(fetchPromises);
+
+				// The tent details will be the last result if categories were fetched,
+				// or the only result if categories weren't fetched
+				const tentDetails = results[results.length - 1];
+
+				if (!tentDetails) {
+					toast.error('Failed to load tent details');
+					setIsEditOpen(false);
+					return;
+				}
+
+				// Update facilities from tent data
+				if (tentDetails.facilities && tentDetails.facilities.length > 0) {
+					// Set selected facilities
+					setSelectedFacilities(tentDetails.facilities);
+
+					// Update available facilities
+					setFacilities((prev) => {
+						const newFacilities = [...prev];
+						tentDetails.facilities.forEach((facility) => {
+							if (!newFacilities.includes(facility)) {
+								newFacilities.push(facility);
+							}
+						});
+						return newFacilities;
+					});
+				}
+
+				// Set preview URL if there's a tent image
+				if (tentDetails.tent_image) {
+					setPreviewUrl(tentDetails.tent_image);
+				}
+
+				setIsDataLoaded(true);
+			} catch (error) {
+				console.error('Error loading data:', error);
+				toast.error('Failed to load tent details');
+				setIsEditOpen(false);
+			} finally {
+				isFetchingRef.current = false;
+			}
+		};
+
+		loadInitialData();
+
+		// Cleanup function when component unmounts or tentId changes
+		return () => {
+			resetForm();
+			resetLocalState();
+		};
+	}, [
+		tentId,
+		categories.length,
+		getCategories,
+		getTentDetails,
+		setIsEditOpen,
+		resetForm,
+		resetLocalState,
+	]);
 
 	// Update preview URL when tent image changes
 	useEffect(() => {
-		if (formData.tent_image) {
+		if (formData.tent_image && formData.tent_image !== previewUrl) {
 			setPreviewUrl(formData.tent_image);
 		}
-	}, [formData.tent_image]);
+	}, [formData.tent_image, previewUrl]);
 
 	// Input change handlers
 	const handleInputChange = useCallback(
@@ -146,36 +197,10 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 		[setFormData],
 	);
 
-	// 1. Make sure formData.facilities is properly loaded from API
-	useEffect(() => {
-		if (tentId) {
-			// Log to verify data is being loaded correctly
-			console.log('Loading tent details for:', tentId);
-			getTentDetails(tentId).then((data) => {
-				console.log('Loaded facilities:', data?.facilities);
-			});
-		}
-	}, [tentId, getTentDetails]);
+	// Use a ref to avoid circular updates
+	const pendingFacilityUpdate = useRef<string[]>(null);
 
-	// 2. Update selectedFacilities whenever formData changes
-	useEffect(() => {
-		console.log('Form data facilities updated:', formData.facilities);
-		if (formData.facilities && formData.facilities.length > 0) {
-			setSelectedFacilities(formData.facilities);
-
-			// Make sure all facilities from the data are in the facilities list
-			setFacilities((prev) => {
-				const newFacilities = [...prev];
-				formData.facilities.forEach((facility) => {
-					if (!newFacilities.includes(facility)) {
-						newFacilities.push(facility);
-					}
-				});
-				return newFacilities;
-			});
-		}
-	}, [formData.facilities]);
-
+	// Handle facility toggle with debouncing
 	const toggleFacility = useCallback(
 		(facility: string) => {
 			setSelectedFacilities((prev) => {
@@ -183,9 +208,19 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 					? prev.filter((f) => f !== facility)
 					: [...prev, facility];
 
-				setFormData({ facilities: newFacilities });
+				// Store the updated facilities for the debounced update
+				pendingFacilityUpdate.current = newFacilities;
+
 				return newFacilities;
 			});
+
+			// Update formData in the next event loop
+			setTimeout(() => {
+				if (pendingFacilityUpdate.current !== null) {
+					setFormData({ facilities: pendingFacilityUpdate.current });
+					pendingFacilityUpdate.current = null;
+				}
+			}, 0);
 		},
 		[setFormData],
 	);
@@ -211,8 +246,8 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 			const file = e.target.files?.[0];
 			if (!file) return;
 
-			// Revoke previous preview URL
-			if (previewUrl) {
+			// Revoke previous preview URL only if it's a blob URL
+			if (previewUrl && previewUrl.startsWith('blob:')) {
 				URL.revokeObjectURL(previewUrl);
 			}
 
@@ -251,8 +286,8 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 	);
 
 	const handleDeleteImage = useCallback(() => {
-		// Revoke the previous preview URL
-		if (previewUrl) {
+		// Revoke the previous preview URL only if it's a blob URL
+		if (previewUrl && previewUrl.startsWith('blob:')) {
 			URL.revokeObjectURL(previewUrl);
 		}
 
@@ -280,44 +315,30 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 			}
 
 			toast.success(result.message);
-			resetLocalState();
 			setIsEditOpen(false);
 		} catch (error) {
 			toast.error((error as any).message || 'Failed to update tent');
 		}
-	}, [tentId, updateTent, resetLocalState, setIsEditOpen]);
+	}, [tentId, updateTent, setIsEditOpen]);
 
 	const handleCancel = useCallback(() => {
-		resetLocalState();
 		setIsEditOpen(false);
-	}, [resetLocalState, setIsEditOpen]);
+	}, [setIsEditOpen]);
 
+	// Reset form when dialog closes
 	useEffect(() => {
 		if (!isEditOpen) {
-			// When dialog is closed, reset form completely
 			resetForm();
 			resetLocalState();
 		}
 	}, [isEditOpen, resetForm, resetLocalState]);
 
-	useEffect(() => {
-		if (tentId) {
-			// Use Promise.all to fetch categories and tent details in parallel
-			Promise.all([
-				categories.length === 0 ? getCategories() : Promise.resolve(),
-				getTentDetails(tentId),
-			]).catch((error) => {
-				toast.error('Failed to load data');
-				setIsEditOpen(false);
-			});
-		}
-	}, [tentId, categories.length, getCategories, getTentDetails, setIsEditOpen]);
-
 	return (
 		<DialogContent className='sm:max-w-[700px] max-h-[80vh] overflow-y-auto'>
-			{isLoading ? (
+			{isLoading || !isDataLoaded ? (
 				<div className='flex justify-center items-center h-48'>
-					<p>Loading tent details...</p>
+					<div className='border-primary border-t-2 border-b-2 rounded-full w-8 h-8 animate-spin'></div>
+					<p className='ml-3'>Loading tent details...</p>
 				</div>
 			) : (
 				<>
@@ -333,7 +354,7 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 						<div>
 							<h3 className='mb-4 font-medium text-lg'>Tent Category</h3>
 							<Select
-								value={formData.category_id}
+								value={formData.category_id || ''}
 								onValueChange={handleCategoryChange}
 								required
 							>
@@ -364,7 +385,7 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 							<Input
 								id='name'
 								name='name'
-								value={formData.name}
+								value={formData.name || ''}
 								onChange={handleInputChange}
 							/>
 						</div>
@@ -375,7 +396,7 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 							<Textarea
 								id='description'
 								name='description'
-								value={formData.description}
+								value={formData.description || ''}
 								onChange={handleInputChange}
 								placeholder='Enter tent description'
 							/>
