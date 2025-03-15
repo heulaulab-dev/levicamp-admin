@@ -25,9 +25,10 @@ import Link from 'next/link';
 import { useAuthStore, useInitAuth } from '@/hooks/auth/useAuth';
 import React, { useEffect, useState } from 'react';
 import { NavigationItem } from '@/constants/navigation';
-import { SettingsIcon } from 'lucide-react';
+import { LogOut, SettingsIcon } from 'lucide-react';
 import { BottomProgress } from '@/components/ui/progress-bar';
 import { MobileDetectionDialog } from '@/components/common/mobile-detection-dialog';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({
 	children,
@@ -37,7 +38,7 @@ export default function DashboardLayout({
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [isLoading, setIsLoading] = useState(false);
-
+	const router = useRouter();
 	// Show loading bar on route changes
 	useEffect(() => {
 		const handleRouteChangeStart = () => {
@@ -72,7 +73,16 @@ export default function DashboardLayout({
 
 	useInitAuth();
 
-	const { user } = useAuthStore();
+	const { user, logout } = useAuthStore();
+
+	const handleLogout = async () => {
+		try {
+			await logout();
+			router.push('/login');
+		} catch (error) {
+			console.error('Logout failed:', error);
+		}
+	};
 
 	return (
 		<SidebarProvider items={NavigationItem}>
@@ -110,6 +120,11 @@ export default function DashboardLayout({
 									<SettingsIcon />
 								</Button>
 							</Link>
+
+							<Button variant={'ghost'} size={'icon'} onClick={handleLogout}>
+								<LogOut />
+							</Button>
+
 							<Separator orientation='vertical' className='mr-2 h-4' />
 							{user && <NavUser user={user} />}
 						</div>
