@@ -27,11 +27,9 @@ export function NavUser({
 	user: {
 		username: string;
 		name: string;
-		roleName: string;
-		roleCode: string;
-		profile_img: { url: string };
+		phone: string;
 		email: string;
-		code: string;
+		profile_img?: { url: string };
 	};
 }) {
 	const { isMobile } = useSidebar();

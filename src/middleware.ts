@@ -11,9 +11,9 @@ export function middleware(request: NextRequest) {
 	}
 
 	// Kalau user belum login dan akses halaman selain login, redirect ke login page
-	if (!token && !isLoginPage) {
-		return NextResponse.redirect(new URL('/login', request.url));
-	}
+	// if (!token && !isLoginPage) {
+	// 	return NextResponse.redirect(new URL('/login', request.url));
+	// }
 
 	// Lanjutkan request
 	return NextResponse.next();
