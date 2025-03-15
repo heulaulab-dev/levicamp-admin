@@ -22,9 +22,10 @@ type AuthState = {
 	// fetchUser: () => Promise<boolean>;
 	logout: () => void;
 	refreshAuthToken: () => Promise<boolean>;
+	checkToken: () => Promise<boolean>;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
 	user: null,
 	token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
 	refreshToken:
@@ -173,14 +174,51 @@ export const useAuthStore = create<AuthState>((set) => ({
 			return false;
 		}
 	},
+
+	checkToken: async () => {
+		const token = get().token;
+		if (!token) return false;
+
+		try {
+			const response = await api.post(
+				'/check-token',
+				{},
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				},
+			);
+
+			// If we get a successful response, the token is valid
+			if (response.data?.status === 'success') {
+				console.log('Token validation successful');
+				return true;
+			}
+
+			return false;
+		} catch (error) {
+			console.error('Token validation failed:', error);
+
+			// If error is 401, token is invalid - clear it
+			if ((error as any).response?.status === 401) {
+				console.log('Token is invalid, logging out');
+				// get().logout();
+			}
+
+			return false;
+		}
+	},
 }));
 
 export function useInitAuth() {
-	const { token, user, logout } = useAuthStore();
+	const { token, user, checkToken } = useAuthStore();
 
 	useEffect(() => {
 		if (token && !user) {
-			console.log('Verifying token...'); // Debugging
+			console.log('Token exists, but not verifying automatically');
+			// No automatic token verification
+			checkToken();
 		}
-	}, [token, user, logout]);
+	}, [token, user, checkToken]);
 }
