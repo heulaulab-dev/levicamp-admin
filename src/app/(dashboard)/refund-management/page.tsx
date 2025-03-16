@@ -2,65 +2,59 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
 import { Badge } from '@/components/ui/badge';
-
 import { RefreshCcw } from 'lucide-react';
-
-import { Refund } from '@/types';
 import { baseColumns } from './base-columns';
 import { successColumns } from './success-columns';
 import { DataTable } from '@/components/ui/data-table';
 import { PageHeader } from '@/components/common/PageHeader';
-
-// Mock data - Replace with actual data from your API
-const pendingRefunds: Refund[] = [
-	{
-		id: 'REF001',
-		guestName: 'John Doe',
-		amount: 299.99,
-		date: '2024-03-20',
-		bookingId: 'BOOK-2024-001',
-		reason: 'Unexpected cancellation',
-		status: 'pending',
-	},
-	{
-		id: 'REF002',
-		guestName: 'Jane Smith',
-		amount: 149.99,
-		date: '2024-03-19',
-		bookingId: 'BOOK-2024-002',
-		reason: 'Change of plans',
-		status: 'pending',
-	},
-];
-
-const successfulRefunds: Refund[] = [
-	{
-		id: 'REF003',
-		guestName: 'Alice Johnson',
-		amount: 199.99,
-		date: '2024-03-18',
-		bookingId: 'BOOK-2024-003',
-		reason: 'Service unavailable',
-		status: 'completed',
-		refundedDate: '2024-03-19',
-		paymentProof: 'https://example.com/proof/ref003.pdf',
-	},
-	{
-		id: 'REF004',
-		guestName: 'Bob Wilson',
-		amount: 399.99,
-		date: '2024-03-17',
-		bookingId: 'BOOK-2024-004',
-		reason: 'Double booking',
-		status: 'completed',
-		refundedDate: '2024-03-18',
-		paymentProof: 'https://example.com/proof/ref004.pdf',
-	},
-];
+import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function RefundManagement() {
+	const { refunds, isLoading, fetchRefunds } = useRefunds();
+
+	useEffect(() => {
+		fetchRefunds();
+	}, [fetchRefunds]);
+
+	// Filter refunds based on status
+	const pendingRefunds = refunds.filter(
+		(refund) => refund.status === 'pending' || refund.status === 'approved',
+	);
+	const successfulRefunds = refunds.filter(
+		(refund) => refund.status === 'completed',
+	);
+
+	const handleRefresh = () => {
+		fetchRefunds();
+	};
+
+	if (isLoading) {
+		return (
+			<div className='space-y-4 mx-auto py-10 container'>
+				<PageHeader
+					title='Refund Management'
+					subtitle='Manage and track guest refund request.'
+				/>
+				<Card>
+					<CardHeader>
+						<Skeleton className='w-[200px] h-8' />
+					</CardHeader>
+					<CardContent>
+						<div className='space-y-2'>
+							<Skeleton className='w-full h-10' />
+							<Skeleton className='w-full h-10' />
+							<Skeleton className='w-full h-10' />
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
 	return (
 		<div className='mx-auto py-10 container'>
 			<PageHeader
@@ -95,7 +89,14 @@ export default function RefundManagement() {
 						<CardHeader>
 							<CardTitle className='flex justify-between items-center'>
 								<span>Pending Refund Requests</span>
-								<RefreshCcw className='w-5 h-5 text-muted-foreground hover:text-primary transition-colors cursor-pointer' />
+								<Button
+									variant='ghost'
+									size='icon'
+									onClick={handleRefresh}
+									disabled={isLoading}
+								>
+									<RefreshCcw className='w-5 h-5 text-muted-foreground hover:text-primary transition-colors' />
+								</Button>
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -109,7 +110,14 @@ export default function RefundManagement() {
 						<CardHeader>
 							<CardTitle className='flex justify-between items-center'>
 								<span>Successful Refunds</span>
-								<RefreshCcw className='w-5 h-5 text-muted-foreground hover:text-primary transition-colors cursor-pointer' />
+								<Button
+									variant='ghost'
+									size='icon'
+									onClick={handleRefresh}
+									disabled={isLoading}
+								>
+									<RefreshCcw className='w-5 h-5 text-muted-foreground hover:text-primary transition-colors' />
+								</Button>
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
