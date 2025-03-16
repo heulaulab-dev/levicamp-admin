@@ -32,7 +32,7 @@ import { Progress } from '@/components/ui/progress';
 
 // Hooks
 import { useTentStore } from '@/hooks/tents/useTents';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useCategory } from '@/hooks/category/useCategory';
 
 export function AddTentForm() {
 	// Store hooks
@@ -43,7 +43,7 @@ export function AddTentForm() {
 		categories,
 		getCategories,
 		isLoading: categoriesLoading,
-	} = useCategoryStore();
+	} = useCategory();
 
 	// Fetch categories when component mounts
 	useEffect(() => {

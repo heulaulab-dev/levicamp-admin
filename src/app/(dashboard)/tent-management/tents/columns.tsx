@@ -2,7 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
-import { Tents } from '@/types/types';
+import { Tent } from '@/types/types';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,7 @@ import { EditTentForm } from '@/components/pages/tent-management/tents/EditTentF
 import { DeleteTentDialog } from '@/components/pages/tent-management/tents/DeleteTentDialog';
 import { useTentStore } from '@/hooks/tents/useTents';
 
-export const columns: ColumnDef<Tents>[] = [
+export const columns: ColumnDef<Tent>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Tent Name',
@@ -109,7 +109,7 @@ export const columns: ColumnDef<Tents>[] = [
 	},
 ];
 
-const ActionsDropdown = ({ tent }: { tent: Tents }) => {
+const ActionsDropdown = ({ tent }: { tent: Tent }) => {
 	const {
 		isEditOpen,
 		isDeleteOpen,
@@ -119,11 +119,16 @@ const ActionsDropdown = ({ tent }: { tent: Tents }) => {
 	} = useTentStore();
 
 	const handleEditClick = () => {
+		console.log('Opening edit modal for tent ID:', tent.id);
+		console.log('Tent details:', tent);
+
 		setSelectedTent(tent);
 		setIsEditOpen(true);
 	};
 
 	const handleDeleteClick = () => {
+		console.log('Opening delete modal for tent ID:', tent.id);
+
 		setSelectedTent(tent);
 		setIsDeleteOpen(true);
 	};
@@ -165,7 +170,7 @@ const ActionsDropdown = ({ tent }: { tent: Tents }) => {
 
 			{/* Dialogs */}
 			<Dialog modal open={isEditOpen} onOpenChange={setIsEditOpen}>
-				<EditTentForm tentId={tent.id} />
+				{isEditOpen && <EditTentForm tentId={tent.id} />}
 			</Dialog>
 
 			<Dialog modal open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

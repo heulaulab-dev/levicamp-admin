@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EditCategoryForm } from '@/components/pages/tent-management/tent-categories/EditCategoryForm';
 import { DeleteCategoryDialog } from '@/components/pages/tent-management/tent-categories/DeleteCategoryDialog';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useCategory } from '@/hooks/category/useCategory';
 
 export const columns: ColumnDef<TentCategory>[] = [
 	{
@@ -62,7 +62,7 @@ const ActionsDropdown = ({ category }: { category: TentCategory }) => {
 		setIsEditOpen,
 		setIsDeleteOpen,
 		setSelectedCategory,
-	} = useCategoryStore();
+	} = useCategory();
 
 	const handleEditClick = () => {
 		setSelectedCategory(category);
