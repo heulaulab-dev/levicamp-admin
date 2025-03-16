@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { TrendingUp } from 'lucide-react';
 import { Label, Pie, PieChart } from 'recharts';
+import { useEffect, useRef } from 'react';
 
 import {
 	Card,
@@ -20,50 +21,116 @@ import {
 	ChartTooltipContent,
 } from '@/components/ui/chart';
 
-const chartData = [
-	{ browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
-	{ browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
-	{ browser: 'firefox', visitors: 287, fill: 'var(--color-firefox)' },
-	{ browser: 'edge', visitors: 173, fill: 'var(--color-edge)' },
-	{ browser: 'other', visitors: 190, fill: 'var(--color-other)' },
+import {
+	useRevenueBreakdownStore,
+	useBreakdownChartData,
+} from '@/hooks/overview/useRevenueBreakdown';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Fallback data for when API returns null
+const fallbackData = [
+	{ name: 'No Data', value: 100, fill: 'hsl(var(--muted))' },
 ];
 
+// Chart configuration for colors and labels
 const chartConfig = {
 	visitors: {
-		label: 'Visitors',
+		label: 'Revenue',
 	},
-	chrome: {
-		label: 'Chrome',
+	food: {
+		label: 'Food',
 		color: 'hsl(var(--chart-1))',
 	},
-	safari: {
-		label: 'Safari',
+	beverage: {
+		label: 'Beverage',
 		color: 'hsl(var(--chart-2))',
 	},
-	firefox: {
-		label: 'Firefox',
+	accommodation: {
+		label: 'Accommodation',
 		color: 'hsl(var(--chart-3))',
 	},
-	edge: {
-		label: 'Edge',
+	service: {
+		label: 'Service',
 		color: 'hsl(var(--chart-4))',
+	},
+	event: {
+		label: 'Event',
+		color: 'hsl(var(--chart-5))',
 	},
 	other: {
 		label: 'Other',
-		color: 'hsl(var(--chart-5))',
+		color: 'hsl(var(--chart-6, 217 91% 60%))',
 	},
 } satisfies ChartConfig;
 
 export function RevenueBreakdown() {
-	const totalVisitors = React.useMemo(() => {
-		return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-	}, []);
+	// Get breakdown data and loading state from store
+	const { getRevenueBreakdown, breakdownData, isLoading, error } =
+		useRevenueBreakdownStore();
+	const { categoryChartData, totalRevenue } = useBreakdownChartData();
+
+	// Use ref to prevent duplicate API calls on mount
+	const initialFetchDone = useRef(false);
+
+	// Fetch data only once when component mounts
+	useEffect(() => {
+		if (!initialFetchDone.current) {
+			console.log('Initial revenue breakdown mount - fetching data');
+			initialFetchDone.current = true;
+			getRevenueBreakdown();
+		}
+	}, [getRevenueBreakdown]);
+
+	// Show loading state
+	if (isLoading) {
+		return (
+			<Card className='flex flex-col col-span-3'>
+				<CardHeader className='items-center pb-0'>
+					<Skeleton className='w-48 h-7' />
+					<Skeleton className='mt-2 w-32 h-4' />
+				</CardHeader>
+				<CardContent className='flex flex-1 justify-center items-center pb-0'>
+					<Skeleton className='rounded-full w-[250px] h-[250px]' />
+				</CardContent>
+				<CardFooter className='flex-col gap-2 pt-6 text-sm'>
+					<Skeleton className='w-36 h-4' />
+					<Skeleton className='w-48 h-4' />
+				</CardFooter>
+			</Card>
+		);
+	}
+
+	// Show error state
+	if (error) {
+		return (
+			<Card className='flex flex-col col-span-3'>
+				<CardContent className='p-4'>
+					<div className='bg-red-50 p-4 border border-red-300 rounded-md'>
+						<h3 className='font-semibold text-red-700'>
+							Error loading revenue breakdown
+						</h3>
+						<p className='text-red-600'>{error}</p>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	// Use actual data if available, fallback data otherwise
+	const displayData =
+		categoryChartData.length > 0 ? categoryChartData : fallbackData;
+
+	// Get the current date for title display
+	const currentDate = new Date();
+	const dateDisplay = `${currentDate.toLocaleString('default', {
+		month: 'long',
+	})} ${currentDate.getFullYear()}`;
 
 	return (
 		<Card className='flex flex-col col-span-3'>
 			<CardHeader className='items-center pb-0'>
-				<CardTitle>Pie Chart - Donut with Text</CardTitle>
-				<CardDescription>January - June 2024</CardDescription>
+				<CardTitle>Revenue Breakdown</CardTitle>
+				<CardDescription>{dateDisplay}</CardDescription>
 			</CardHeader>
 			<CardContent className='flex-1 pb-0'>
 				<ChartContainer
@@ -73,12 +140,18 @@ export function RevenueBreakdown() {
 					<PieChart>
 						<ChartTooltip
 							cursor={false}
-							content={<ChartTooltipContent hideLabel />}
+							content={
+								<ChartTooltipContent
+									formatter={(value) =>
+										`Rp.${Number(value).toLocaleString('id-ID')}`
+									}
+								/>
+							}
 						/>
 						<Pie
-							data={chartData}
-							dataKey='visitors'
-							nameKey='browser'
+							data={displayData}
+							dataKey='value'
+							nameKey='name'
 							innerRadius={60}
 							strokeWidth={5}
 						>
@@ -97,14 +170,16 @@ export function RevenueBreakdown() {
 													y={viewBox.cy}
 													className='fill-foreground font-bold text-3xl'
 												>
-													{totalVisitors.toLocaleString()}
+													{totalRevenue > 0
+														? `Rp.${Math.floor(totalRevenue / 1000000)}M`
+														: 'No Data'}
 												</tspan>
 												<tspan
 													x={viewBox.cx}
 													y={(viewBox.cy || 0) + 24}
 													className='fill-muted-foreground'
 												>
-													Visitors
+													Total Revenue
 												</tspan>
 											</text>
 										);
@@ -116,12 +191,21 @@ export function RevenueBreakdown() {
 				</ChartContainer>
 			</CardContent>
 			<CardFooter className='flex-col gap-2 text-sm'>
-				<div className='flex items-center gap-2 font-medium leading-none'>
-					Trending up by 5.2% this month <TrendingUp className='w-4 h-4' />
-				</div>
-				<div className='text-muted-foreground leading-none'>
-					Showing total visitors for the last 6 months
-				</div>
+				{breakdownData ? (
+					<>
+						<div className='flex items-center gap-2 font-medium leading-none'>
+							Revenue by category analysis
+							<TrendingUp className='w-4 h-4 text-green-500' />
+						</div>
+						<div className='text-muted-foreground leading-none'>
+							Showing breakdown of total revenue by category
+						</div>
+					</>
+				) : (
+					<div className='text-muted-foreground leading-none'>
+						No revenue breakdown data available
+					</div>
+				)}
 			</CardFooter>
 		</Card>
 	);

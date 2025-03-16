@@ -1,7 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useState } from 'react';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { toast } from 'sonner';
+import { useBookingsStore } from '@/hooks/overview/useBookings';
+import { Booking } from '@/types/booking';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -22,36 +25,12 @@ import {
 	DrawerTrigger,
 } from '@/components/ui/drawer';
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
-import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { MoreHorizontal, Download } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { toast } from 'sonner';
-import { useBookingsStore } from '@/hooks/overview/useBookings';
-import { Booking } from '@/types/booking';
-import { Skeleton } from '@/components/ui/skeleton';
-import { DataTable } from '@/components/ui/data-table';
-import { columns } from '@/app/(dashboard)/overview/columns';
 
 const statusOptions = [
 	'pending',
@@ -63,26 +42,13 @@ const statusOptions = [
 	'rescheduled',
 ];
 
-const getStatusColor = (status: string) => {
-	const colors = {
-		'pending': 'bg-yellow-100 text-yellow-800',
-		'confirmed': 'bg-blue-100 text-blue-800',
-		'checked-in': 'bg-green-100 text-green-800',
-		'completed': 'bg-purple-100 text-purple-800',
-		'canceled': 'bg-red-100 text-red-800',
-		'refund': 'bg-orange-100 text-orange-800',
-		'rescheduled': 'bg-indigo-100 text-indigo-800',
-	};
-	return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-};
-
 interface DialogProps {
 	booking: Booking;
 	children: React.ReactNode;
 	type: 'checkin' | 'modify' | 'cancel';
 }
 
-function ResponsiveDialog({ booking, children, type }: DialogProps) {
+export function ResponsiveDialog({ booking, children, type }: DialogProps) {
 	const [open, setOpen] = useState(false);
 	const isDesktop = useMediaQuery('(min-width: 768px)');
 	const [status, setStatus] = useState(booking.status);
@@ -353,59 +319,5 @@ function ResponsiveDialog({ booking, children, type }: DialogProps) {
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>
-	);
-}
-
-// Loading skeleton for the booking list
-function BookingListSkeleton() {
-	return (
-		<div>
-			<div className='flex justify-end mb-4'>
-				<Skeleton className='w-32 h-10' />
-			</div>
-			<div className='border rounded-md'>
-				<div className='p-4'>
-					<div className='space-y-3'>
-						<Skeleton className='w-full h-10' />
-						<Skeleton className='w-full h-32' />
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-}
-
-export function BookingList() {
-	const { getBookings, bookings, isLoading } = useBookingsStore();
-	const initialFetchDone = useRef(false);
-
-	// Fetch bookings when component mounts
-	useEffect(() => {
-		if (!initialFetchDone.current) {
-			console.log('Initial bookings list mount - fetching data');
-			initialFetchDone.current = true;
-			getBookings();
-		}
-	}, [getBookings]);
-
-	const handleExport = () => {
-		toast.success('Data exported successfully');
-	};
-
-	// Show loading state
-	if (isLoading) {
-		return <BookingListSkeleton />;
-	}
-
-	return (
-		<div>
-			<div className='flex justify-end mb-4'>
-				<Button onClick={handleExport} variant='outline'>
-					<Download className='mr-2 w-4 h-4' />
-					Export Data
-				</Button>
-			</div>
-			<DataTable columns={columns} data={bookings} />
-		</div>
 	);
 }
