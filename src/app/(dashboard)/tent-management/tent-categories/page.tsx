@@ -3,7 +3,7 @@
 import { columns } from './columns';
 import { DataTable } from '@/components/ui/data-table';
 import { useEffect } from 'react';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useCategory } from '@/hooks/category/useCategory';
 import { Dialog } from '@/components/ui/dialog';
 import { AddCategoryForm } from '@/components/pages/tent-management/tent-categories/AddCategoryForm';
 import { PageHeader } from '@/components/common/PageHeader';
@@ -16,7 +16,7 @@ export default function TentCategoriesPage() {
 		resetForm,
 		isCreateOpen,
 		setIsCreateOpen,
-	} = useCategoryStore();
+	} = useCategory();
 
 	useEffect(() => {
 		getCategories();

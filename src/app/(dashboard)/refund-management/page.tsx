@@ -57,10 +57,7 @@ export default function RefundManagement() {
 
 	return (
 		<div className='mx-auto py-10 container'>
-			<PageHeader
-				title='Refund Management'
-				subtitle='Manage and track guest refund request.'
-			/>
+			<PageHeader title='Refund Management' />
 
 			<Tabs defaultValue='pending' className='space-y-4'>
 				<TabsList>
