@@ -19,6 +19,7 @@ import {
 import { EditTentForm } from '@/components/pages/tent-management/tents/EditTentForm';
 import { DeleteTentDialog } from '@/components/pages/tent-management/tents/DeleteTentDialog';
 import { useTentStore } from '@/hooks/tents/useTents';
+import { memo, useCallback, useMemo } from 'react';
 
 export const columns: ColumnDef<Tent>[] = [
 	{
@@ -109,7 +110,7 @@ export const columns: ColumnDef<Tent>[] = [
 	},
 ];
 
-const ActionsDropdown = ({ tent }: { tent: Tent }) => {
+const ActionsDropdown = memo(({ tent }: { tent: Tent }) => {
 	const {
 		isEditOpen,
 		isDeleteOpen,
@@ -118,20 +119,58 @@ const ActionsDropdown = ({ tent }: { tent: Tent }) => {
 		setSelectedTent,
 	} = useTentStore();
 
-	const handleEditClick = () => {
-		console.log('Opening edit modal for tent ID:', tent.id);
-		console.log('Tent details:', tent);
+	// Memoize the click handlers to prevent recreating functions on every render
+	const handleEditClick = useCallback(() => {
+		// Remove unnecessary console.logs in production
+		if (process.env.NODE_ENV === 'development') {
+			console.log('Opening edit modal for tent ID:', tent.id);
+		}
 
+		// Batch state updates to reduce rerenders
+		// Prepare tent data first, then update state in one go
 		setSelectedTent(tent);
-		setIsEditOpen(true);
-	};
 
-	const handleDeleteClick = () => {
-		console.log('Opening delete modal for tent ID:', tent.id);
+		// Use setTimeout to break up the heavy JS work, preventing UI freeze
+		setTimeout(() => {
+			setIsEditOpen(true);
+		}, 10);
+	}, [tent, setSelectedTent, setIsEditOpen]);
+
+	const handleDeleteClick = useCallback(() => {
+		if (process.env.NODE_ENV === 'development') {
+			console.log('Opening delete modal for tent ID:', tent.id);
+		}
 
 		setSelectedTent(tent);
 		setIsDeleteOpen(true);
-	};
+	}, [tent, setSelectedTent, setIsDeleteOpen]);
+
+	// Memoize dropdown items to avoid recreating on each render
+	const dropdownItems = useMemo(
+		() => (
+			<>
+				<DropdownMenuLabel>Actions</DropdownMenuLabel>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						handleEditClick();
+					}}
+				>
+					Edit Tent
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						handleDeleteClick();
+					}}
+				>
+					Delete Tent
+				</DropdownMenuItem>
+			</>
+		),
+		[handleEditClick, handleDeleteClick],
+	);
 
 	return (
 		<>
@@ -146,36 +185,24 @@ const ActionsDropdown = ({ tent }: { tent: Tent }) => {
 						<MoreHorizontal className='w-4 h-4' />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align='end'>
-					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem
-						onSelect={(e) => {
-							e.preventDefault();
-							handleEditClick();
-						}}
-					>
-						Edit Tent
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onSelect={(e) => {
-							e.preventDefault();
-							handleDeleteClick();
-						}}
-					>
-						Delete Tent
-					</DropdownMenuItem>
-				</DropdownMenuContent>
+				<DropdownMenuContent align='end'>{dropdownItems}</DropdownMenuContent>
 			</DropdownMenu>
 
-			{/* Dialogs */}
-			<Dialog modal open={isEditOpen} onOpenChange={setIsEditOpen}>
-				{isEditOpen && <EditTentForm />}
-			</Dialog>
+			{/* Dialogs - Only render when open to reduce initial load */}
+			{isEditOpen && (
+				<Dialog modal open={isEditOpen} onOpenChange={setIsEditOpen}>
+					<EditTentForm />
+				</Dialog>
+			)}
 
-			<Dialog modal open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-				<DeleteTentDialog />
-			</Dialog>
+			{isDeleteOpen && (
+				<Dialog modal open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+					<DeleteTentDialog />
+				</Dialog>
+			)}
 		</>
 	);
-};
+});
+
+// Add display name
+ActionsDropdown.displayName = 'ActionsDropdown';

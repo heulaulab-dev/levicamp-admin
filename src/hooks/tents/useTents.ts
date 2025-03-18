@@ -90,20 +90,48 @@ export const useTentStore = create<TentState>((set, get) => ({
 	},
 	setIsDeleteOpen: (isOpen) => set({ isDeleteOpen: isOpen }),
 	setSelectedTent: (tent) => {
-		set({ selectedTent: tent });
-		if (tent) {
-			set({
-				formData: {
+		// Only process if the new tent is different from current selection
+		// or if explicitly set to null (for reset)
+		const currentTent = get().selectedTent;
+		if (tent === null || (tent && currentTent?.id !== tent.id)) {
+			// Set the selected tent first
+			set({ selectedTent: tent });
+
+			// If a tent is provided, update form data
+			if (tent) {
+				// In development, we can keep logs
+				if (process.env.NODE_ENV === 'development') {
+					console.log('Setting tent data to form:', tent);
+				}
+
+				const formDataUpdate: TentFormData = {
 					name: tent.name,
 					tent_image: tent.tent_image,
-					tent_images: tent.tent_images,
-					description: tent.description,
-					facilities: tent.facilities,
+					description: tent.description || '',
+					facilities: Array.isArray(tent.facilities) ? tent.facilities : [],
 					category_id: tent.category_id,
-				},
-			});
-		} else {
-			set({ formData: defaultFormData });
+					tent_images: [],
+				};
+
+				// Add tent_images if available
+				if (tent.tent_images && Array.isArray(tent.tent_images)) {
+					formDataUpdate.tent_images = tent.tent_images;
+				} else {
+					// If no tent_images array, create one with the main image
+					formDataUpdate.tent_images = tent.tent_image ? [tent.tent_image] : [];
+				}
+
+				// In development mode only, log the form data
+				if (process.env.NODE_ENV === 'development') {
+					console.log('Updated form data:', formDataUpdate);
+				}
+
+				// Update form data
+				set({ formData: formDataUpdate });
+			} else {
+				// Reset form when tent is null
+				set({ formData: defaultFormData });
+			}
 		}
 	},
 	setFormData: (data) =>
@@ -156,9 +184,12 @@ export const useTentStore = create<TentState>((set, get) => ({
 	getTentDetails: async (tentId: string) => {
 		set({ isLoading: true });
 		try {
+			console.log('Fetching tent details for ID:', tentId);
 			const response = await leviapi.get<ApiResponse<Tent>>(`/tents/${tentId}`);
+			console.log('Tent details response:', response.data);
 			if (response.data?.data) {
 				const tent = response.data.data;
+				console.log('Parsed tent data with images:', tent.tent_images);
 				set({ selectedTent: tent });
 				return tent;
 			}

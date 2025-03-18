@@ -2,7 +2,7 @@
 
 import { columns } from './columns';
 import { DataTable } from '@/components/ui/data-table';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useCategory } from '@/hooks/category/useCategory';
 import { Dialog } from '@/components/ui/dialog';
 import { AddCategoryForm } from '@/components/pages/tent-management/tent-categories/AddCategoryForm';
@@ -19,8 +19,10 @@ export default function TentCategoriesPage() {
 	} = useCategory();
 
 	useEffect(() => {
-		getCategories();
-		console.log('Initial categories check:', categories);
+		console.log('Fetching categories data...');
+		getCategories().then(() => {
+			console.log('Categories data loaded:', categories);
+		});
 	}, [getCategories]);
 
 	const handleOpenCreateModal = () => {
@@ -28,12 +30,17 @@ export default function TentCategoriesPage() {
 		setIsCreateOpen(true);
 	};
 
+	const handleRefresh = useCallback(async () => {
+		await getCategories(true); // Force refresh
+	}, [getCategories]);
+
 	return (
 		<div className='mx-auto py-10 container'>
 			<PageHeader
 				title='Tent Categories'
 				buttonLabel='Add Category'
 				onButtonClick={handleOpenCreateModal}
+				onRefresh={handleRefresh}
 				isLoading={isLoading}
 			/>
 			<DataTable columns={columns} data={categories} />
