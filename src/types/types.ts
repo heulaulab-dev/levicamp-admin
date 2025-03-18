@@ -24,6 +24,7 @@ export interface Tents {
 	id: string;
 	name: string;
 	tent_image: string;
+	tent_images?: string[];
 	description: string;
 	facilities: string[];
 	category_id: string;
@@ -44,6 +45,7 @@ export interface Tent {
 	id: string;
 	name: string;
 	tent_image: string;
+	tent_images?: string[];
 	description: string;
 	facilities: string[];
 	category_id: string;
@@ -58,6 +60,7 @@ export interface Tent {
 export interface TentFormData {
 	name: string;
 	tent_image: string;
+	tent_images?: string[];
 	description: string;
 	facilities: string[];
 	category_id: string;

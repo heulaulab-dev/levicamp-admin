@@ -27,7 +27,11 @@ interface TentState {
 	// API Actions
 	getTents: (force?: boolean) => Promise<void>;
 	getTentDetails: (tentId: string) => Promise<Tent | null>;
-	createTent: () => Promise<{ success: boolean; message: string }>;
+	createTent: () => Promise<{
+		success: boolean;
+		message: string;
+		tentId: string | null;
+	}>;
 	updateTent: (
 		tentId: string,
 	) => Promise<{ success: boolean; message: string }>;
@@ -39,6 +43,7 @@ interface TentState {
 const defaultFormData: TentFormData = {
 	name: '',
 	tent_image: '',
+	tent_images: [],
 	description: '',
 	facilities: [],
 	category_id: '',
@@ -62,11 +67,27 @@ export const useTentStore = create<TentState>((set, get) => ({
 	setIsCreateOpen: (isOpen) => {
 		set({
 			isCreateOpen: isOpen,
-			selectedTent: null,
-			formData: defaultFormData,
+			// Only reset form data when closing the modal
+			...(isOpen
+				? {}
+				: {
+						selectedTent: null,
+						formData: defaultFormData,
+				  }),
 		});
 	},
-	setIsEditOpen: (isOpen) => set({ isEditOpen: isOpen }),
+	setIsEditOpen: (isOpen) => {
+		// Only reset form data when closing the modal
+		if (!isOpen) {
+			set({
+				isEditOpen: isOpen,
+				selectedTent: null,
+				formData: defaultFormData,
+			});
+		} else {
+			set({ isEditOpen: isOpen });
+		}
+	},
 	setIsDeleteOpen: (isOpen) => set({ isDeleteOpen: isOpen }),
 	setSelectedTent: (tent) => {
 		set({ selectedTent: tent });
@@ -75,6 +96,7 @@ export const useTentStore = create<TentState>((set, get) => ({
 				formData: {
 					name: tent.name,
 					tent_image: tent.tent_image,
+					tent_images: tent.tent_images,
 					description: tent.description,
 					facilities: tent.facilities,
 					category_id: tent.category_id,
@@ -157,6 +179,8 @@ export const useTentStore = create<TentState>((set, get) => ({
 		set({ isLoading: true });
 		try {
 			const { formData } = get();
+			console.log('Creating tent with data:', formData);
+
 			const response = await leviapi.post<ApiResponse<Tent>>(
 				'/tents',
 				formData,
@@ -165,14 +189,17 @@ export const useTentStore = create<TentState>((set, get) => ({
 			if (response.data?.data) {
 				// Update the tents list with the new tent
 				const { tents } = get();
+				const newTent = response.data.data;
 				set({
-					tents: [...tents, response.data.data],
-					isCreateOpen: false,
-					formData: defaultFormData,
+					tents: [...tents, newTent],
 				});
 
 				toast.success('Tent created successfully');
-				return { success: true, message: 'Tent created successfully' };
+				return {
+					success: true,
+					message: 'Tent created successfully',
+					tentId: newTent.id,
+				};
 			}
 
 			throw new Error('Invalid response format');
@@ -182,7 +209,7 @@ export const useTentStore = create<TentState>((set, get) => ({
 				(error as AxiosError<ApiResponse<any>>)?.response?.data?.message ||
 				'Failed to create tent';
 			toast.error(message);
-			return { success: false, message };
+			return { success: false, message, tentId: null };
 		} finally {
 			set({ isLoading: false });
 		}
@@ -198,8 +225,9 @@ export const useTentStore = create<TentState>((set, get) => ({
 				throw new Error('Tent ID is required for update');
 			}
 
-			// Log the tentId to confirm it's correct
+			// Log the tentId and data to confirm
 			console.log('Updating tent with ID:', tentId);
+			console.log('Updating with data:', formData);
 
 			const response = await leviapi.put<ApiResponse<Tent>>(
 				`/tents/${tentId}`,

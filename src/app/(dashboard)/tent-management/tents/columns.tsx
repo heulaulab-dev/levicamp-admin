@@ -170,7 +170,7 @@ const ActionsDropdown = ({ tent }: { tent: Tent }) => {
 
 			{/* Dialogs */}
 			<Dialog modal open={isEditOpen} onOpenChange={setIsEditOpen}>
-				{isEditOpen && <EditTentForm tentId={tent.id} />}
+				{isEditOpen && <EditTentForm />}
 			</Dialog>
 
 			<Dialog modal open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

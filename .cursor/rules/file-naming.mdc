@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## File Naming, Namespacing, and Conventions
+
+Clean, scalable, explicit
+
+- one-function-per-file: One primary function per file (e.g., `find-threads.ts` for `findMatchingThreads`)
+- group-by-feature: Use subfolders for related files (e.g., `threads/find-threads.ts`)
+- short-focused-names: Keep names concise, intent-driven (e.g., `process-threads.ts`)
+- path-aliases: Use `@/` (e.g., `@/threads/process-threads`)
+- no-barrels: Direct imports only (e.g., `./find-threads`, not `./index`)
+- consistent-casing: `kebab-case` for files, `PascalCase` for components
+- match-export: Filename reflects export (e.g., `Button.tsx` for `export Button`)
+- scope-flat-files: Namespace in flat dirs (e.g., `threads-find.ts` if no subfolders)
+- shallow-structure: Avoid deep nesting (e.g., `threads/process.ts`, not `threads/process/v1`)
