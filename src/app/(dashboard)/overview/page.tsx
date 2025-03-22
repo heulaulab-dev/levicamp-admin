@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookingList } from '@/components/pages/overview/booking-list';
 import { TrendingDown, TrendingUp } from 'lucide-react';
-import { OverviewCard } from '@/components/pages/overview/OverviewCard';
+import { OverviewCard } from '@/components/pages/overview/overview-card';
 import { TotalGuestChart } from '@/components/pages/overview/TotalGuestChart';
 import { RevenueChart } from '@/components/pages/overview/RevenueOverview';
 import { RevenueBreakdown } from '@/components/pages/overview/RevenueBreakdown';
@@ -91,7 +91,6 @@ export default function OverviewPage() {
 	const {
 		getOverviewMetrics,
 		isLoading,
-		error,
 		activeTents,
 		growthRate,
 		totalBookings,
@@ -106,16 +105,6 @@ export default function OverviewPage() {
 	// Show skeleton loading state
 	if (isLoading) {
 		return <OverviewSkeleton />;
-	}
-
-	// Show error state
-	if (error) {
-		return (
-			<div className='bg-red-50 p-4 border border-red-300 rounded-md'>
-				<h3 className='font-semibold text-red-700'>Error loading metrics</h3>
-				<p className='text-red-600'>{error}</p>
-			</div>
-		);
 	}
 
 	return (

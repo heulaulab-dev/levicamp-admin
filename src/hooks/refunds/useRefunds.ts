@@ -1,103 +1,66 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
-import { Refund, RefundStatus } from '@/types/refund';
+import api from '@/lib/api';
+import {
+	Refund,
+	RefundApiResponse,
+	RefundListItem,
+	RefundDetailItem,
+	ApproveRefundRequest,
+	RejectRefundRequest,
+	RefundState,
+	RefundQueryParams,
+	RefundResponseDetail,
+	RefundCountResponse,
+	RefundResponse,
+} from '@/types/refund';
 
-interface RefundApiResponse<T> {
-	status: string;
-	message: string;
-	data: T;
-}
-
-interface RefundListItem {
-	id: string;
-	booking_id: string;
-	reason: string;
-	status: RefundStatus;
-	refund_amount: number;
-	created_at: string;
-	updated_at: string;
-}
-
-interface ValidateRefundResponse {
-	booking_id: string;
-	status: string;
-}
-
-interface SubmitRefundRequest {
-	token: string;
-	reason: string;
-	refund_method: string;
-	account_name: string;
-	account_number: string;
-}
-
-interface ApproveRefundRequest {
-	additional_info?: string;
-	payment_proof: string;
-	refund_amount: number;
-}
-
-interface RejectRefundRequest {
-	additional_info: string;
-}
-
-interface RefundState {
-	refunds: Refund[];
-	isLoading: boolean;
-	error: string | null;
-
-	// Actions
-	fetchRefunds: () => Promise<void>;
-	validateRefundRequest: (token: string) => Promise<ValidateRefundResponse>;
-	submitRefundDetails: (data: SubmitRefundRequest) => Promise<void>;
-	approveRefund: (id: string, data: ApproveRefundRequest) => Promise<void>;
-	rejectRefund: (id: string, data: RejectRefundRequest) => Promise<void>;
-	completeRefund: (id: string) => Promise<void>;
-}
-
-const makeAuthenticatedRequest = async <T>(
-	endpoint: string,
-	options: RequestInit = {},
-): Promise<RefundApiResponse<T>> => {
-	const token = localStorage.getItem('token');
-	if (!token) {
-		throw new Error('No authentication token found');
-	}
-
-	const response = await fetch(
-		`${process.env.NEXT_PUBLIC_TEST_API_URL}${endpoint}`,
-		{
-			...options,
-			headers: {
-				...options.headers,
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
-		},
-	);
-
-	const data = await response.json();
-
-	if (!response.ok) {
-		throw new Error(data.message || 'An error occurred');
-	}
-
-	return data;
-};
+// Add request interceptor to always include authorization header
+api.interceptors.request.use(
+	(config) => {
+		const token = localStorage.getItem('token');
+		if (token) {
+			config.headers.Authorization = `Bearer ${token}`;
+		}
+		return config;
+	},
+	(error) => {
+		return Promise.reject(error);
+	},
+);
 
 export const useRefunds = create<RefundState>((set, get) => ({
 	refunds: [],
+	selectedRefund: null,
 	isLoading: false,
 	error: null,
+	pagination: null,
+	pendingCount: 0,
 
-	fetchRefunds: async () => {
+	getRefunds: async (params?: RefundQueryParams) => {
 		try {
 			set({ isLoading: true, error: null });
-			const response = await makeAuthenticatedRequest<RefundListItem[]>(
-				'/refunds',
+
+			// Build the query string from params
+			const queryParams = new URLSearchParams();
+			if (params) {
+				if (params.order) queryParams.append('order', params.order);
+				if (params.page) queryParams.append('page', params.page.toString());
+				if (params.page_size)
+					queryParams.append('page_size', params.page_size.toString());
+				if (params.payment) queryParams.append('payment', params.payment);
+				if (params.sort) queryParams.append('sort', params.sort);
+				if (params.status) queryParams.append('status', params.status);
+			}
+
+			const queryString = queryParams.toString();
+			const endpoint = queryString ? `/refunds?${queryString}` : '/refunds';
+
+			const response = await api.get<RefundApiResponse<RefundListItem[]>>(
+				endpoint,
 			);
 
-			const formattedRefunds: Refund[] = response.data.map((refund) => ({
+			const formattedRefunds: Refund[] = response.data.data.map((refund) => ({
 				id: refund.id,
 				bookingId: refund.booking_id,
 				amount: refund.refund_amount,
@@ -105,10 +68,30 @@ export const useRefunds = create<RefundState>((set, get) => ({
 				status: refund.status,
 				date: refund.created_at,
 				refundedDate: refund.updated_at,
-				guestName: '', // This will be populated from the booking details if needed
+				guestName: refund.booking?.guest?.name || '',
+				refundMethod: refund.refund_method,
+				accountName: refund.account_name,
+				accountNumber: refund.account_number,
+				completedBy: refund.completed_by,
+				booking: refund.booking,
+				responses: refund.responses,
+				paymentProof:
+					Array.isArray(refund.responses) && refund.responses.length > 0
+						? refund.responses[0].payment_proof
+						: (refund.responses as RefundResponse)?.payment_proof,
+				rejectReason: Array.isArray(refund.responses)
+					? refund.responses.find((r) => r.status === 'rejected')
+							?.additional_info
+					: (refund.responses as RefundResponse)?.status === 'rejected'
+					? (refund.responses as RefundResponse).additional_info
+					: undefined,
 			}));
 
-			set({ refunds: formattedRefunds, isLoading: false });
+			set({
+				refunds: formattedRefunds,
+				isLoading: false,
+				pagination: response.data.pagination || null,
+			});
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : 'Failed to fetch refunds';
@@ -117,43 +100,77 @@ export const useRefunds = create<RefundState>((set, get) => ({
 		}
 	},
 
-	validateRefundRequest: async (token: string) => {
+	pendingNotificationRefund: async () => {
 		try {
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/refunds/validate?token=${token}`,
+			set({ isLoading: true, error: null });
+
+			const response = await api.get<RefundApiResponse<RefundCountResponse>>(
+				'/refunds/count',
 			);
-			const data =
-				(await response.json()) as RefundApiResponse<ValidateRefundResponse>;
 
-			if (!response.ok) {
-				throw new Error(data.message || 'Invalid refund request');
-			}
+			const count = response.data.data.count;
+			set({
+				pendingCount: count,
+				isLoading: false,
+			});
 
-			return data.data;
+			return count;
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error
 					? error.message
-					: 'Failed to validate refund request';
-			toast.error(errorMessage);
-			throw error;
+					: 'Failed to fetch pending refund count';
+
+			set({
+				error: errorMessage,
+				isLoading: false,
+			});
+
+			console.error(errorMessage);
+			return 0; // Return 0 if there's an error
 		}
 	},
 
-	submitRefundDetails: async (data: SubmitRefundRequest) => {
+	getRefundById: async (id: string) => {
 		try {
-			await makeAuthenticatedRequest('/refunds', {
-				method: 'POST',
-				body: JSON.stringify(data),
+			set({ isLoading: true, error: null });
+
+			const response = await api.get<RefundApiResponse<RefundDetailItem>>(
+				`/refunds/${id}`,
+			);
+
+			const refund = response.data.data;
+
+			// Map to consistent format for UI
+			const formattedRefund: RefundDetailItem = {
+				...refund,
+				// Ensure responses is correctly typed, could be a single object or an array
+				responses: refund.responses,
+				// Add helper fields for compatibility with UI components
+				payment_proof:
+					Array.isArray(refund.responses) && refund.responses.length > 0
+						? refund.responses[0].payment_proof
+						: (refund.responses as RefundResponse)?.payment_proof,
+				reject_reason: Array.isArray(refund.responses)
+					? refund.responses.find((r) => r.status === 'rejected')
+							?.additional_info
+					: (refund.responses as RefundResponse)?.status === 'rejected'
+					? (refund.responses as RefundResponse).additional_info
+					: undefined,
+			};
+
+			set({
+				selectedRefund: formattedRefund,
+				isLoading: false,
 			});
 
-			toast.success('Refund details submitted successfully');
-			get().fetchRefunds(); // Refresh the list
+			return formattedRefund;
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error
 					? error.message
-					: 'Failed to submit refund details';
+					: `Failed to fetch refund with ID: ${id}`;
+			set({ error: errorMessage, isLoading: false });
 			toast.error(errorMessage);
 			throw error;
 		}
@@ -161,16 +178,34 @@ export const useRefunds = create<RefundState>((set, get) => ({
 
 	approveRefund: async (id: string, data: ApproveRefundRequest) => {
 		try {
-			await makeAuthenticatedRequest(`/refunds/${id}/approve`, {
-				method: 'POST',
-				body: JSON.stringify(data),
-			});
+			set({ isLoading: true, error: null });
+
+			const response = await api.post<RefundApiResponse<RefundResponseDetail>>(
+				`/refunds/${id}/approve`,
+				data,
+			);
+
+			const responseData = response.data.data;
 
 			toast.success('Refund approved successfully');
-			get().fetchRefunds(); // Refresh the list
+
+			// Refresh the refund list
+			get().getRefunds();
+
+			// If we have a selected refund and it matches this ID, update it
+			const currentSelected = get().selectedRefund;
+			if (currentSelected && currentSelected.id === id) {
+				// Refresh the refund details to reflect the changes
+				get().getRefundById(id);
+			}
+
+			set({ isLoading: false });
+
+			return responseData;
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : 'Failed to approve refund';
+			set({ error: errorMessage, isLoading: false });
 			toast.error(errorMessage);
 			throw error;
 		}
@@ -178,16 +213,34 @@ export const useRefunds = create<RefundState>((set, get) => ({
 
 	rejectRefund: async (id: string, data: RejectRefundRequest) => {
 		try {
-			await makeAuthenticatedRequest(`/refunds/${id}/reject`, {
-				method: 'POST',
-				body: JSON.stringify(data),
-			});
+			set({ isLoading: true, error: null });
+
+			const response = await api.post<RefundApiResponse<RefundResponseDetail>>(
+				`/refunds/${id}/reject`,
+				data,
+			);
+
+			const responseData = response.data.data;
 
 			toast.success('Refund rejected successfully');
-			get().fetchRefunds(); // Refresh the list
+
+			// Refresh the refund list
+			get().getRefunds();
+
+			// If we have a selected refund and it matches this ID, update it
+			const currentSelected = get().selectedRefund;
+			if (currentSelected && currentSelected.id === id) {
+				// Refresh the refund details to reflect the changes
+				get().getRefundById(id);
+			}
+
+			set({ isLoading: false });
+
+			return responseData;
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : 'Failed to reject refund';
+			set({ error: errorMessage, isLoading: false });
 			toast.error(errorMessage);
 			throw error;
 		}
@@ -195,15 +248,33 @@ export const useRefunds = create<RefundState>((set, get) => ({
 
 	completeRefund: async (id: string) => {
 		try {
-			await makeAuthenticatedRequest(`/refunds/${id}/complete`, {
-				method: 'POST',
-			});
+			set({ isLoading: true, error: null });
+
+			const response = await api.post<RefundApiResponse<RefundResponseDetail>>(
+				`/refunds/${id}/complete`,
+			);
+
+			const responseData = response.data.data;
 
 			toast.success('Refund marked as completed');
-			get().fetchRefunds(); // Refresh the list
+
+			// Refresh the refund list
+			get().getRefunds();
+
+			// If we have a selected refund and it matches this ID, update it
+			const currentSelected = get().selectedRefund;
+			if (currentSelected && currentSelected.id === id) {
+				// Refresh the refund details to reflect the changes
+				get().getRefundById(id);
+			}
+
+			set({ isLoading: false });
+
+			return responseData;
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : 'Failed to complete refund';
+			set({ error: errorMessage, isLoading: false });
 			toast.error(errorMessage);
 			throw error;
 		}

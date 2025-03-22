@@ -12,7 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Booking } from '@/types/booking';
-import { ResponsiveDialog } from '@/components/pages/overview/ResponsiveDialog';
+import { ResponsiveDialog } from '@/components/pages/overview/responsive-dialog';
 
 const getStatusColor = (status: string) => {
 	const colors = {

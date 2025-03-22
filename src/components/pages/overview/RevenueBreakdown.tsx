@@ -65,7 +65,7 @@ const chartConfig = {
 
 export function RevenueBreakdown() {
 	// Get breakdown data and loading state from store
-	const { getRevenueBreakdown, breakdownData, isLoading, error } =
+	const { getRevenueBreakdown, breakdownData, isLoading } =
 		useRevenueBreakdownStore();
 	const { categoryChartData, totalRevenue } = useBreakdownChartData();
 
@@ -96,22 +96,6 @@ export function RevenueBreakdown() {
 					<Skeleton className='w-36 h-4' />
 					<Skeleton className='w-48 h-4' />
 				</CardFooter>
-			</Card>
-		);
-	}
-
-	// Show error state
-	if (error) {
-		return (
-			<Card className='flex flex-col col-span-3'>
-				<CardContent className='p-4'>
-					<div className='bg-red-50 p-4 border border-red-300 rounded-md'>
-						<h3 className='font-semibold text-red-700'>
-							Error loading revenue breakdown
-						</h3>
-						<p className='text-red-600'>{error}</p>
-					</div>
-				</CardContent>
 			</Card>
 		);
 	}

@@ -44,8 +44,7 @@ const fallbackGuestData = [
 
 export function TotalGuestChart() {
 	// Get guest data and loading state from store
-	const { getTotalGuestData, guestData, isLoading, error } =
-		useTotalGuestStore();
+	const { getTotalGuestData, guestData, isLoading } = useTotalGuestStore();
 	const [activeChart, setActiveChart] =
 		React.useState<keyof typeof chartConfig>('vip');
 
@@ -80,22 +79,6 @@ export function TotalGuestChart() {
 				<CardContent className='flex justify-center items-center h-[300px]'>
 					<Loader2 className='w-8 h-8 text-primary animate-spin' />
 					<span className='ml-2'>Loading guest data...</span>
-				</CardContent>
-			</Card>
-		);
-	}
-
-	// Show error state if there's an error
-	if (error) {
-		return (
-			<Card>
-				<CardContent className='p-4'>
-					<div className='bg-red-50 p-4 border border-red-300 rounded-md'>
-						<h3 className='font-semibold text-red-700'>
-							Error loading guest data
-						</h3>
-						<p className='text-red-600'>{error}</p>
-					</div>
 				</CardContent>
 			</Card>
 		);

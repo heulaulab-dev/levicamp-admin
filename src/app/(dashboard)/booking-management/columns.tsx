@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Eye, MoreHorizontal } from 'lucide-react';
-import { ResponsiveDialog } from '@/components/pages/overview/ResponsiveDialog';
+import { ResponsiveDialog } from '@/components/pages/overview/responsive-dialog';
 import { BookingDetailsModal } from '@/components/pages/booking-management/BookingDetailsModal';
 
 const getStatusColor = (status: string) => {
