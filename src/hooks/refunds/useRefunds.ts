@@ -62,35 +62,24 @@ export const useRefunds = create<RefundState>((set, get) => ({
 
 			const formattedRefunds: Refund[] = response.data.data.map((refund) => ({
 				id: refund.id,
-				bookingId: refund.booking_id,
+				guestName: refund.booking?.guest?.name || '',
 				amount: refund.refund_amount,
+				date: refund.created_at,
+				bookingId: refund.booking_id,
 				reason: refund.reason,
 				status: refund.status,
-				date: refund.created_at,
-				refundedDate: refund.updated_at,
-				guestName: refund.booking?.guest?.name || '',
+				refundedDate: refund.completed_at || '',
 				refundMethod: refund.refund_method,
 				accountName: refund.account_name,
 				accountNumber: refund.account_number,
 				completedBy: refund.completed_by,
 				booking: refund.booking,
-				responses: refund.responses,
-				paymentProof:
-					Array.isArray(refund.responses) && refund.responses.length > 0
-						? refund.responses[0].payment_proof
-						: (refund.responses as RefundResponse)?.payment_proof,
-				rejectReason: Array.isArray(refund.responses)
-					? refund.responses.find((r) => r.status === 'rejected')
-							?.additional_info
-					: (refund.responses as RefundResponse)?.status === 'rejected'
-					? (refund.responses as RefundResponse).additional_info
-					: undefined,
 			}));
 
 			set({
 				refunds: formattedRefunds,
 				isLoading: false,
-				pagination: response.data.pagination || null,
+				pagination: response.data.pagination,
 			});
 		} catch (error) {
 			const errorMessage =

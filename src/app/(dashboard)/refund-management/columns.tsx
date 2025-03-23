@@ -32,13 +32,13 @@ const getStatusVariant = (
 ): 'destructive' | 'secondary' | 'success' | 'default' | 'outline' => {
 	switch (status) {
 		case 'pending':
-			return 'destructive';
+			return 'default';
 		case 'processing':
 			return 'secondary';
 		case 'success':
 			return 'success';
 		case 'rejected':
-			return 'default';
+			return 'destructive';
 		default:
 			return 'default';
 	}
@@ -56,6 +56,18 @@ export const sharedColumns: ColumnDef<Refund>[] = [
 		header: 'Request ID',
 	},
 	{
+		accessorKey: 'date',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Request Date' />
+		),
+		cell: ({ row }) => {
+			// Convert ISO date string to YYYY-MM-DD format
+			const date = new Date(row.original.date);
+			console.log(row.original.date);
+			return date.toISOString().split('T')[0]; // Gets YYYY-MM-DD part
+		},
+	},
+	{
 		accessorKey: 'amount',
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Amount' />
@@ -67,10 +79,18 @@ export const sharedColumns: ColumnDef<Refund>[] = [
 			}).format(row.original.amount),
 	},
 	{
-		accessorKey: 'date',
+		accessorKey: 'refundMethod',
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Request Date' />
+			<DataTableColumnHeader column={column} title='Refund Method' />
 		),
+		cell: ({ row }) => <span>{row.original.refundMethod}</span>,
+	},
+	{
+		accessorKey: 'refundReason',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Refund Reason' />
+		),
+		cell: ({ row }) => <span>{row.original.reason}</span>,
 	},
 	{
 		accessorKey: 'status',
@@ -197,14 +217,14 @@ export const processingColumns: ColumnDef<Refund>[] = [
 export const rejectedColumns: ColumnDef<Refund>[] = [
 	...sharedColumns,
 	{
-		accessorKey: 'rejectReason',
+		accessorKey: 'updatedAt',
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Rejection Reason' />
+			<DataTableColumnHeader column={column} title='Rejected Date' />
 		),
 		cell: ({ row }) => {
-			// Use the helper function if the refund has responses
-			const refund = row.original.reason;
-			return <span>{refund || 'No reason provided'}</span>;
+			// Convert ISO date string to YYYY-MM-DD format
+			const date = new Date(row.original.refundedDate);
+			return date.toISOString().split('T')[0]; // Gets YYYY-MM-DD part
 		},
 	},
 	{
@@ -219,8 +239,13 @@ export const successColumns: ColumnDef<Refund>[] = [
 	{
 		accessorKey: 'refundedDate',
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Completion Date' />
+			<DataTableColumnHeader column={column} title='Refunded Date' />
 		),
+		cell: ({ row }) => {
+			// Convert ISO date string to YYYY-MM-DD format
+			const date = new Date(row.original.refundedDate);
+			return date.toISOString().split('T')[0]; // Gets YYYY-MM-DD part
+		},
 	},
 	{
 		id: 'actions',

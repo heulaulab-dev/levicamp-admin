@@ -6,7 +6,7 @@ export type Refund = {
 	bookingId: string;
 	reason: string;
 	status: RefundStatus;
-	refundedDate?: string;
+	refundedDate: string;
 	paymentProof?: string;
 	rejectReason?: string;
 	notes?: string;

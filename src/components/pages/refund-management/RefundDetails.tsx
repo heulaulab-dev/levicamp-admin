@@ -14,10 +14,6 @@ export default function RefundDetails({
 					<p>{refund.id}</p>
 				</div>
 				<div>
-					<h4 className='font-medium text-sm'>Guest Name</h4>
-					<p>{refund.guestName}</p>
-				</div>
-				<div>
 					<h4 className='font-medium text-sm'>Booking ID</h4>
 					<p>{refund.bookingId}</p>
 				</div>
