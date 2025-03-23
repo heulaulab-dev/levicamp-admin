@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -25,10 +24,9 @@ import Link from 'next/link';
 import { useAuthStore, useInitAuth } from '@/hooks/auth/useAuth';
 import React, { useEffect, useState } from 'react';
 import { NavigationItem } from '@/constants/navigation';
-import { LogOut, SettingsIcon } from 'lucide-react';
+import { SettingsIcon } from 'lucide-react';
 import { BottomProgress } from '@/components/ui/progress-bar';
 import { MobileDetectionDialog } from '@/components/common/mobile-detection-dialog';
-import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({
 	children,
@@ -38,17 +36,8 @@ export default function DashboardLayout({
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [isLoading, setIsLoading] = useState(false);
-	const router = useRouter();
 	// Show loading bar on route changes
 	useEffect(() => {
-		const handleRouteChangeStart = () => {
-			setIsLoading(true);
-		};
-
-		const handleRouteChangeComplete = () => {
-			setIsLoading(false);
-		};
-
 		// This effect runs when the route changes
 		setIsLoading(true);
 
@@ -73,23 +62,14 @@ export default function DashboardLayout({
 
 	useInitAuth();
 
-	const { user, logout } = useAuthStore();
-
-	const handleLogout = async () => {
-		try {
-			await logout();
-			router.push('/login');
-		} catch (error) {
-			console.error('Logout failed:', error);
-		}
-	};
+	const { user } = useAuthStore();
 
 	return (
 		<SidebarProvider items={NavigationItem}>
 			<UISidebarProvider>
 				<AppSidebar />
 				<SidebarInset className='overflow-hidden'>
-					<header className='group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex justify-between items-center gap-2 shadow-sm w-full h-16 transition-[width,height] ease-linear shrink-0'>
+					<header className='flex justify-between items-center gap-2 shadow-sm w-full h-16 group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 transition-[width,height] ease-linear shrink-0'>
 						<div className='flex items-center gap-2 px-4'>
 							<SidebarTrigger className='-ml-1' />
 							<Separator orientation='vertical' className='mr-2 h-4' />
@@ -120,11 +100,6 @@ export default function DashboardLayout({
 									<SettingsIcon />
 								</Button>
 							</Link>
-
-							<Button variant={'ghost'} size={'icon'} onClick={handleLogout}>
-								<LogOut />
-							</Button>
-
 							<Separator orientation='vertical' className='mr-2 h-4' />
 							{user && <NavUser user={user} />}
 						</div>
