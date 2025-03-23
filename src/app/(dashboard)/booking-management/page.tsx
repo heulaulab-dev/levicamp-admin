@@ -6,10 +6,7 @@ import { BookingManagementList } from '@/components/pages/booking-management/Boo
 export default function BookingManagementPage() {
 	return (
 		<div className='flex-1 space-y-4 p-4 md:p-8 pt-6'>
-			<PageHeader
-				title='Booking Management'
-				subtitle='View and manage all bookings in one place'
-			/>
+			<PageHeader title='Booking Management' />
 			<BookingManagementList />
 		</div>
 	);

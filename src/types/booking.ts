@@ -97,11 +97,29 @@ export type BookingsResponse = {
 
 // AddOn type
 export type AddOn = {
-	id: string;
+	id?: string;
 	name: string;
 	price: number;
 	quantity: number;
 };
+
+// Request types for API calls
+export type UpdateBookingRequest = {
+	total_amount?: number;
+	start_date?: string;
+	end_date?: string;
+	status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+};
+
+export type UpdateAddonsRequest = AddOn[];
+
+// Pagination options for API requests
+export interface PaginationOptions {
+	page?: number;
+	per_page?: number;
+	search?: string;
+	status?: string;
+}
 
 // Booking Store State type
 export type BookingState = {
@@ -113,14 +131,24 @@ export type BookingState = {
 		pageSize: number;
 	} | null;
 	selectedBooking: Booking | null;
-	getBookings: (page?: number, pageSize?: number) => Promise<void>;
+	getBookings: (options?: PaginationOptions) => Promise<void>;
 	getBookingById: (id: string) => Promise<Booking | null>;
 	updateBooking: (
 		id: string,
-		data: Partial<Booking>,
+		data: UpdateBookingRequest,
 	) => Promise<Booking | null>;
-	updateBookingAddOns: (id: string, addOns: AddOn[]) => Promise<Booking | null>;
+	updateBookingAddOns: (
+		id: string,
+		addOns: UpdateAddonsRequest,
+	) => Promise<Booking | null>;
 	checkInBooking: (id: string) => Promise<Booking | null>;
 	checkOutBooking: (id: string) => Promise<Booking | null>;
 	resetBookings: () => void;
+};
+
+// Single booking response
+export type BookingResponse = {
+	status: number;
+	message: string;
+	data: Booking;
 };

@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Eye, MoreHorizontal } from 'lucide-react';
-import { ResponsiveDialog } from '@/components/pages/overview/responsive-dialog';
 import { BookingDetailsModal } from '@/components/pages/booking-management/BookingDetailsModal';
+import { BookingActionDialog } from '@/components/pages/booking-management/BookingActionDialog';
 
 const getStatusColor = (status: string) => {
 	const colors = {
@@ -22,7 +22,7 @@ const getStatusColor = (status: string) => {
 		'confirmed': 'bg-blue-100 text-blue-800',
 		'checked-in': 'bg-green-100 text-green-800',
 		'completed': 'bg-purple-100 text-purple-800',
-		'canceled': 'bg-red-100 text-red-800',
+		'cancelled': 'bg-red-100 text-red-800',
 		'refund': 'bg-orange-100 text-orange-800',
 		'rescheduled': 'bg-indigo-100 text-indigo-800',
 	};
@@ -119,25 +119,32 @@ export const columns: ColumnDef<Booking>[] = [
 						</BookingDetailsModal>
 						<DropdownMenuSeparator />
 						{booking.status === 'confirmed' && (
-							<ResponsiveDialog booking={booking} type='checkin'>
+							<BookingActionDialog booking={booking} type='checkin'>
 								<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
 									Check-in Guest
 								</DropdownMenuItem>
-							</ResponsiveDialog>
+							</BookingActionDialog>
 						)}
-						<ResponsiveDialog booking={booking} type='modify'>
+						{booking.status === 'checked-in' && (
+							<BookingActionDialog booking={booking} type='checkout'>
+								<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+									Check-out Guest
+								</DropdownMenuItem>
+							</BookingActionDialog>
+						)}
+						<BookingActionDialog booking={booking} type='modify'>
 							<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
 								Modify Booking
 							</DropdownMenuItem>
-						</ResponsiveDialog>
-						<ResponsiveDialog booking={booking} type='cancel'>
+						</BookingActionDialog>
+						<BookingActionDialog booking={booking} type='cancel'>
 							<DropdownMenuItem
 								onSelect={(e) => e.preventDefault()}
 								className='text-red-600'
 							>
 								Cancel Booking
 							</DropdownMenuItem>
-						</ResponsiveDialog>
+						</BookingActionDialog>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
