@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { PlusCircle, ArrowRight, Save, ArrowLeft } from 'lucide-react';
+import { PlusCircle, ArrowRight, Save } from 'lucide-react';
 
 // shadcn/ui Components
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTentStore } from '@/hooks/tents/useTents';
 import { useCategory } from '@/hooks/category/useCategory';
 import { TentImagesUploader } from './TentImagesUploader';
+import { DialogStepper } from '@/components/common/dialog-stepper';
 
 export function AddTentForm() {
 	// Active step state (1: Details, 2: Images)
@@ -81,11 +82,6 @@ export function AddTentForm() {
 		resetLocalState();
 		resetForm();
 	}, [resetForm]);
-
-	// Log form data changes to debug
-	useEffect(() => {
-		console.log('AddTentForm - Current form data:', formData);
-	}, [formData]);
 
 	// Input handlers
 	const handleInputChange = (
@@ -151,7 +147,6 @@ export function AddTentForm() {
 
 			// Set placeholder image for first step
 			completeData.tent_images = [];
-			completeData.tent_image = 'placeholder.jpg';
 
 			// Update all form data at once
 			setFormData(completeData);
@@ -189,7 +184,6 @@ export function AddTentForm() {
 
 			// Set the primary image from the first uploaded image
 			if (completeData.tent_images && completeData.tent_images.length > 0) {
-				completeData.tent_image = completeData.tent_images[0];
 			}
 
 			// Update all form data at once
@@ -219,11 +213,6 @@ export function AddTentForm() {
 		setIsCreateOpen(false);
 	};
 
-	// Go back to step 1
-	const handleBack = () => {
-		setStep(1);
-	};
-
 	return (
 		<DialogContent className='sm:max-w-[700px] max-h-[80vh] overflow-y-auto'>
 			<DialogHeader>
@@ -236,28 +225,8 @@ export function AddTentForm() {
 			</DialogHeader>
 
 			{/* Progress indicators */}
-			<div className='flex justify-center items-center mb-4'>
-				<div
-					className={`flex items-center justify-center w-8 h-8 rounded-full ${
-						step === 1
-							? 'bg-primary text-primary-foreground'
-							: 'bg-muted text-muted-foreground'
-					} mr-2`}
-				>
-					1
-				</div>
-				<div
-					className={`w-16 h-1 ${step >= 2 ? 'bg-primary' : 'bg-muted'} mr-2`}
-				></div>
-				<div
-					className={`flex items-center justify-center w-8 h-8 rounded-full ${
-						step === 2
-							? 'bg-primary text-primary-foreground'
-							: 'bg-muted text-muted-foreground'
-					}`}
-				>
-					2
-				</div>
+			<div className='mb-8'>
+				<DialogStepper currentStep={step} isLoading={isLoading} />
 			</div>
 
 			{/* Step 1: Basic Tent Details */}
@@ -384,11 +353,7 @@ export function AddTentForm() {
 					</>
 				) : (
 					<>
-						<Button variant='outline' onClick={handleBack} disabled={isLoading}>
-							<ArrowLeft className='mr-2 w-4 h-4' />
-							Back
-						</Button>
-						<Button variant='ghost' onClick={handleCancel}>
+						<Button variant='outline' onClick={handleCancel}>
 							Cancel
 						</Button>
 						<Button onClick={handleFinalizeTent} disabled={isLoading}>

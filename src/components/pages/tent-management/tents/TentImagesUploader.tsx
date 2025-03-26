@@ -304,7 +304,7 @@ function TentImagesUploaderComponent({
 
 			// Add the folder name once - use correct field 'Folder' (capital F)
 			const normalizedFolderName = formatFolderName(tentName);
-			formData.append('Folder', normalizedFolderName);
+			formData.append('folder', normalizedFolderName);
 
 			// Make a single API request for all files
 			const response = await leviapi.post('/upload/tents', formData, {

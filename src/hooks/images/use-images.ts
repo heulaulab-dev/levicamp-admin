@@ -1,12 +1,25 @@
 import { create } from 'zustand';
 import { leviapi } from '@/lib/api';
 import { toast } from 'sonner';
+import { AxiosError } from 'axios';
 
 interface UploadProgress {
 	id: string;
 	filename: string;
 	progress: number;
 	status: 'idle' | 'uploading' | 'success' | 'error';
+}
+
+interface ValidationError {
+	code: string;
+	description: string;
+	details: Record<string, string>;
+}
+
+interface ApiErrorResponse {
+	status: number;
+	message: string;
+	error: ValidationError;
 }
 
 interface ImagesState {
@@ -33,6 +46,11 @@ export const useImagesStore = create<ImagesState>((set) => ({
 	uploadImages: async (files: File[], folderName: string) => {
 		if (files.length === 0) return [];
 
+		if (!folderName) {
+			toast.error('Folder name is required');
+			return [];
+		}
+
 		set({ isUploading: true });
 
 		// Create initial progress entries for each file
@@ -53,7 +71,7 @@ export const useImagesStore = create<ImagesState>((set) => ({
 				formData.append('files', file);
 			});
 
-			// Add folder name
+			// Add folder name with proper casing as expected by the API
 			formData.append('folder', folderName);
 
 			// Make the API request
@@ -100,6 +118,17 @@ export const useImagesStore = create<ImagesState>((set) => ({
 		} catch (error) {
 			console.error('Error uploading images:', error);
 
+			// Handle validation errors
+			const axiosError = error as AxiosError<ApiErrorResponse>;
+			if (axiosError.response?.data?.error?.code === 'VALIDATION_ERROR') {
+				const details = axiosError.response.data.error.details;
+				Object.entries(details).forEach(([field, message]) => {
+					toast.error(`${field}: ${message}`);
+				});
+			} else {
+				toast.error('Failed to upload images');
+			}
+
 			// Update progress to error
 			set((state) => ({
 				uploadProgress: state.uploadProgress.map((item) => ({
@@ -109,7 +138,6 @@ export const useImagesStore = create<ImagesState>((set) => ({
 				isUploading: false,
 			}));
 
-			toast.error('Failed to upload images');
 			return [];
 		}
 	},
