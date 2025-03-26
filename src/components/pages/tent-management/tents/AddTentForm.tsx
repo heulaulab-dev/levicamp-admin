@@ -225,9 +225,8 @@ export function AddTentForm() {
 			</DialogHeader>
 
 			{/* Progress indicators */}
-			<div className='mb-8'>
-				<DialogStepper currentStep={step} isLoading={isLoading} />
-			</div>
+
+			<DialogStepper currentStep={step} isLoading={isLoading} />
 
 			{/* Step 1: Basic Tent Details */}
 			{step === 1 && (
