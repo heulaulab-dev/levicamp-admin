@@ -3,9 +3,7 @@
 // Daily Guest Count Data Structure
 export type GuestDailyData = {
 	date: string;
-	vip: number;
-	standard: number;
-};
+} & Record<string, number>;
 
 // Total Guest State Type
 export type TotalGuestState = {

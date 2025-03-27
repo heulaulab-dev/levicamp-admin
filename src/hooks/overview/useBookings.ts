@@ -2,8 +2,13 @@
 import { create } from 'zustand';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { useAuthStore } from '../auth/useAuth';
-import { BookingState, Booking, AddOn } from '@/types/booking';
+import { useAuthStore } from '@/hooks/auth/useAuth';
+import {
+	BookingState,
+	Booking,
+	AddOn,
+	PaginationOptions,
+} from '@/types/booking';
 
 // Track if we're currently fetching to prevent duplicate requests
 let isFetching = false;
@@ -11,7 +16,7 @@ let isFetching = false;
 // Create and export the Zustand store
 export const useBookingsStore = create<BookingState>((set, get) => {
 	// Define the fetch function outside the store methods
-	const fetchBookings = async (page = 1, pageSize = 10) => {
+	const fetchBookings = async (options?: PaginationOptions) => {
 		// If we're already fetching, don't start another request
 		if (isFetching) {
 			console.log('Skipping duplicate bookings API call - request in progress');
@@ -29,8 +34,10 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 					Authorization: `Bearer ${currentToken}`,
 				},
 				params: {
-					page,
-					pageSize,
+					page: options?.page || 1,
+					pageSize: options?.per_page || 10,
+					search: options?.search,
+					status: options?.status,
 				},
 			});
 
@@ -129,8 +136,8 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 		selectedBooking: null,
 
 		// Get bookings data from API with duplicate request prevention
-		getBookings: async (page?: number, pageSize?: number) => {
-			return fetchBookings(page, pageSize);
+		getBookings: async (options?: PaginationOptions) => {
+			return fetchBookings(options);
 		},
 
 		// Get a single booking by ID

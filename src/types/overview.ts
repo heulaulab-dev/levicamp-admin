@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // Active Tents Metrics
 export type ActiveTentsMetrics = {
 	active_tents: number;
@@ -47,3 +45,57 @@ export type OverviewState = {
 	getOverviewMetrics: () => Promise<void>;
 	resetOverviewMetrics: () => void;
 };
+
+export const initialMetrics: OverviewMetrics = {
+	active_tents: {
+		active_tents: 0,
+		total_tents: 0,
+		period: 'last_month',
+	},
+	growth_rate: {
+		percentage: 0,
+		change: 0,
+		period: 'last_month',
+	},
+	total_bookings: {
+		total: 0,
+		change: 0,
+		period: 'last_month',
+	},
+	total_revenue: {
+		amount: 0,
+		change: 0,
+		period: 'last_month',
+	},
+};
+
+// Active Tents Slice
+export type ActiveTentsSlice = {
+	activeTents: ActiveTentsMetrics;
+	setActiveTents: (data: ActiveTentsMetrics) => void;
+};
+
+// Growth Rate Slice
+export type GrowthRateSlice = {
+	growthRate: GrowthRateMetrics;
+	setGrowthRate: (data: GrowthRateMetrics) => void;
+};
+
+// Total Bookings Slice
+export type TotalBookingsSlice = {
+	totalBookings: TotalBookingsMetrics;
+	setTotalBookings: (data: TotalBookingsMetrics) => void;
+};
+
+// Total Revenue Slice
+export type TotalRevenueSlice = {
+	totalRevenue: TotalRevenueMetrics;
+	setTotalRevenue: (data: TotalRevenueMetrics) => void;
+};
+
+// Combined State Type
+export type OverviewStoreState = OverviewState &
+	ActiveTentsSlice &
+	GrowthRateSlice &
+	TotalBookingsSlice &
+	TotalRevenueSlice;

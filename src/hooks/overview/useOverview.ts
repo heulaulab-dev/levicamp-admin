@@ -2,80 +2,20 @@
 import { create } from 'zustand';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { useAuthStore } from '../auth/useAuth';
-import {
-	OverviewMetrics,
-	OverviewState,
-	ActiveTentsMetrics,
-	GrowthRateMetrics,
-	TotalBookingsMetrics,
-	TotalRevenueMetrics,
-} from '@/types/overview';
+import { useAuthStore } from '@/hooks/auth/useAuth';
+import { OverviewStoreState, initialMetrics } from '@/types/overview';
 
 // Track if we're currently fetching to prevent duplicate requests
 let isFetching = false;
 
 // Default initial metrics values
-const initialMetrics: OverviewMetrics = {
-	active_tents: {
-		active_tents: 0,
-		total_tents: 0,
-		period: 'last_month',
-	},
-	growth_rate: {
-		percentage: 0,
-		change: 0,
-		period: 'last_month',
-	},
-	total_bookings: {
-		total: 0,
-		change: 0,
-		period: 'last_month',
-	},
-	total_revenue: {
-		amount: 0,
-		change: 0,
-		period: 'last_month',
-	},
-};
-
-// Active Tents Slice
-type ActiveTentsSlice = {
-	activeTents: ActiveTentsMetrics;
-	setActiveTents: (data: ActiveTentsMetrics) => void;
-};
-
-// Growth Rate Slice
-type GrowthRateSlice = {
-	growthRate: GrowthRateMetrics;
-	setGrowthRate: (data: GrowthRateMetrics) => void;
-};
-
-// Total Bookings Slice
-type TotalBookingsSlice = {
-	totalBookings: TotalBookingsMetrics;
-	setTotalBookings: (data: TotalBookingsMetrics) => void;
-};
-
-// Total Revenue Slice
-type TotalRevenueSlice = {
-	totalRevenue: TotalRevenueMetrics;
-	setTotalRevenue: (data: TotalRevenueMetrics) => void;
-};
-
-// Combined State Type
-type OverviewStoreState = OverviewState &
-	ActiveTentsSlice &
-	GrowthRateSlice &
-	TotalBookingsSlice &
-	TotalRevenueSlice;
 
 export const useOverviewStore = create<OverviewStoreState>((set) => {
 	// Define the fetch function outside the store methods
 	const fetchOverviewMetrics = async () => {
 		// If we're already fetching, don't start another request
 		if (isFetching) {
-			console.log('Skipping duplicate overview API call');
+			// console.log('Skipping duplicate overview API call');
 			return;
 		}
 
@@ -84,19 +24,20 @@ export const useOverviewStore = create<OverviewStoreState>((set) => {
 		const currentToken = useAuthStore.getState().token;
 
 		try {
-			console.log('Fetching overview metrics data');
-			const { data } = await api.get('/admin/overview', {
+			// console.log('Fetching overview metrics data');
+			const response = await api.get('/admin/overview', {
 				headers: {
 					Authorization: `Bearer ${currentToken}`,
 				},
 			});
 
-			if (data && data.data) {
+			const metricsData = response?.data?.data;
+
+			if (metricsData) {
 				// Store complete metrics
-				set({ metrics: data.data });
+				set({ metrics: metricsData });
 
 				// Store individual metrics in their own slices
-				const metricsData = data.data;
 				set({
 					activeTents: metricsData.active_tents,
 					growthRate: metricsData.growth_rate,
@@ -104,18 +45,18 @@ export const useOverviewStore = create<OverviewStoreState>((set) => {
 					totalRevenue: metricsData.total_revenue,
 				});
 			} else {
-				console.error('Unexpected API response format:', data);
+				// console.error('Unexpected API response format:', data);
 				set({ error: 'Invalid response format from server' });
 			}
 		} catch (error) {
-			console.error('Error fetching overview metrics:', error);
+			// console.error('Error fetching overview metrics:', error);
+			const errorResponse = (error as any)?.response?.data;
 			const errorMessage =
-				(error as any).response?.data?.message ||
-				'Failed to fetch overview metrics';
+				errorResponse?.error?.description || 'Failed to fetch overview metrics';
 
 			// Handle 429 error specifically
-			if ((error as any).response?.status === 429) {
-				console.log('Rate limit exceeded for overview metrics');
+			if (errorResponse?.status === 429) {
+				// console.log('Rate limit exceeded for overview metrics');
 				toast.error('Too many requests. Please try again later.');
 			} else {
 				toast.error(errorMessage);

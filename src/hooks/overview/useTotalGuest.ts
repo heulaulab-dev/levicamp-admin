@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { create } from 'zustand';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { useAuthStore } from '../auth/useAuth';
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useAuthStore } from '@/hooks/auth/useAuth';
 import { GuestDailyData, TotalGuestState } from '@/types/guest';
-/* eslint-enable @typescript-eslint/no-unused-vars */
 
 // Track if we're currently fetching to prevent duplicate requests
 let isFetching = false;
@@ -16,37 +16,37 @@ export const useTotalGuestStore = create<TotalGuestState>((set) => {
 	const fetchGuestData = async () => {
 		// If we're already fetching, don't start another request
 		if (isFetching) {
-			console.log(
-				'Skipping duplicate total-guest API call - request in progress',
-			);
 			return;
 		}
 
 		isFetching = true;
 		set({ isLoading: true, error: null });
-		const currentToken = useAuthStore.getState().token;
+		const { token } = useAuthStore.getState();
 
 		try {
-			console.log('Fetching total-guest data');
 			const response = await api.get('/admin/total-guest', {
 				headers: {
-					Authorization: `Bearer ${currentToken}`,
+					Authorization: `Bearer ${token}`,
 				},
 			});
 
-			// Store the entire response data which might contain data: null
+			// Store the entire response data
 			const responseData = response.data;
 
-			// Check if the response is valid
-			if (Array.isArray(responseData)) {
+			// Check if the response is valid and has data
+			if (responseData?.status === 200 && Array.isArray(responseData.data)) {
+				// Transform the data to our internal format
+				const transformedData = responseData.data.map((item: any) => ({
+					date: item.date,
+					vip: item.VIP || 0,
+					standard: item.Standart || 0,
+				}));
+
 				set({
-					guestData: responseData,
+					guestData: transformedData,
 					isLoading: false,
 				});
-			} else if (
-				responseData === null ||
-				(responseData && responseData.data === null)
-			) {
+			} else if (responseData?.data === null) {
 				// Handle null data scenario - set empty array but don't trigger error
 				console.log('API returned null data for guest metrics');
 				set({
@@ -62,11 +62,12 @@ export const useTotalGuestStore = create<TotalGuestState>((set) => {
 			}
 		} catch (error) {
 			console.error('Error fetching total guest data:', error);
+			const errorResponse = (error as any).response;
 			const errorMessage =
-				(error as any).response?.data?.message || 'Failed to fetch guest data';
+				errorResponse?.data?.message || 'Failed to fetch guest data';
 
 			// Handle 429 error specifically
-			if ((error as any).response?.status === 429) {
+			if (errorResponse?.status === 429) {
 				console.log('Rate limit exceeded for total-guest endpoint');
 				toast.error('Too many requests. Please try again later.');
 			} else {

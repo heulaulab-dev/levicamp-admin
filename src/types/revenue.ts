@@ -6,7 +6,7 @@ export type RevenuePeriod = 'daily' | 'monthly' | 'yearly';
 // Single revenue data point
 export type RevenueDataPoint = {
 	date: string;
-	amount: number;
+	revenue: number;
 };
 
 // Revenue Overview State Type
@@ -26,7 +26,7 @@ export type RevenueOverviewState = {
 // Revenue Breakdown Category Item
 export type RevenueCategoryItem = {
 	category: string;
-	revenue: number;
+	percentage: number;
 };
 
 // Revenue Breakdown Period Item
@@ -36,10 +36,7 @@ export type RevenuePeriodItem = {
 };
 
 // Revenue Breakdown API Response
-export type RevenueBreakdownResponse = {
-	by_category: RevenueCategoryItem[];
-	by_period: RevenuePeriodItem[];
-};
+export type RevenueBreakdownResponse = RevenueCategoryItem[];
 
 // Revenue Breakdown State Type
 export type RevenueBreakdownState = {

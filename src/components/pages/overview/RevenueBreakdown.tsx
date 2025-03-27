@@ -124,13 +124,7 @@ export function RevenueBreakdown() {
 					<PieChart>
 						<ChartTooltip
 							cursor={false}
-							content={
-								<ChartTooltipContent
-									formatter={(value) =>
-										`Rp.${Number(value).toLocaleString('id-ID')}`
-									}
-								/>
-							}
+							content={<ChartTooltipContent hideLabel />}
 						/>
 						<Pie
 							data={displayData}

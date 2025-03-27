@@ -154,19 +154,8 @@ export function TotalGuestChart() {
 								}}
 							/>
 							<ChartTooltip
-								content={
-									<ChartTooltipContent
-										className='w-[150px]'
-										nameKey='views'
-										labelFormatter={(value) => {
-											return new Date(value).toLocaleDateString('en-US', {
-												month: 'short',
-												day: 'numeric',
-												year: 'numeric',
-											});
-										}}
-									/>
-								}
+								cursor={false}
+								content={<ChartTooltipContent hideLabel />}
 							/>
 							<Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
 						</BarChart>
