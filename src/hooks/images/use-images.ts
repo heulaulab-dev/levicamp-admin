@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { leviapi } from '@/lib/api';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 
@@ -75,7 +75,7 @@ export const useImagesStore = create<ImagesState>((set) => ({
 			formData.append('folder', folderName);
 
 			// Make the API request
-			const response = await leviapi.post('/upload/tents', formData, {
+			const response = await api.post('/upload/tents', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},

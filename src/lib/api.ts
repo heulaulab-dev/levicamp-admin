@@ -1,16 +1,9 @@
-// lib/api.ts
 import { useAuthStore } from '@/hooks/auth/useAuth';
 import axios from 'axios';
 
 const api = axios.create({
 	baseURL: process.env.NEXT_PUBLIC_TEST_API_URL,
 	headers: { 'Content-Type': 'application/json' },
-});
-
-const leviapi = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_TEST_API_URL,
-	headers: { 'Content-Type': 'application/json' },
-	withCredentials: true,
 });
 
 // Interceptor buat auto refresh token
@@ -66,4 +59,3 @@ async function refreshAccessToken() {
 }
 
 export default api;
-export { leviapi };
