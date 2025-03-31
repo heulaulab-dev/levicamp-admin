@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -46,30 +46,31 @@ export function BookingManagementList() {
 	// Debounce search to avoid too many API calls
 	const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
-	const fetchBookings = (
-		options?: PaginationOptions & { search?: string; status?: string },
-	) => {
-		const queryParams: PaginationOptions & {
-			search?: string;
-			status?: string;
-		} = {
-			page: options?.page || currentPage,
-			per_page: options?.per_page || pageSize,
-		};
+	const fetchBookings = useCallback(
+		(options?: PaginationOptions & { search?: string; status?: string }) => {
+			const queryParams: PaginationOptions & {
+				search?: string;
+				status?: string;
+			} = {
+				page: options?.page || currentPage,
+				per_page: options?.per_page || pageSize,
+			};
 
-		if (options?.search || searchQuery) {
-			queryParams.search = options?.search || searchQuery;
-		}
+			if (options?.search || searchQuery) {
+				queryParams.search = options?.search || searchQuery;
+			}
 
-		// Only add status to params if it's not 'all'
-		if (options?.status && options.status !== 'all') {
-			queryParams.status = options.status;
-		} else if (statusFilter && statusFilter !== 'all') {
-			queryParams.status = statusFilter;
-		}
+			// Only add status to params if it's not 'all'
+			if (options?.status && options.status !== 'all') {
+				queryParams.status = options.status;
+			} else if (statusFilter && statusFilter !== 'all') {
+				queryParams.status = statusFilter;
+			}
 
-		getBookings(queryParams);
-	};
+			getBookings(queryParams);
+		},
+		[currentPage, pageSize, searchQuery, statusFilter, getBookings],
+	);
 
 	// Fetch bookings when component mounts or pagination changes
 	useEffect(() => {
@@ -79,7 +80,7 @@ export function BookingManagementList() {
 		}
 
 		fetchBookings();
-	}, [getBookings, currentPage, pageSize, statusFilter]);
+	}, [fetchBookings]);
 
 	// Handle search with debounce
 	useEffect(() => {
@@ -97,7 +98,7 @@ export function BookingManagementList() {
 				clearTimeout(searchTimeout.current);
 			}
 		};
-	}, [searchQuery]);
+	}, [searchQuery, fetchBookings]);
 
 	const handleExport = () => {
 		// In a real application, this would generate a CSV or Excel file

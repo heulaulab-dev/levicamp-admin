@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { RefundDetailsProps } from '@/types';
+import { RefundDetailsProps } from '@/types/refund';
 import { Badge } from '@/components/ui/badge';
 
 export default function RefundDetails({

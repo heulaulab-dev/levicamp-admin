@@ -25,6 +25,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/dialog';
+import Image from 'next/image';
 
 interface RefundDialogDrawerProps {
 	refund: Refund;
@@ -153,17 +154,20 @@ const RefundDialogDrawer = ({ refund, children }: RefundDialogDrawerProps) => {
 											</h3>
 											{getRefundPaymentProof(detailedRefund) ? (
 												<div className='mt-1'>
-													<img
-														src={getRefundPaymentProof(detailedRefund)}
-														alt='Payment Proof'
-														className='hover:opacity-90 rounded-md max-h-60 transition-opacity cursor-pointer'
-														onClick={() =>
-															window.open(
-																getRefundPaymentProof(detailedRefund),
-																'_blank',
-															)
-														}
-													/>
+													<div className='relative w-full h-60'>
+														<Image
+															src={getRefundPaymentProof(detailedRefund)!}
+															alt='Payment Proof'
+															fill
+															className='hover:opacity-90 rounded-md object-contain transition-opacity cursor-pointer'
+															onClick={() =>
+																window.open(
+																	getRefundPaymentProof(detailedRefund),
+																	'_blank',
+																)
+															}
+														/>
+													</div>
 													<p className='mt-1 text-muted-foreground text-xs'>
 														Click image to view full size
 													</p>
@@ -342,17 +346,20 @@ const RefundDialogDrawer = ({ refund, children }: RefundDialogDrawerProps) => {
 										</h3>
 										{getRefundPaymentProof(detailedRefund) ? (
 											<div className='mt-1'>
-												<img
-													src={getRefundPaymentProof(detailedRefund)}
-													alt='Payment Proof'
-													className='hover:opacity-90 rounded-md max-h-60 transition-opacity cursor-pointer'
-													onClick={() =>
-														window.open(
-															getRefundPaymentProof(detailedRefund),
-															'_blank',
-														)
-													}
-												/>
+												<div className='relative w-full h-60'>
+													<Image
+														src={getRefundPaymentProof(detailedRefund)!}
+														alt='Payment Proof'
+														fill
+														className='hover:opacity-90 rounded-md object-contain transition-opacity cursor-pointer'
+														onClick={() =>
+															window.open(
+																getRefundPaymentProof(detailedRefund),
+																'_blank',
+															)
+														}
+													/>
+												</div>
 												<p className='mt-1 text-muted-foreground text-xs'>
 													Click image to view full size
 												</p>

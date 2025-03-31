@@ -67,10 +67,16 @@ export function ResponsiveDialog({ booking, children, type }: DialogProps) {
 					await checkInBooking(booking.id);
 					break;
 				case 'modify':
-					await updateBooking(booking.id, { status });
+					await updateBooking(booking.id, {
+						status: status as
+							| 'pending'
+							| 'confirmed'
+							| 'completed'
+							| 'cancelled',
+					});
 					break;
 				case 'cancel':
-					await updateBooking(booking.id, { status: 'canceled' });
+					await updateBooking(booking.id, { status: 'cancelled' });
 					break;
 			}
 			setOpen(false);

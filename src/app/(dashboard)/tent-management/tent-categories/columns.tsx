@@ -2,7 +2,6 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
-import { TentCategory } from '@/types/types';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +18,7 @@ import {
 import { EditCategoryForm } from '@/components/pages/tent-management/tent-categories/EditCategoryForm';
 import { DeleteCategoryDialog } from '@/components/pages/tent-management/tent-categories/DeleteCategoryDialog';
 import { useCategory } from '@/hooks/category/useCategory';
+import { TentCategory } from '@/types/tent';
 
 export const columns: ColumnDef<TentCategory>[] = [
 	{

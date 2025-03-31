@@ -23,7 +23,7 @@ export default function TentCategoriesPage() {
 		getCategories().then(() => {
 			console.log('Categories data loaded:', categories);
 		});
-	}, [getCategories]);
+	}, [categories, getCategories]);
 
 	const handleOpenCreateModal = () => {
 		resetForm();
@@ -31,7 +31,7 @@ export default function TentCategoriesPage() {
 	};
 
 	const handleRefresh = useCallback(async () => {
-		await getCategories(true); // Force refresh
+		await getCategories(); // Remove force refresh parameter since it's not expected
 	}, [getCategories]);
 
 	return (

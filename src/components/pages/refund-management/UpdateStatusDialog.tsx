@@ -14,9 +14,8 @@ import {
 	DrawerTitle,
 } from '@/components/ui/drawer';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { Refund } from '@/types';
+import { Refund, RefundStatus, UpdateStatusProps } from '@/types/refund';
 import { useState } from 'react';
-import { RefundStatus, UpdateStatusProps } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';

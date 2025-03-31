@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { toast } from 'sonner';
 import { Upload, X, ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 
 // API and utilities
-import { leviapi } from '@/lib/api';
+import api from '@/lib/api';
 
 // Helper to format folder name
 const formatFolderName = (name: string): string => {
@@ -45,12 +46,21 @@ const ImagePreview = memo(
 	({
 		src,
 		alt,
-		className = 'max-w-full max-h-full object-contain',
+		className,
 	}: {
 		src: string;
 		alt: string;
 		className?: string;
-	}) => <img src={src} alt={alt} className={className} />,
+	}) => (
+		<div className='relative w-full h-full'>
+			<Image
+				src={src}
+				alt={alt}
+				fill
+				className={`object-contain ${className || ''}`}
+			/>
+		</div>
+	),
 );
 ImagePreview.displayName = 'ImagePreview';
 
@@ -171,7 +181,7 @@ function TentImagesUploaderComponent({
 		if (JSON.stringify(initialImages) !== JSON.stringify(uploadedUrls)) {
 			setUploadedUrls(initialImages);
 		}
-	}, [initialImages]);
+	}, [initialImages, uploadedUrls]);
 
 	// Cleanup function for previews to avoid memory leaks
 	useEffect(() => {
@@ -204,52 +214,6 @@ function TentImagesUploaderComponent({
 			}, 0);
 		},
 		[onImagesChange],
-	);
-
-	// Handle file selection
-	const handleFileSelect = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			if (e.target.files && e.target.files.length > 0) {
-				const newFiles = Array.from(e.target.files);
-
-				// Size validation (5MB per file)
-				const oversizedFiles = newFiles.filter(
-					(file) => file.size > 5 * 1024 * 1024,
-				);
-				if (oversizedFiles.length > 0) {
-					toast.error('Some files exceed the 5MB size limit');
-					return;
-				}
-
-				// Convert to FileInfo objects
-				const newFileInfos = newFiles.map((file) => ({
-					id: `${file.name}-${file.size}-${Date.now()}`,
-					file,
-					preview: URL.createObjectURL(file),
-					status: 'idle' as FileStatus,
-					progress: 0,
-				}));
-
-				// Add the new files to state
-				setFiles((prev) => [...prev, ...newFileInfos]);
-
-				// Auto-upload if tent name is available and not already uploading
-				if (tentName && !uploadInProgressRef.current) {
-					// Use a small timeout to ensure state is updated
-					const timer = setTimeout(() => {
-						uploadAllFiles();
-					}, 300);
-
-					return () => clearTimeout(timer);
-				}
-			}
-
-			// Reset the input to allow selecting the same file again
-			if (fileInputRef.current) {
-				fileInputRef.current.value = '';
-			}
-		},
-		[tentName],
 	);
 
 	// Memoized function for uploading multiple files
@@ -307,7 +271,7 @@ function TentImagesUploaderComponent({
 			formData.append('folder', normalizedFolderName);
 
 			// Make a single API request for all files
-			const response = await leviapi.post('/upload/tents', formData, {
+			const response = await api.post('/upload/tents', formData, {
 				onUploadProgress: (progressEvent: any) => {
 					if (progressEvent.total) {
 						const percentCompleted = Math.round(
@@ -374,28 +338,70 @@ function TentImagesUploaderComponent({
 				throw new Error('Invalid response format - expected urls array');
 			}
 		} catch (error) {
-			// Update error status in batch
+			console.error('Error uploading files:', error);
+			toast.error('Failed to upload one or more files');
+
+			// Update status to error for all files in a single operation
 			setFiles((prev) => {
 				const updatedFiles = [...prev];
-				for (let i = 0; i < updatedFiles.length; i++) {
-					if (filesToUpload.some((fu) => fu.id === updatedFiles[i].id)) {
-						updatedFiles[i] = {
-							...updatedFiles[i],
-							status: 'error',
-						};
+				filesToUpload.forEach((file) => {
+					const index = updatedFiles.findIndex((f) => f.id === file.id);
+					if (index !== -1) {
+						updatedFiles[index] = { ...updatedFiles[index], status: 'error' };
 					}
-				}
+				});
 				return updatedFiles;
 			});
-
-			console.error('Upload error:', error);
-			toast.error(
-				`Upload failed: ${(error as any)?.message || 'Unknown error occurred'}`,
-			);
 		} finally {
 			uploadInProgressRef.current = false;
 		}
-	}, [files, tentName, notifyParentOfChanges]);
+	}, [tentName, files, notifyParentOfChanges]);
+
+	// Handle file selection
+	const handleFileSelect = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			if (e.target.files && e.target.files.length > 0) {
+				const newFiles = Array.from(e.target.files);
+
+				// Size validation (5MB per file)
+				const oversizedFiles = newFiles.filter(
+					(file) => file.size > 5 * 1024 * 1024,
+				);
+				if (oversizedFiles.length > 0) {
+					toast.error('Some files exceed the 5MB size limit');
+					return;
+				}
+
+				// Convert to FileInfo objects
+				const newFileInfos = newFiles.map((file) => ({
+					id: `${file.name}-${file.size}-${Date.now()}`,
+					file,
+					preview: URL.createObjectURL(file),
+					status: 'idle' as FileStatus,
+					progress: 0,
+				}));
+
+				// Add the new files to state
+				setFiles((prev) => [...prev, ...newFileInfos]);
+
+				// Auto-upload if tent name is available and not already uploading
+				if (tentName && !uploadInProgressRef.current) {
+					// Use a small timeout to ensure state is updated
+					const timer = setTimeout(() => {
+						uploadAllFiles();
+					}, 300);
+
+					return () => clearTimeout(timer);
+				}
+			}
+
+			// Reset the input to allow selecting the same file again
+			if (fileInputRef.current) {
+				fileInputRef.current.value = '';
+			}
+		},
+		[tentName, uploadAllFiles],
+	);
 
 	// Remove a file from selection
 	const removeFile = useCallback(

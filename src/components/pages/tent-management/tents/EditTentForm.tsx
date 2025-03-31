@@ -274,16 +274,18 @@ const EditTentFormComponent = function EditTentForm() {
 			}
 
 			// Set tent_image from tent_images if available
-			if (completeData.tent_images && completeData.tent_images.length > 0) {
-				completeData.tent_image = completeData.tent_images[0];
-			} else if (!completeData.tent_image) {
-				completeData.tent_image = 'placeholder.jpg';
-			}
+			const updatedData = {
+				...completeData,
+				tent_image:
+					completeData.tent_images && completeData.tent_images.length > 0
+						? completeData.tent_images[0]
+						: 'placeholder.jpg',
+			};
 
 			// Update all form data at once
-			setFormData(completeData);
+			setFormData(updatedData);
 
-			if (isDev) console.log('Submitting data:', completeData);
+			if (isDev) console.log('Submitting data:', updatedData);
 
 			// Now update with all the form data
 			const result = await updateTent(selectedTent.id);

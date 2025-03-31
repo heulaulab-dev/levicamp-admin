@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // Daily Guest Count Data Structure
 export type GuestDailyData = {
 	date: string;

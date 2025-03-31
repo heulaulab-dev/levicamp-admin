@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // Admin Type Definition
 export type Admin = {
 	id: string;

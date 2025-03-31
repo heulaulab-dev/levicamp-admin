@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { toast } from 'sonner';
 import { Upload, X, FileIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -36,11 +37,14 @@ const FilePreview = memo(({ fileInfo }: { fileInfo: FileInfo }) => {
 	return (
 		<div className='flex justify-center items-center bg-muted aspect-video'>
 			{isImage ? (
-				<img
-					src={fileInfo.preview}
-					alt={`Preview ${fileInfo.file.name}`}
-					className='max-w-full max-h-full object-contain'
-				/>
+				<div className='relative w-full h-full'>
+					<Image
+						src={fileInfo.preview}
+						alt={`Preview ${fileInfo.file.name}`}
+						fill
+						className='object-contain'
+					/>
+				</div>
 			) : (
 				<div className='flex flex-col justify-center items-center'>
 					<FileIcon className='w-10 h-10 text-muted-foreground' />
@@ -337,10 +341,12 @@ function PaymentProofUploaderComponent({
 						<div className='relative border rounded-md overflow-hidden'>
 							<div className='flex justify-center items-center bg-muted aspect-video'>
 								{fileUrl.match(/\.(jpeg|jpg|gif|png)$/i) ? (
-									<img
+									<Image
 										src={fileUrl}
 										alt='Payment Proof'
 										className='max-w-full max-h-full object-contain'
+										width={500}
+										height={300}
 									/>
 								) : (
 									<div className='flex flex-col justify-center items-center'>
