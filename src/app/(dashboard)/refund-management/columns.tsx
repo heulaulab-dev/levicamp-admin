@@ -63,7 +63,6 @@ export const sharedColumns: ColumnDef<Refund>[] = [
 		cell: ({ row }) => {
 			// Convert ISO date string to YYYY-MM-DD format
 			const date = new Date(row.original.date);
-			console.log(row.original.date);
 			return date.toISOString().split('T')[0]; // Gets YYYY-MM-DD part
 		},
 	},
