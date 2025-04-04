@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { RefundDetailsProps } from '@/types';
+import { RefundDetailsProps } from '@/types/refund';
 import { Badge } from '@/components/ui/badge';
 
 export default function RefundDetails({
@@ -12,10 +12,6 @@ export default function RefundDetails({
 				<div>
 					<h4 className='font-medium text-sm'>Request ID</h4>
 					<p>{refund.id}</p>
-				</div>
-				<div>
-					<h4 className='font-medium text-sm'>Guest Name</h4>
-					<p>{refund.guestName}</p>
 				</div>
 				<div>
 					<h4 className='font-medium text-sm'>Booking ID</h4>

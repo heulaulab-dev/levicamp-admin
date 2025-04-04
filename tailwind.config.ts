@@ -68,6 +68,10 @@ export default {
 				plus_jakarta_sans: ['var(--font-plus-jakarta-sans)'],
 			},
 			keyframes: {
+				'rainbow': {
+					'0%': { 'background-position': '0%' },
+					'100%': { 'background-position': '200%' },
+				},
 				'accordion-down': {
 					from: {
 						height: '0',
@@ -86,6 +90,7 @@ export default {
 				},
 			},
 			animation: {
+				'rainbow': 'rainbow var(--speed, 2s) infinite linear',
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 			},

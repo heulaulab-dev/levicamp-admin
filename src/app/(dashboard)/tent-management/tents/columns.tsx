@@ -2,7 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
-import { Tents } from '@/types/types';
+import { Tent } from '@/types/tent';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,8 +19,9 @@ import {
 import { EditTentForm } from '@/components/pages/tent-management/tents/EditTentForm';
 import { DeleteTentDialog } from '@/components/pages/tent-management/tents/DeleteTentDialog';
 import { useTentStore } from '@/hooks/tents/useTents';
+import { memo, useCallback, useMemo } from 'react';
 
-export const columns: ColumnDef<Tents>[] = [
+export const columns: ColumnDef<Tent>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Tent Name',
@@ -109,7 +110,7 @@ export const columns: ColumnDef<Tents>[] = [
 	},
 ];
 
-const ActionsDropdown = ({ tent }: { tent: Tents }) => {
+const ActionsDropdown = memo(({ tent }: { tent: Tent }) => {
 	const {
 		isEditOpen,
 		isDeleteOpen,
@@ -118,15 +119,58 @@ const ActionsDropdown = ({ tent }: { tent: Tents }) => {
 		setSelectedTent,
 	} = useTentStore();
 
-	const handleEditClick = () => {
-		setSelectedTent(tent);
-		setIsEditOpen(true);
-	};
+	// Memoize the click handlers to prevent recreating functions on every render
+	const handleEditClick = useCallback(() => {
+		// Remove unnecessary console.logs in production
+		if (process.env.NODE_ENV === 'development') {
+			console.log('Opening edit modal for tent ID:', tent.id);
+		}
 
-	const handleDeleteClick = () => {
+		// Batch state updates to reduce rerenders
+		// Prepare tent data first, then update state in one go
+		setSelectedTent(tent);
+
+		// Use setTimeout to break up the heavy JS work, preventing UI freeze
+		setTimeout(() => {
+			setIsEditOpen(true);
+		}, 10);
+	}, [tent, setSelectedTent, setIsEditOpen]);
+
+	const handleDeleteClick = useCallback(() => {
+		if (process.env.NODE_ENV === 'development') {
+			console.log('Opening delete modal for tent ID:', tent.id);
+		}
+
 		setSelectedTent(tent);
 		setIsDeleteOpen(true);
-	};
+	}, [tent, setSelectedTent, setIsDeleteOpen]);
+
+	// Memoize dropdown items to avoid recreating on each render
+	const dropdownItems = useMemo(
+		() => (
+			<>
+				<DropdownMenuLabel>Actions</DropdownMenuLabel>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						handleEditClick();
+					}}
+				>
+					Edit Tent
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						handleDeleteClick();
+					}}
+				>
+					Delete Tent
+				</DropdownMenuItem>
+			</>
+		),
+		[handleEditClick, handleDeleteClick],
+	);
 
 	return (
 		<>
@@ -141,36 +185,24 @@ const ActionsDropdown = ({ tent }: { tent: Tents }) => {
 						<MoreHorizontal className='w-4 h-4' />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align='end'>
-					<DropdownMenuLabel>Actions</DropdownMenuLabel>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem
-						onSelect={(e) => {
-							e.preventDefault();
-							handleEditClick();
-						}}
-					>
-						Edit Tent
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onSelect={(e) => {
-							e.preventDefault();
-							handleDeleteClick();
-						}}
-					>
-						Delete Tent
-					</DropdownMenuItem>
-				</DropdownMenuContent>
+				<DropdownMenuContent align='end'>{dropdownItems}</DropdownMenuContent>
 			</DropdownMenu>
 
-			{/* Dialogs */}
-			<Dialog modal open={isEditOpen} onOpenChange={setIsEditOpen}>
-				<EditTentForm tentId={tent.id} />
-			</Dialog>
+			{/* Dialogs - Only render when open to reduce initial load */}
+			{isEditOpen && (
+				<Dialog modal open={isEditOpen} onOpenChange={setIsEditOpen}>
+					<EditTentForm />
+				</Dialog>
+			)}
 
-			<Dialog modal open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-				<DeleteTentDialog />
-			</Dialog>
+			{isDeleteOpen && (
+				<Dialog modal open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+					<DeleteTentDialog />
+				</Dialog>
+			)}
 		</>
 	);
-};
+});
+
+// Add display name
+ActionsDropdown.displayName = 'ActionsDropdown';

@@ -2,8 +2,8 @@
 
 import { columns } from './columns';
 import { DataTable } from '@/components/ui/data-table';
-import { useEffect } from 'react';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useEffect, useCallback } from 'react';
+import { useCategory } from '@/hooks/category/useCategory';
 import { Dialog } from '@/components/ui/dialog';
 import { AddCategoryForm } from '@/components/pages/tent-management/tent-categories/AddCategoryForm';
 import { PageHeader } from '@/components/common/PageHeader';
@@ -16,17 +16,23 @@ export default function TentCategoriesPage() {
 		resetForm,
 		isCreateOpen,
 		setIsCreateOpen,
-	} = useCategoryStore();
+	} = useCategory();
 
 	useEffect(() => {
-		getCategories();
-		console.log('Initial categories check:', categories);
-	}, [getCategories]);
+		console.log('Fetching categories data...');
+		getCategories().then(() => {
+			console.log('Categories data loaded:', categories);
+		});
+	}, [categories, getCategories]);
 
 	const handleOpenCreateModal = () => {
 		resetForm();
 		setIsCreateOpen(true);
 	};
+
+	const handleRefresh = useCallback(async () => {
+		await getCategories(); // Remove force refresh parameter since it's not expected
+	}, [getCategories]);
 
 	return (
 		<div className='mx-auto py-10 container'>
@@ -34,6 +40,7 @@ export default function TentCategoriesPage() {
 				title='Tent Categories'
 				buttonLabel='Add Category'
 				onButtonClick={handleOpenCreateModal}
+				onRefresh={handleRefresh}
 				isLoading={isLoading}
 			/>
 			<DataTable columns={columns} data={categories} />

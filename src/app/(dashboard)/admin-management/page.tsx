@@ -1,35 +1,49 @@
-import { columns, Admin } from './columns';
+'use client';
+
+import { columns } from './columns';
 import { DataTable } from '@/components/ui/data-table';
 import { PageHeader } from '@/components/common/PageHeader';
+import { useAdminStore } from '@/hooks/admin/useAdmin';
+import { useEffect } from 'react';
+import { Dialog } from '@/components/ui/dialog';
+import { AddAdminForm } from '@/components/pages/login/AddAdminForm';
+export default function AdminManagementPage() {
+	const {
+		admins,
+		getAdmins,
+		resetFormData,
+		isLoading,
+		isCreateModalOpen,
+		setIsCreateModalOpen,
+	} = useAdminStore();
 
-async function getData(): Promise<Admin[]> {
-	// Fetch data from your API here.
-	return [
-		{
-			id: '728ed52f',
-			name: 'Tazkiya Mujahid',
-			username: 'tazkiyadigitalarchive',
-			email: 'tazkiyadigitalarchive@gmail.com',
-			phone: '081234567890',
-		},
-		{
-			id: '728ed52f',
-			name: 'Tazkiya Mujahid',
-			username: 'tazkiyadigitalarchive',
-			email: 'tazkiyadigitalarchive@gmail.com',
-			phone: '081234567890',
-		},
-	];
-}
+	useEffect(() => {
+		getAdmins();
+	}, [getAdmins]);
 
-export default async function AdminManagementPage() {
-	const data = await getData();
+	const handleOpenCreateModal = () => {
+		resetFormData();
+		setIsCreateModalOpen(true);
+	};
 
 	return (
 		<div className='mx-auto py-10 container'>
-			<PageHeader title='Admin Management' />
+			<PageHeader
+				title='Admin Management'
+				buttonLabel='Add Admin'
+				onButtonClick={handleOpenCreateModal}
+				isLoading={isLoading}
+			/>
 
-			<DataTable columns={columns} data={data} />
+			<DataTable columns={columns} data={admins} />
+
+			<Dialog
+				modal
+				open={isCreateModalOpen}
+				onOpenChange={setIsCreateModalOpen}
+			>
+				<AddAdminForm />
+			</Dialog>
 		</div>
 	);
 }

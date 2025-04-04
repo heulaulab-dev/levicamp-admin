@@ -14,9 +14,8 @@ import {
 	DrawerTitle,
 } from '@/components/ui/drawer';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { Refund } from '@/types';
+import { Refund, RefundStatus, UpdateStatusProps } from '@/types/refund';
 import { useState } from 'react';
-import { RefundStatus, UpdateStatusProps } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -28,7 +27,10 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { toast } from 'sonner';
+import { PaymentProofUploader } from './PaymentProofUploader';
 
 export default function UpdateStatusDialog({
 	children,
@@ -70,22 +72,67 @@ export default function UpdateStatusDialog({
 }
 
 function UpdateStatus({ refund, onOpenChange }: UpdateStatusProps) {
+	const { approveRefund, rejectRefund, isLoading } = useRefunds();
 	const [status, setStatus] = useState<RefundStatus>(refund.status);
 	const [rejectReason, setRejectReason] = useState(refund.rejectReason || '');
 	const [notes, setNotes] = useState(refund.notes || '');
-	const [file, setFile] = useState<File | null>(null);
+	const [paymentProofUrl, setPaymentProofUrl] = useState<string>('');
+	const [submitting, setSubmitting] = useState(false);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		// Handle form submission here
-		console.log({
-			refundId: refund.id,
-			status,
-			rejectReason,
-			notes,
-			file,
-		});
-		onOpenChange(false);
+		setSubmitting(true);
+
+		try {
+			switch (status) {
+				case 'processing':
+					// Validate payment proof is uploaded for processing
+					if (!paymentProofUrl && status === 'processing') {
+						toast.error('Please upload payment proof before processing');
+						setSubmitting(false);
+						return;
+					}
+
+					console.log('Submitting with payment proof URL:', paymentProofUrl);
+
+					await approveRefund(refund.id, {
+						additional_info: notes,
+						payment_proof: paymentProofUrl,
+						refund_amount: refund.amount,
+					});
+					toast.success('Refund status updated to processing');
+					break;
+				case 'rejected':
+					if (!rejectReason.trim()) {
+						toast.error('Please provide a reason for rejection');
+						setSubmitting(false);
+						return;
+					}
+
+					await rejectRefund(refund.id, {
+						additional_info: rejectReason,
+					});
+					toast.success('Refund request rejected');
+					break;
+				default:
+					toast.error('Invalid status selected');
+					break;
+			}
+
+			onOpenChange(false);
+		} catch (error) {
+			console.error('Error updating refund status:', error);
+			toast.error('Failed to update refund status');
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	const canChangeStatus = refund.status === 'pending';
+
+	// Handle payment proof upload completion
+	const handleFileUploaded = (fileUrl: string) => {
+		setPaymentProofUrl(fileUrl);
 	};
 
 	return (
@@ -108,49 +155,58 @@ function UpdateStatus({ refund, onOpenChange }: UpdateStatusProps) {
 					<Input value={`$${refund.amount.toFixed(2)}`} disabled />
 				</div>
 				<div>
-					<Label>Change Status</Label>
-					<Select
-						value={status}
-						onValueChange={(value) => setStatus(value as RefundStatus)}
-					>
-						<SelectTrigger>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value='pending'>Pending</SelectItem>
-							<SelectItem value='approved'>Approved</SelectItem>
-							<SelectItem value='rejected'>Rejected</SelectItem>
-							<SelectItem value='completed'>Completed</SelectItem>
-						</SelectContent>
-					</Select>
+					<Label>Current Status</Label>
+					<Input value={refund.status} disabled />
 				</div>
+				{canChangeStatus && (
+					<div>
+						<Label>Change Status</Label>
+						<Select
+							value={status}
+							onValueChange={(value) => setStatus(value as RefundStatus)}
+							disabled={isLoading || submitting}
+						>
+							<SelectTrigger>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='processing'>Processing</SelectItem>
+								<SelectItem value='rejected'>Rejected</SelectItem>
+							</SelectContent>
+						</Select>
+						<p className='mt-1 text-muted-foreground text-sm'>
+							{status === 'processing'
+								? 'Approve and process this refund'
+								: status === 'rejected'
+								? 'Reject this refund request'
+								: 'Select an action for this refund'}
+						</p>
+					</div>
+				)}
+
+				{/* Show payment proof uploader when processing is selected */}
+				{status === 'processing' && (
+					<div className='pt-2'>
+						<PaymentProofUploader
+							refundId={refund.id}
+							onFileUploaded={handleFileUploaded}
+							initialFileUrl={refund.paymentProof}
+						/>
+					</div>
+				)}
+
 				{status === 'rejected' && (
 					<div>
-						<Label>Reject Reason</Label>
+						<Label>
+							Reject Reason <span className='text-red-500'>*</span>
+						</Label>
 						<Textarea
 							value={rejectReason}
 							onChange={(e) => setRejectReason(e.target.value)}
 							placeholder='Enter reason for rejection...'
+							disabled={isLoading || submitting}
+							required={status === 'rejected'}
 						/>
-					</div>
-				)}
-				{(status === 'approved' || status === 'completed') && (
-					<div>
-						<Label>Payment Proof Upload 📎</Label>
-						<div className='flex items-center gap-2'>
-							<Input
-								type='file'
-								onChange={(e) => setFile(e.target.files?.[0] || null)}
-								accept='image/*,.pdf'
-								className='flex-1'
-							/>
-							<Button type='button' variant='outline' size='icon'>
-								<Upload className='w-4 h-4' />
-							</Button>
-						</div>
-						<p className='mt-1 text-muted-foreground text-sm'>
-							Upload proof of refund transaction (screenshot, PDF)
-						</p>
 					</div>
 				)}
 				<div>
@@ -159,6 +215,7 @@ function UpdateStatus({ refund, onOpenChange }: UpdateStatusProps) {
 						value={notes}
 						onChange={(e) => setNotes(e.target.value)}
 						placeholder='Additional remarks...'
+						disabled={isLoading || submitting}
 					/>
 				</div>
 			</div>
@@ -167,10 +224,30 @@ function UpdateStatus({ refund, onOpenChange }: UpdateStatusProps) {
 					type='button'
 					variant='outline'
 					onClick={() => onOpenChange(false)}
+					disabled={isLoading || submitting}
 				>
 					Cancel
 				</Button>
-				<Button type='submit'>Save Changes</Button>
+				{canChangeStatus && (
+					<Button
+						type='submit'
+						disabled={
+							isLoading ||
+							submitting ||
+							refund.status !== 'pending' ||
+							(status === 'processing' && !paymentProofUrl)
+						}
+					>
+						{submitting ? (
+							<>
+								<Loader2 className='mr-2 w-4 h-4 animate-spin' />
+								Saving...
+							</>
+						) : (
+							'Update Status'
+						)}
+					</Button>
+				)}
 			</DialogFooter>
 		</form>
 	);

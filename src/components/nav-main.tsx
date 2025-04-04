@@ -3,6 +3,9 @@
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { Badge } from '@/components/ui/badge';
 
 import {
 	Collapsible,
@@ -36,6 +39,19 @@ export function NavMain({
 }) {
 	const pathname = usePathname();
 	const { openItems, toggleItem } = useSidebar();
+	const { pendingNotificationRefund, pendingCount } = useRefunds();
+
+	// Fetch pending refund count when component mounts
+	useEffect(() => {
+		pendingNotificationRefund();
+
+		// Set up interval to periodically check for new pending refunds
+		const interval = setInterval(() => {
+			pendingNotificationRefund();
+		}, 60000); // Check every minute
+
+		return () => clearInterval(interval);
+	}, [pendingNotificationRefund]);
 
 	return (
 		<SidebarGroup>
@@ -51,6 +67,10 @@ export function NavMain({
 							pathname === subItem.url ||
 							pathname.startsWith(subItem.url + '/'),
 					);
+
+					// Check if this is the refund management item
+					const isRefundItem = item.title === 'Refund Management';
+					const showRefundBadge = isRefundItem && pendingCount > 0;
 
 					return hasSubItems ? (
 						<Collapsible
@@ -114,6 +134,11 @@ export function NavMain({
 								>
 									{item.icon && <item.icon />}
 									<span>{item.title}</span>
+									{showRefundBadge && (
+										<Badge variant='destructive' className='ml-auto'>
+											{pendingCount}
+										</Badge>
+									)}
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>

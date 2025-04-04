@@ -1,42 +1,46 @@
 // components/common/PageHeader.tsx
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
-type PageHeaderProps = {
+interface PageHeaderProps {
 	title: string;
-	subtitle?: string;
 	buttonLabel?: string;
 	onButtonClick?: () => void;
+	onRefresh?: () => void;
 	isLoading?: boolean;
-	icon?: React.ReactNode;
-};
+}
 
 export function PageHeader({
 	title,
-	subtitle,
 	buttonLabel,
 	onButtonClick,
+	onRefresh,
 	isLoading,
-	icon = <PlusCircle size={16} />,
 }: PageHeaderProps) {
 	return (
-		<div className='flex justify-between items-center mb-6'>
-			<div className='flex flex-col gap-2'>
-				<h1 className='font-bold text-3xl tracking-tight'>{title}</h1>
-				<p className='text-muted-foreground'>{subtitle}</p>
+		<div className='flex justify-between items-center mb-8'>
+			<h1 className='font-semibold text-2xl'>{title}</h1>
+			<div className='flex items-center gap-2'>
+				{onRefresh && (
+					<Button
+						variant='outline'
+						size='icon'
+						onClick={onRefresh}
+						disabled={isLoading}
+						className='w-9 h-9'
+					>
+						<RefreshCw
+							className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+						/>
+						<span className='sr-only'>Refresh data</span>
+					</Button>
+				)}
+				{buttonLabel && onButtonClick && (
+					<Button onClick={onButtonClick} disabled={isLoading}>
+						{buttonLabel}
+					</Button>
+				)}
 			</div>
-
-			{/* Render button hanya jika ada buttonLabel & onButtonClick */}
-			{buttonLabel && onButtonClick && (
-				<Button
-					onClick={onButtonClick}
-					className='flex items-center gap-2'
-					disabled={isLoading}
-				>
-					{icon}
-					<span>{buttonLabel}</span>
-				</Button>
-			)}
 		</div>
 	);
 }

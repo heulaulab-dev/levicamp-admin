@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
-import { PlusCircle, Trash2 } from 'lucide-react';
-import Image from 'next/image';
+import { PlusCircle, ArrowRight, Save } from 'lucide-react';
 
 // shadcn/ui Components
 import { Button } from '@/components/ui/button';
@@ -24,26 +22,36 @@ import {
 	DialogTitle,
 	DialogDescription,
 } from '@/components/ui/dialog';
-
 import { Checkbox } from '@/components/ui/checkbox';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-
-// Hooks
+// Hooks and Components
 import { useTentStore } from '@/hooks/tents/useTents';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useCategory } from '@/hooks/category/useCategory';
+import { TentImagesUploader } from './TentImagesUploader';
+import { DialogStepper } from '@/components/common/dialog-stepper';
 
 export function AddTentForm() {
+	// Active step state (1: Details, 2: Images)
+	const [step, setStep] = useState<1 | 2>(1);
+	const [newlyCreatedTentId, setNewlyCreatedTentId] = useState<string | null>(
+		null,
+	);
+
 	// Store hooks
-	const { formData, setFormData, isLoading, createTent, setIsCreateOpen } =
-		useTentStore();
+	const {
+		formData,
+		setFormData,
+		isLoading,
+		createTent,
+		updateTent,
+		setIsCreateOpen,
+	} = useTentStore();
 
 	const {
 		categories,
 		getCategories,
 		isLoading: categoriesLoading,
-	} = useCategoryStore();
+	} = useCategory();
 
 	// Fetch categories when component mounts
 	useEffect(() => {
@@ -51,9 +59,6 @@ export function AddTentForm() {
 	}, [getCategories, categories.length]);
 
 	// Local state
-	const [uploadProgress, setUploadProgress] = useState(0);
-	const [isUploading, setIsUploading] = useState(false);
-	const [previewUrl, setPreviewUrl] = useState('');
 	const [facilities, setFacilities] = useState<string[]>([
 		'Wi-Fi',
 		'Air Conditioning',
@@ -65,9 +70,8 @@ export function AddTentForm() {
 
 	// Reset function for local state
 	const resetLocalState = () => {
-		setUploadProgress(0);
-		setIsUploading(false);
-		setPreviewUrl('');
+		setStep(1);
+		setNewlyCreatedTentId(null);
 		setSelectedFacilities([]);
 		setCustomFacility('');
 	};
@@ -91,6 +95,11 @@ export function AddTentForm() {
 		setFormData({ category_id: value });
 	};
 
+	// Handle multiple images change
+	const handleImagesChange = (imageUrls: string[]) => {
+		setFormData({ tent_images: imageUrls });
+	};
+
 	// Facility handlers
 	const toggleFacility = (facility: string) => {
 		// Calculate the new facilities array first
@@ -109,79 +118,93 @@ export function AddTentForm() {
 		setCustomFacility('');
 	};
 
-	// Image handling with presigned URL
-	const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
-
-		// Revoke previous preview URL to prevent memory leaks
-		if (previewUrl) {
-			URL.revokeObjectURL(previewUrl);
+	// Validate required fields for step 1
+	const validateStep1 = () => {
+		if (!formData.name.trim()) {
+			toast.error('Tent name is required');
+			return false;
 		}
+		if (!formData.category_id) {
+			toast.error('Please select a category');
+			return false;
+		}
+		return true;
+	};
 
-		// Create new preview URL
-		const newPreviewUrl = URL.createObjectURL(file);
-		setPreviewUrl(newPreviewUrl);
-
-		setIsUploading(true);
-		setUploadProgress(0);
+	// Handle first step submission - Create tent without images
+	const handleCreateBasicTent = async () => {
+		if (!validateStep1()) return;
 
 		try {
-			const { data } = await axios.get('/api/presigned-url', {
-				params: { fileName: file.name, fileType: file.type },
-			});
+			// Create a complete copy of form data
+			const completeData = { ...formData };
 
-			await axios.put(data.presignedUrl, file, {
-				headers: { 'Content-Type': file.type },
-				onUploadProgress: ({ loaded, total }) =>
-					setUploadProgress(Math.round((loaded * 100) / (total || 100))),
-			});
-
-			setFormData({ tent_image: data.fileUrl });
-			toast.success('Image uploaded successfully');
-		} catch {
-			// Revert preview if upload fails
-			if (newPreviewUrl) {
-				URL.revokeObjectURL(newPreviewUrl);
-				setPreviewUrl('');
+			// Ensure facilities has at least one item
+			if (!completeData.facilities || completeData.facilities.length === 0) {
+				completeData.facilities = ['Wi-Fi'];
+				setSelectedFacilities(['Wi-Fi']);
 			}
-			toast.error('Failed to upload image');
-		} finally {
-			setIsUploading(false);
-		}
-	};
 
-	const handleDeleteImage = () => {
-		// Revoke the previous preview URL to prevent memory leaks
-		if (previewUrl) {
-			URL.revokeObjectURL(previewUrl);
-		}
+			// Set placeholder image for first step
+			completeData.tent_images = [];
 
-		setPreviewUrl('');
-		setFormData({ tent_image: '' }); // Clear the image URL in form data
+			// Update all form data at once
+			setFormData(completeData);
 
-		// Reset the file input if possible
-		const fileInput = document.querySelector(
-			'input[type="file"]',
-		) as HTMLInputElement;
-		if (fileInput) {
-			fileInput.value = ''; // Clear the file input
-		}
+			console.log('Creating tent with data:', completeData);
 
-		toast.success('Image removed');
-	};
+			// Wait for state update to complete
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
-	// Form submission
-	const handleCreateTent = async () => {
-		try {
+			// Create basic tent data with all fields populated
 			const result = await createTent();
 			if (!result.success) throw new Error(result.message);
 
-			toast.success(result.message);
+			// Save the newly created tent ID for the next step
+			setNewlyCreatedTentId(result.tentId);
+
+			// Move to next step
+			setStep(2);
+			toast.success('Tent details saved. Now you can add images.');
+		} catch (error) {
+			toast.error((error as any).message || 'Failed to create tent');
+		}
+	};
+
+	// Handle final submission - Update tent with images
+	const handleFinalizeTent = async () => {
+		if (!newlyCreatedTentId) {
+			toast.error('Something went wrong. Please try again.');
+			return;
+		}
+
+		try {
+			// Create a complete copy of current form data
+			const completeData = { ...formData };
+
+			// Set the primary image from the first uploaded image
+			if (completeData.tent_images && completeData.tent_images.length > 0) {
+			}
+
+			// Update all form data at once
+			setFormData(completeData);
+
+			console.log('Finalizing tent with data:', completeData);
+
+			// Wait for state update to complete
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			// Update the tent with complete data
+			const result = await updateTent(newlyCreatedTentId);
+			if (!result.success) throw new Error(result.message);
+
+			toast.success('Tent created successfully with images');
 			resetLocalState();
 			setIsCreateOpen(false);
 		} catch (error) {
-			toast.error((error as any).message || 'Failed to create tent');
+			toast.error(
+				(error as any).message || 'Failed to update tent with images',
+			);
 		}
 	};
 
@@ -195,150 +218,149 @@ export function AddTentForm() {
 			<DialogHeader>
 				<DialogTitle>Add Tent</DialogTitle>
 				<DialogDescription>
-					Fill in the details to add a new tent
+					{step === 1
+						? 'Fill in the details to add a new tent'
+						: 'Upload images for your tent'}
 				</DialogDescription>
 			</DialogHeader>
 
-			<div className='space-y-6 py-4'>
-				{/* Tent Category */}
-				<div>
-					<h3 className='mb-4 font-medium text-lg'>Tent Category</h3>
-					<Select onValueChange={handleCategoryChange} required>
-						<SelectTrigger>
-							<SelectValue
-								placeholder={
-									categoriesLoading
-										? 'Loading categories...'
-										: categories.length === 0
-										? 'No categories available'
-										: 'Select a category'
-								}
-							/>
-						</SelectTrigger>
-						<SelectContent>
-							{categories.map((category) => (
-								<SelectItem key={category.id} value={category.id}>
-									{category.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
+			{/* Progress indicators */}
 
-				{/* Tent Name */}
-				<div className='space-y-2'>
-					<Label htmlFor='name'>Tent Name</Label>
-					<Input
-						id='name'
-						name='name'
-						value={formData.name}
-						onChange={handleInputChange}
-					/>
-				</div>
+			<DialogStepper currentStep={step} isLoading={isLoading} />
 
-				{/* Description */}
-				<div className='space-y-2'>
-					<Label htmlFor='description'>Description</Label>
-					<Textarea
-						id='description'
-						name='description'
-						value={formData.description}
-						onChange={handleInputChange}
-						placeholder='Enter tent description'
-					/>
-				</div>
-
-				{/* Tent Image */}
-				<div className='space-y-2'>
-					<Label htmlFor='tent_image'>Tent Image</Label>
-					<Input
-						id='tent_image'
-						type='file'
-						accept='image/*'
-						onChange={handleImageChange}
-					/>
-
-					{/* Image preview with hover delete button */}
-					{previewUrl && (
-						<Card className='group relative mt-2 rounded-sm w-[100px] h-[100px] overflow-hidden'>
-							<CardContent className='relative p-1'>
-								<Image
-									src={previewUrl}
-									alt='Preview'
-									className='rounded-sm w-full h-full object-cover'
-									width={100}
-									height={100}
-									priority
+			{/* Step 1: Basic Tent Details */}
+			{step === 1 && (
+				<div className='space-y-6 py-4'>
+					{/* Tent Category */}
+					<div>
+						<h3 className='mb-4 font-medium text-lg'>Tent Category</h3>
+						<Select
+							onValueChange={handleCategoryChange}
+							required
+							value={formData.category_id}
+						>
+							<SelectTrigger>
+								<SelectValue
+									placeholder={
+										categoriesLoading
+											? 'Loading categories...'
+											: categories.length === 0
+											? 'No categories available'
+											: 'Select a category'
+									}
 								/>
+							</SelectTrigger>
+							<SelectContent>
+								{categories.map((category) => (
+									<SelectItem key={category.id} value={category.id}>
+										{category.name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
 
-								{/* Overlay that appears on hover */}
-								<div className='absolute inset-0 flex justify-center items-center bg-black/10 opacity-0 group-hover:opacity-100 rounded-sm transition-opacity duration-200'>
-									<Button
-										type='button'
-										variant='destructive'
-										size='icon'
-										onClick={handleDeleteImage}
-										className='bg-destructive/90 hover:bg-destructive rounded-full w-10 h-10'
-									>
-										<Trash2 className='w-5 h-5' />
-										<span className='sr-only'>Delete image</span>
-									</Button>
-								</div>
-							</CardContent>
-						</Card>
-					)}
-
-					{/* Upload progress indicator */}
-					{isUploading && (
-						<div className='space-y-1 mt-2'>
-							<Progress value={uploadProgress} />
-							<p className='text-muted-foreground text-xs'>
-								Uploading: {uploadProgress}%
-							</p>
-						</div>
-					)}
-				</div>
-
-				{/* Facilities */}
-				<div>
-					<h3 className='mb-4 font-medium text-lg'>Facilities</h3>
+					{/* Tent Name */}
 					<div className='space-y-2'>
-						{facilities.map((facility) => (
-							<div key={facility} className='flex items-center gap-2'>
-								<Checkbox
-									id={facility}
-									checked={selectedFacilities.includes(facility)}
-									onCheckedChange={() => toggleFacility(facility)}
-								/>
-								<Label htmlFor={facility} className='cursor-pointer'>
-									{facility}
-								</Label>
-							</div>
-						))}
+						<Label htmlFor='name'>Tent Name</Label>
+						<Input
+							id='name'
+							name='name'
+							value={formData.name}
+							onChange={handleInputChange}
+							required
+						/>
 					</div>
 
-					{/* Add Custom Facility */}
-					<div className='flex gap-2 mt-4'>
-						<Input
-							placeholder='Add a facility...'
-							value={customFacility}
-							onChange={(e) => setCustomFacility(e.target.value)}
+					{/* Description */}
+					<div className='space-y-2'>
+						<Label htmlFor='description'>Description</Label>
+						<Textarea
+							id='description'
+							name='description'
+							value={formData.description}
+							onChange={handleInputChange}
+							placeholder='Enter tent description'
 						/>
-						<Button variant='outline' onClick={addCustomFacility}>
-							<PlusCircle className='mr-1 w-4 h-4' />
-							Add
-						</Button>
+					</div>
+
+					{/* Facilities */}
+					<div>
+						<h3 className='mb-4 font-medium text-lg'>Facilities</h3>
+						<div className='space-y-2'>
+							{facilities.map((facility) => (
+								<div key={facility} className='flex items-center gap-2'>
+									<Checkbox
+										id={facility}
+										checked={selectedFacilities.includes(facility)}
+										onCheckedChange={() => toggleFacility(facility)}
+									/>
+									<Label htmlFor={facility} className='cursor-pointer'>
+										{facility}
+									</Label>
+								</div>
+							))}
+						</div>
+
+						{/* Add Custom Facility */}
+						<div className='flex gap-2 mt-4'>
+							<Input
+								placeholder='Add a facility...'
+								value={customFacility}
+								onChange={(e) => setCustomFacility(e.target.value)}
+							/>
+							<Button variant='outline' onClick={addCustomFacility}>
+								<PlusCircle className='mr-1 w-4 h-4' />
+								Add
+							</Button>
+						</div>
 					</div>
 				</div>
-			</div>
+			)}
+
+			{/* Step 2: Image Upload */}
+			{step === 2 && (
+				<div className='space-y-6 py-4'>
+					<TentImagesUploader
+						tentName={formData.name}
+						onImagesChange={handleImagesChange}
+					/>
+
+					<div className='text-muted-foreground text-sm'>
+						<p>
+							Upload images for your tent. You can select multiple images at
+							once.
+						</p>
+						<p className='mt-2'>
+							Once you&apos;re done, click &quot;Save Tent&quot; to complete the
+							process.
+						</p>
+					</div>
+				</div>
+			)}
 
 			<DialogFooter className='mt-6'>
-				<Button variant='ghost' onClick={handleCancel}>
-					Cancel
-				</Button>
-				<Button onClick={handleCreateTent} disabled={isLoading || isUploading}>
-					{isLoading ? 'Saving...' : 'Save Tent'}
-				</Button>
+				{step === 1 ? (
+					<>
+						<Button variant='ghost' onClick={handleCancel}>
+							Cancel
+						</Button>
+						<Button onClick={handleCreateBasicTent} disabled={isLoading}>
+							{isLoading ? 'Saving...' : 'Next'}
+							{!isLoading && <ArrowRight className='ml-2 w-4 h-4' />}
+						</Button>
+					</>
+				) : (
+					<>
+						<Button variant='outline' onClick={handleCancel}>
+							Cancel
+						</Button>
+						<Button onClick={handleFinalizeTent} disabled={isLoading}>
+							{isLoading ? 'Saving...' : 'Save Tent'}
+							{!isLoading && <Save className='ml-2 w-4 h-4' />}
+						</Button>
+					</>
+				)}
 			</DialogFooter>
 		</DialogContent>
 	);

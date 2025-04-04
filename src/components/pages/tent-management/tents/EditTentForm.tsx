@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useCallback, useMemo } from 'react';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import {
+	useState,
+	useEffect,
+	useCallback,
+	useMemo,
+	lazy,
+	Suspense,
+	memo,
+} from 'react';
 import { toast } from 'sonner';
-import { PlusCircle, Trash2 } from 'lucide-react';
-import Image from 'next/image';
+import { Save } from 'lucide-react';
 
 // shadcn/ui Components
 import { Button } from '@/components/ui/button';
@@ -26,111 +30,144 @@ import {
 	DialogTitle,
 	DialogDescription,
 } from '@/components/ui/dialog';
-
 import { Checkbox } from '@/components/ui/checkbox';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-
-// Hooks
+// Hooks and Components
 import { useTentStore } from '@/hooks/tents/useTents';
-import { useCategoryStore } from '@/hooks/category/useCategory';
+import { useCategory } from '@/hooks/category/useCategory';
 
-// Types
-import { Category, Tents } from '@/types/types';
+// Lazy load the image uploader component to reduce initial load time
+const TentImagesUploader = lazy(() =>
+	import('./TentImagesUploader').then((mod) => ({
+		default: mod.TentImagesUploader,
+	})),
+);
 
-interface EditTentFormProps {
-	tentId: string;
-}
+// Memoized facility item component to reduce re-renders
+const FacilityItem = memo(
+	({
+		facility,
+		isSelected,
+		onToggle,
+	}: {
+		facility: string;
+		isSelected: boolean;
+		onToggle: () => void;
+	}) => (
+		<div className='flex items-center gap-2'>
+			<Checkbox id={facility} checked={isSelected} onCheckedChange={onToggle} />
+			<Label htmlFor={facility} className='cursor-pointer'>
+				{facility}
+			</Label>
+		</div>
+	),
+);
 
-export function EditTentForm({ tentId }: EditTentFormProps) {
+// Add display name
+FacilityItem.displayName = 'FacilityItem';
+
+// Custom Input component to reduce rerenders
+const MemoizedInput = memo(function MemoizedInput({
+	id,
+	name,
+	value,
+	onChange,
+	placeholder,
+	required,
+}: {
+	id: string;
+	name: string;
+	value: string;
+	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	placeholder?: string;
+	required?: boolean;
+}) {
+	return (
+		<Input
+			id={id}
+			name={name}
+			value={value}
+			onChange={onChange}
+			placeholder={placeholder}
+			required={required}
+		/>
+	);
+});
+
+// Custom Textarea component to reduce rerenders
+const MemoizedTextarea = memo(function MemoizedTextarea({
+	id,
+	name,
+	value,
+	onChange,
+	placeholder,
+}: {
+	id: string;
+	name: string;
+	value: string;
+	onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+	placeholder?: string;
+}) {
+	return (
+		<Textarea
+			id={id}
+			name={name}
+			value={value}
+			onChange={onChange}
+			placeholder={placeholder}
+		/>
+	);
+});
+
+// Wrap the entire form in memo to prevent unnecessary re-renders
+const EditTentFormComponent = function EditTentForm() {
 	// Store hooks
 	const {
 		formData,
 		setFormData,
-		isLoading,
 		updateTent,
-		isEditOpen,
+		isLoading,
 		setIsEditOpen,
-		getTentDetails,
-		resetForm,
+		selectedTent,
 	} = useTentStore();
 
 	const {
 		categories,
 		getCategories,
 		isLoading: categoriesLoading,
-	} = useCategoryStore();
+	} = useCategory();
 
-	// Local state management
-	const [uploadProgress, setUploadProgress] = useState(0);
-	const [isUploading, setIsUploading] = useState(false);
-	const [previewUrl, setPreviewUrl] = useState('');
+	// Only log in development mode
+	const isDev = process.env.NODE_ENV === 'development';
 
-	// Memoized default facilities
-	const defaultFacilities = useMemo(
-		() => ['Wi-Fi', 'Air Conditioning', 'Heater', 'Electricity'],
-		[],
-	);
+	// Fetch categories when component mounts - only once
+	useEffect(() => {
+		if (categories.length === 0) getCategories();
+	}, [getCategories, categories.length]);
 
-	const [facilities, setFacilities] = useState<string[]>(defaultFacilities);
+	// Local state for facilities
+	const [facilities] = useState<string[]>([
+		'Wi-Fi',
+		'Air Conditioning',
+		'Heater',
+		'Electricity',
+	]); // Default facilities
 	const [selectedFacilities, setSelectedFacilities] = useState<string[]>(
 		formData.facilities || [],
 	);
 	const [customFacility, setCustomFacility] = useState('');
 
-	// Fetch initial data
-	const fetchInitialData = useCallback(async () => {
-		try {
-			// Fetch categories only if not already loaded
-			if (categories.length === 0) {
-				await getCategories();
-			}
-
-			// Fetch tent details
-			if (tentId) {
-				const result = await getTentDetails(tentId);
-				if (!result) {
-					toast.error('Failed to load tent details');
-					setIsEditOpen(false);
-				}
-			} else {
-				toast.error('No tent selected for editing');
-				setIsEditOpen(false);
-			}
-		} catch (error) {
-			toast.error('Failed to load tent details');
-			setIsEditOpen(false);
-		}
-	}, [tentId, categories.length, getCategories, getTentDetails, setIsEditOpen]);
-
-	// Fetch data when component mounts
+	// Sync selectedFacilities with formData when formData changes - only update when needed
 	useEffect(() => {
-		fetchInitialData();
-
-		// Reset form and local state when component mounts
-		return () => {
-			resetForm();
-			resetLocalState();
-		};
-	}, [fetchInitialData, resetForm]);
-
-	// Reset local state
-	const resetLocalState = useCallback(() => {
-		setUploadProgress(0);
-		setIsUploading(false);
-		setPreviewUrl('');
-		setCustomFacility('');
-	}, []);
-
-	// Update preview URL when tent image changes
-	useEffect(() => {
-		if (formData.tent_image) {
-			setPreviewUrl(formData.tent_image);
+		if (
+			formData.facilities &&
+			JSON.stringify(formData.facilities) !== JSON.stringify(selectedFacilities)
+		) {
+			setSelectedFacilities(formData.facilities);
 		}
-	}, [formData.tent_image]);
+	}, [formData.facilities, selectedFacilities]);
 
-	// Input change handlers
+	// Input handlers with useCallback to reduce function recreation
 	const handleInputChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 			const { name, value } = e.target;
@@ -146,345 +183,286 @@ export function EditTentForm({ tentId }: EditTentFormProps) {
 		[setFormData],
 	);
 
-	// 1. Make sure formData.facilities is properly loaded from API
-	useEffect(() => {
-		if (tentId) {
-			// Log to verify data is being loaded correctly
-			console.log('Loading tent details for:', tentId);
-			getTentDetails(tentId).then((data) => {
-				console.log('Loaded facilities:', data?.facilities);
-			});
-		}
-	}, [tentId, getTentDetails]);
-
-	// 2. Update selectedFacilities whenever formData changes
-	useEffect(() => {
-		console.log('Form data facilities updated:', formData.facilities);
-		if (formData.facilities && formData.facilities.length > 0) {
-			setSelectedFacilities(formData.facilities);
-
-			// Make sure all facilities from the data are in the facilities list
-			setFacilities((prev) => {
-				const newFacilities = [...prev];
-				formData.facilities.forEach((facility) => {
-					if (!newFacilities.includes(facility)) {
-						newFacilities.push(facility);
-					}
+	// Facility toggles with useCallback to reduce function recreation
+	const toggleFacilityHandlers = useMemo(() => {
+		const handlers: Record<string, () => void> = {};
+		facilities.forEach((facility) => {
+			handlers[facility] = () => {
+				setSelectedFacilities((prev) => {
+					const newFacilities = prev.includes(facility)
+						? prev.filter((f) => f !== facility)
+						: [...prev, facility];
+					setFormData({ facilities: newFacilities });
+					return newFacilities;
 				});
-				return newFacilities;
-			});
-		}
-	}, [formData.facilities]);
+			};
+		});
+		return handlers;
+	}, [facilities, setFormData]);
 
-	const toggleFacility = useCallback(
-		(facility: string) => {
-			setSelectedFacilities((prev) => {
-				const newFacilities = prev.includes(facility)
-					? prev.filter((f) => f !== facility)
-					: [...prev, facility];
-
-				setFormData({ facilities: newFacilities });
-				return newFacilities;
-			});
+	// Images handlers with useCallback to reduce function recreation
+	const handleImagesChange = useCallback(
+		(imageUrls: string[]) => {
+			// Skip update if values are the same to prevent unnecessary rerenders
+			if (JSON.stringify(imageUrls) !== JSON.stringify(formData.tent_images)) {
+				setFormData({ tent_images: imageUrls });
+			}
 		},
-		[setFormData],
+		[formData.tent_images, setFormData],
 	);
 
+	// Form validation - only run when needed
+	const validateForm = useCallback(() => {
+		// Ensure we have a valid selected tent
+		if (!selectedTent?.id) {
+			toast.error('No tent selected for update');
+			return false;
+		}
+
+		// Required fields
+		if (!formData.name?.trim()) {
+			toast.error('Tent name is required');
+			return false;
+		}
+
+		// Valid category
+		if (!formData.category_id) {
+			toast.error('Please select a category');
+			return false;
+		}
+
+		return true;
+	}, [formData.name, formData.category_id, selectedTent?.id]);
+
+	// Custom facility handler with useCallback
 	const addCustomFacility = useCallback(() => {
-		const trimmedFacility = customFacility.trim();
+		if (!customFacility.trim()) return;
 
-		if (!trimmedFacility) return;
-
-		// Check if facility already exists
-		if (!facilities.includes(trimmedFacility)) {
-			setFacilities((prev) => [...prev, trimmedFacility]);
-			toggleFacility(trimmedFacility);
-			setCustomFacility('');
-		} else {
-			toast.error('Facility already exists');
-		}
-	}, [customFacility, facilities, toggleFacility]);
-
-	// Image handling
-	const handleImageChange = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const file = e.target.files?.[0];
-			if (!file) return;
-
-			// Revoke previous preview URL
-			if (previewUrl) {
-				URL.revokeObjectURL(previewUrl);
+		const newFacility = customFacility.trim();
+		setSelectedFacilities((prev) => {
+			// Skip if already exists
+			if (prev.includes(newFacility)) {
+				return prev;
 			}
 
-			// Create new preview URL
-			const newPreviewUrl = URL.createObjectURL(file);
-			setPreviewUrl(newPreviewUrl);
+			const updated = [...prev, newFacility];
+			setFormData({ facilities: updated });
+			return updated;
+		});
 
-			setIsUploading(true);
-			setUploadProgress(0);
+		setCustomFacility('');
+	}, [customFacility, setFormData]);
 
-			try {
-				const { data } = await axios.get('/api/presigned-url', {
-					params: { fileName: file.name, fileType: file.type },
-				});
-
-				await axios.put(data.presignedUrl, file, {
-					headers: { 'Content-Type': file.type },
-					onUploadProgress: ({ loaded, total }) =>
-						setUploadProgress(Math.round((loaded * 100) / (total || 100))),
-				});
-
-				setFormData({ tent_image: data.fileUrl });
-				toast.success('Image uploaded successfully');
-			} catch (error) {
-				// Revert preview if upload fails
-				if (newPreviewUrl) {
-					URL.revokeObjectURL(newPreviewUrl);
-					setPreviewUrl('');
-				}
-				toast.error('Failed to upload image');
-			} finally {
-				setIsUploading(false);
-			}
-		},
-		[previewUrl, setFormData],
-	);
-
-	const handleDeleteImage = useCallback(() => {
-		// Revoke the previous preview URL
-		if (previewUrl) {
-			URL.revokeObjectURL(previewUrl);
+	// Handle form submission
+	const handleSubmit = useCallback(async () => {
+		if (!selectedTent?.id) {
+			toast.error('Unable to update tent: Missing ID');
+			return;
 		}
 
-		setPreviewUrl('');
-		setFormData({ tent_image: '' });
-
-		// Reset the file input
-		const fileInput = document.querySelector(
-			'input[type="file"]',
-		) as HTMLInputElement;
-		if (fileInput) {
-			fileInput.value = '';
+		if (!validateForm()) {
+			return;
 		}
 
-		toast.success('Image removed');
-	}, [previewUrl, setFormData]);
-
-	// Form submission
-	const handleUpdateTent = useCallback(async () => {
 		try {
-			const result = await updateTent(tentId);
+			// Create a complete copy of current form data
+			const completeData = { ...formData };
 
-			if (!result.success) {
-				throw new Error(result.message);
+			// Ensure required fields are set
+			if (!completeData.facilities || completeData.facilities.length === 0) {
+				completeData.facilities = ['Wi-Fi'];
 			}
 
-			toast.success(result.message);
-			resetLocalState();
+			// Set tent_image from tent_images if available
+			const updatedData = {
+				...completeData,
+				tent_image:
+					completeData.tent_images && completeData.tent_images.length > 0
+						? completeData.tent_images[0]
+						: 'placeholder.jpg',
+			};
+
+			// Update all form data at once
+			setFormData(updatedData);
+
+			if (isDev) console.log('Submitting data:', updatedData);
+
+			// Now update with all the form data
+			const result = await updateTent(selectedTent.id);
+			if (!result.success) throw new Error(result.message);
+
+			toast.success('Tent updated successfully');
 			setIsEditOpen(false);
 		} catch (error) {
 			toast.error((error as any).message || 'Failed to update tent');
 		}
-	}, [tentId, updateTent, resetLocalState, setIsEditOpen]);
+	}, [
+		formData,
+		selectedTent?.id,
+		validateForm,
+		setFormData,
+		updateTent,
+		setIsEditOpen,
+		isDev,
+	]);
 
+	// Handle cancel
 	const handleCancel = useCallback(() => {
-		resetLocalState();
 		setIsEditOpen(false);
-	}, [resetLocalState, setIsEditOpen]);
+	}, [setIsEditOpen]);
 
-	useEffect(() => {
-		if (!isEditOpen) {
-			// When dialog is closed, reset form completely
-			resetForm();
-			resetLocalState();
-		}
-	}, [isEditOpen, resetForm, resetLocalState]);
+	// Memoize the initialImages array to prevent unnecessary re-renders
+	const initialImages = useMemo(
+		() => formData.tent_images || [],
+		[formData.tent_images],
+	);
 
-	useEffect(() => {
-		if (tentId) {
-			// Use Promise.all to fetch categories and tent details in parallel
-			Promise.all([
-				categories.length === 0 ? getCategories() : Promise.resolve(),
-				getTentDetails(tentId),
-			]).catch((error) => {
-				toast.error('Failed to load data');
-				setIsEditOpen(false);
-			});
+	// Memoize Select component
+	const categorySelect = useMemo(
+		() => (
+			<Select onValueChange={handleCategoryChange} value={formData.category_id}>
+				<SelectTrigger>
+					<SelectValue
+						placeholder={
+							categoriesLoading
+								? 'Loading categories...'
+								: categories.length === 0
+								? 'No categories available'
+								: 'Select a category'
+						}
+					/>
+				</SelectTrigger>
+				<SelectContent>
+					{categories.map((category) => (
+						<SelectItem key={category.id} value={category.id}>
+							{category.name}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		),
+		[categories, categoriesLoading, formData.category_id, handleCategoryChange],
+	);
+
+	// Memoize facilities section
+	const facilitiesSection = useMemo(
+		() => (
+			<div className='space-y-2'>
+				{facilities.map((facility) => (
+					<FacilityItem
+						key={facility}
+						facility={facility}
+						isSelected={selectedFacilities.includes(facility)}
+						onToggle={toggleFacilityHandlers[facility]}
+					/>
+				))}
+			</div>
+		),
+		[facilities, selectedFacilities, toggleFacilityHandlers],
+	);
+
+	// Conditionally render image uploading section only when tent name is available
+	const imageUploaderSection = useMemo(() => {
+		if (!formData.name) {
+			return (
+				<div className='py-8 text-muted-foreground text-center'>
+					Please enter a tent name before managing images.
+				</div>
+			);
 		}
-	}, [tentId, categories.length, getCategories, getTentDetails, setIsEditOpen]);
+
+		return (
+			<Suspense
+				fallback={
+					<div className='p-4 text-center'>Loading image uploader...</div>
+				}
+			>
+				<TentImagesUploader
+					tentName={formData.name}
+					onImagesChange={handleImagesChange}
+					initialImages={initialImages}
+				/>
+			</Suspense>
+		);
+	}, [formData.name, handleImagesChange, initialImages]);
 
 	return (
 		<DialogContent className='sm:max-w-[700px] max-h-[80vh] overflow-y-auto'>
-			{isLoading ? (
-				<div className='flex justify-center items-center h-48'>
-					<p>Loading tent details...</p>
+			<DialogHeader>
+				<DialogTitle>Edit Tent</DialogTitle>
+				<DialogDescription>
+					Update tent details and manage images
+				</DialogDescription>
+			</DialogHeader>
+
+			<div className='space-y-6 py-4'>
+				{/* Tent Category */}
+				<div>
+					<h3 className='mb-4 font-medium text-lg'>Tent Category</h3>
+					{categorySelect}
 				</div>
-			) : (
-				<>
-					<DialogHeader>
-						<DialogTitle>Edit Tent</DialogTitle>
-						<DialogDescription>
-							Update the details of this tent
-						</DialogDescription>
-					</DialogHeader>
 
-					<div className='space-y-6 py-4'>
-						{/* Tent Category */}
-						<div>
-							<h3 className='mb-4 font-medium text-lg'>Tent Category</h3>
-							<Select
-								value={formData.category_id}
-								onValueChange={handleCategoryChange}
-								required
-							>
-								<SelectTrigger>
-									<SelectValue
-										placeholder={
-											categoriesLoading
-												? 'Loading categories...'
-												: categories.length === 0
-												? 'No categories available'
-												: 'Select a category'
-										}
-									/>
-								</SelectTrigger>
-								<SelectContent>
-									{categories.map((category: Category) => (
-										<SelectItem key={category.id} value={category.id}>
-											{category.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
+				{/* Tent Name */}
+				<div className='space-y-2'>
+					<Label htmlFor='name'>Tent Name</Label>
+					<MemoizedInput
+						id='name'
+						name='name'
+						value={formData.name}
+						onChange={handleInputChange}
+						required
+					/>
+				</div>
 
-						{/* Tent Name */}
-						<div className='space-y-2'>
-							<Label htmlFor='name'>Tent Name</Label>
-							<Input
-								id='name'
-								name='name'
-								value={formData.name}
-								onChange={handleInputChange}
-							/>
-						</div>
+				{/* Description */}
+				<div className='space-y-2'>
+					<Label htmlFor='description'>Description</Label>
+					<MemoizedTextarea
+						id='description'
+						name='description'
+						value={formData.description}
+						onChange={handleInputChange}
+						placeholder='Enter tent description'
+					/>
+				</div>
 
-						{/* Description */}
-						<div className='space-y-2'>
-							<Label htmlFor='description'>Description</Label>
-							<Textarea
-								id='description'
-								name='description'
-								value={formData.description}
-								onChange={handleInputChange}
-								placeholder='Enter tent description'
-							/>
-						</div>
+				{/* Facilities */}
+				<div>
+					<h3 className='mb-4 font-medium text-lg'>Facilities</h3>
+					{facilitiesSection}
 
-						{/* Tent Image */}
-						<div className='space-y-2'>
-							<Label htmlFor='tent_image'>Tent Image</Label>
-							<Input
-								id='tent_image'
-								type='file'
-								accept='image/*'
-								onChange={handleImageChange}
-							/>
-
-							{/* Image preview with hover delete button */}
-							{previewUrl && (
-								<Card className='group relative mt-2 rounded-sm w-[100px] h-[100px] overflow-hidden'>
-									<CardContent className='relative p-1'>
-										<Image
-											src={previewUrl}
-											alt='Preview'
-											className='rounded-sm w-full h-full object-cover'
-											width={100}
-											height={100}
-											priority
-										/>
-
-										{/* Overlay that appears on hover */}
-										<div
-											className='absolute inset-0 flex justify-center items-center bg-black/10 opacity-0 group-hover:opacity-100 rounded-sm transition-opacity duration-200'
-											aria-hidden='false'
-										>
-											<Button
-												type='button'
-												variant='destructive'
-												size='icon'
-												onClick={handleDeleteImage}
-												className='bg-destructive/90 hover:bg-destructive rounded-full w-10 h-10'
-											>
-												<Trash2 className='w-5 h-5' />
-												<span className='sr-only'>Delete image</span>
-											</Button>
-										</div>
-									</CardContent>
-								</Card>
-							)}
-
-							{/* Upload progress indicator */}
-							{isUploading && (
-								<div className='space-y-1 mt-2'>
-									<Progress value={uploadProgress} />
-									<p className='text-muted-foreground text-xs'>
-										Uploading: {uploadProgress}%
-									</p>
-								</div>
-							)}
-						</div>
-
-						{/* Facilities */}
-						<div>
-							<h3 className='mb-4 font-medium text-lg'>Facilities</h3>
-							<div className='space-y-2'>
-								{facilities.map((facility) => (
-									<div key={facility} className='flex items-center gap-2'>
-										<Checkbox
-											id={facility}
-											checked={selectedFacilities.includes(facility)}
-											onCheckedChange={() => toggleFacility(facility)}
-										/>
-										<Label htmlFor={facility} className='cursor-pointer'>
-											{facility}
-										</Label>
-									</div>
-								))}
-							</div>
-
-							{/* Add Custom Facility */}
-							<div className='flex gap-2 mt-4'>
-								<Input
-									placeholder='Add a facility...'
-									value={customFacility}
-									onChange={(e) => setCustomFacility(e.target.value)}
-								/>
-								<Button variant='outline' onClick={addCustomFacility}>
-									<PlusCircle className='mr-1 w-4 h-4' />
-									Add
-								</Button>
-							</div>
-						</div>
+					{/* Add Custom Facility */}
+					<div className='flex gap-2 mt-4'>
+						<Input
+							placeholder='Add a facility...'
+							value={customFacility}
+							onChange={(e) => setCustomFacility(e.target.value)}
+						/>
+						<Button variant='outline' onClick={addCustomFacility}>
+							Add
+						</Button>
 					</div>
+				</div>
 
-					<DialogFooter className='mt-6'>
-						<Button
-							variant='ghost'
-							onClick={handleCancel}
-							disabled={isLoading || isUploading}
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleUpdateTent}
-							disabled={isLoading || isUploading}
-						>
-							{isLoading ? 'Updating...' : 'Update Tent'}
-						</Button>
-					</DialogFooter>
-				</>
-			)}
+				{/* Tent Images */}
+				<div className='space-y-2'>
+					<h3 className='mb-4 font-medium text-lg'>Tent Images</h3>
+					{imageUploaderSection}
+				</div>
+			</div>
+
+			<DialogFooter className='mt-6'>
+				<Button variant='ghost' onClick={handleCancel}>
+					Cancel
+				</Button>
+				<Button onClick={handleSubmit} disabled={isLoading}>
+					{isLoading ? 'Saving...' : 'Save Changes'}
+					{!isLoading && <Save className='ml-2 w-4 h-4' />}
+				</Button>
+			</DialogFooter>
 		</DialogContent>
 	);
-}
+};
+
+// Export a memoized version of the component
+export const EditTentForm = memo(EditTentFormComponent);

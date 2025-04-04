@@ -1,264 +1,331 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
-import { leviapi } from '@/lib/api';
-import { Tents } from '@/types/types';
+import { toast } from 'sonner';
+import api from '@/lib/api';
+import { useAuthStore } from '@/hooks/auth/useAuth';
+import { ApiResponse, Tent, TentState, TentFormData } from '@/types/tent';
+import { AxiosError } from 'axios';
 
-type TentState = {
-	// State
-	tents: Tents[];
-	isCreateOpen: boolean;
-	isEditOpen: boolean;
-	isDeleteOpen: boolean;
-	isLoading: boolean;
-	selectedTent: Tents | null;
-	formData: {
-		name: string;
-		tent_image: string;
-		description: string;
-		facilities: string[];
-		category_id: string;
-	};
+// Track if we're currently fetching to prevent duplicate requests
+let isFetching = false;
 
-	// Actions
-	setIsEditOpen: (isOpen: boolean) => void;
-	setIsCreateOpen: (isOpen: boolean) => void;
-	setIsDeleteOpen: (isOpen: boolean) => void;
-	setSelectedTent: (tent: Tents | null) => void;
-	setFormData: (data: Partial<TentState['formData']>) => void;
-	resetForm: () => void;
-
-	// API Actions
-	getTents: () => Promise<void>;
-	getTentDetails: (tentId: string) => Promise<Tents | null>;
-	createTent: () => Promise<{ success: boolean; message: string }>;
-	updateTent: (
-		tentId?: string,
-	) => Promise<{ success: boolean; message: string }>;
-	deleteTent: () => Promise<{ success: boolean; message: string }>;
-};
-
-const defaultFormData = {
+const defaultFormData: TentFormData = {
 	name: '',
-	tent_image: '',
 	description: '',
 	facilities: [],
 	category_id: '',
+	tent_images: [],
 };
 
-export const useTentStore = create<TentState>((set, get) => ({
-	// State
-	tents: [],
-	isCreateOpen: false,
-	isEditOpen: false,
-	isDeleteOpen: false,
-	isLoading: false,
-	selectedTent: null,
-	formData: defaultFormData,
+export const useTentStore = create<TentState>((set, get) => {
+	// Helper function to handle API errors
+	const handleApiError = (
+		error: AxiosError<{ error?: { description?: string }; message?: string }>,
+		defaultMessage: string,
+	) => {
+		console.error(`Error: ${defaultMessage}`, error);
+		const errorDescription = error.response?.data?.error?.description;
+		const errorMessage =
+			errorDescription || error.response?.data?.message || defaultMessage;
 
-	// Actions
-	setIsCreateOpen: (isOpen: boolean) => {
-		set((state) => ({
-			...state,
-			isCreateOpen: isOpen,
-			...(isOpen
-				? {
-						selectedTent: null,
-						formData: { ...defaultFormData },
-				  }
-				: {}),
-		}));
-	},
-	setIsEditOpen: (isOpen: boolean) => set({ isEditOpen: isOpen }),
-	setIsDeleteOpen: (isOpen: boolean) => set({ isDeleteOpen: isOpen }),
-	setSelectedTent: (tent) => {
-		set({ selectedTent: tent });
-		if (tent) {
-			set({
-				formData: {
-					name: tent.name,
-					tent_image: tent.tent_image,
-					description: tent.description,
-					facilities: tent.facilities,
-					category_id: tent.category_id,
-				},
-			});
+		if (error.response?.status === 429) {
+			console.log('Rate limit exceeded');
+			toast.error('Too many requests. Please try again later.');
 		} else {
-			set({ formData: { ...defaultFormData } });
+			toast.error(errorMessage);
 		}
-	},
-	setFormData: (data) => {
-		set(
-			(state) => ({
-				formData: {
-					...state.formData,
-					...data,
-				},
-			}),
-			false,
-		);
-	},
-	resetForm: () => {
-		set((state) => ({
-			...state,
-			formData: { ...defaultFormData },
-			selectedTent: null,
-		}));
-	},
 
-	// API Actions
-	getTents: async () => {
-		set({ isLoading: true });
+		set({ isLoading: false });
+		return null;
+	};
+
+	// Helper function to make authenticated API requests
+	const makeAuthenticatedRequest = async <T>(
+		method: 'get' | 'put' | 'post' | 'delete',
+		endpoint: string,
+		data?: unknown,
+	): Promise<T | null> => {
+		const currentToken = useAuthStore.getState().token;
+		const config = {
+			headers: {
+				Authorization: `Bearer ${currentToken}`,
+			},
+		};
+
 		try {
-			const { data } = await leviapi.get('/tents');
-			console.log('API response:', data);
+			set({ isLoading: true });
+			let response;
 
-			if (data && data.data) {
-				set({ tents: data.data });
-			} else {
-				console.error('Unexpected API response format:', data);
-				set({ tents: [] });
+			switch (method) {
+				case 'get':
+					response = await api.get(endpoint, config);
+					break;
+				case 'put':
+					response = await api.put(endpoint, data, config);
+					break;
+				case 'post':
+					response = await api.post(endpoint, data, config);
+					break;
+				case 'delete':
+					response = await api.delete(endpoint, config);
+					break;
 			}
-		} catch (error) {
-			console.error('Failed to fetch tents:', error);
-			set({ tents: [] });
-		} finally {
+
 			set({ isLoading: false });
+			return response.data as T;
+		} catch (error) {
+			return handleApiError(
+				error as AxiosError<{
+					error?: { description?: string };
+					message?: string;
+				}>,
+				`Failed to ${method} ${endpoint}`,
+			);
 		}
-	},
+	};
 
-	getTentDetails: async (tentId) => {
-		set({ isLoading: true });
-		try {
-			const { data } = await leviapi.get(`/tents/${tentId}`);
+	return {
+		// State
+		tents: [],
+		isCreateOpen: false,
+		isEditOpen: false,
+		isDeleteOpen: false,
+		isLoading: false,
+		selectedTent: null,
+		formData: defaultFormData,
 
-			if (data && data.data) {
-				const tentDetails = data.data;
+		// Actions
+		setIsCreateOpen: (isOpen) => {
+			set({
+				isCreateOpen: isOpen,
+				...(isOpen
+					? {}
+					: {
+							selectedTent: null,
+							formData: defaultFormData,
+					  }),
+			});
+		},
+
+		setIsEditOpen: (isOpen) => {
+			if (!isOpen) {
 				set({
-					selectedTent: tentDetails,
-					formData: {
-						name: tentDetails.name,
-						tent_image: tentDetails.tent_image,
-						description: tentDetails.description,
-						facilities: tentDetails.facilities,
-						category_id: tentDetails.category_id,
-					},
+					isEditOpen: isOpen,
+					selectedTent: null,
+					formData: defaultFormData,
 				});
-				return tentDetails;
 			} else {
-				console.error('Unexpected API response format:', data);
+				set({ isEditOpen: isOpen });
+			}
+		},
+
+		setIsDeleteOpen: (isOpen) => set({ isDeleteOpen: isOpen }),
+
+		setSelectedTent: (tent) => {
+			const currentTent = get().selectedTent;
+			if (tent === null || (tent && currentTent?.id !== tent.id)) {
+				set({ selectedTent: tent });
+
+				if (tent) {
+					if (process.env.NODE_ENV === 'development') {
+						console.log('Setting tent data to form:', tent);
+					}
+
+					const formDataUpdate: TentFormData = {
+						name: tent.name,
+						description: tent.description,
+						facilities: Array.isArray(tent.facilities) ? tent.facilities : [],
+						category_id: tent.category_id,
+						tent_images: Array.isArray(tent.tent_images)
+							? tent.tent_images
+							: [],
+					};
+
+					if (process.env.NODE_ENV === 'development') {
+						console.log('Updated form data:', formDataUpdate);
+					}
+
+					set({ formData: formDataUpdate });
+				} else {
+					set({ formData: defaultFormData });
+				}
+			}
+		},
+
+		setFormData: (data) =>
+			set((state) => ({
+				formData: { ...state.formData, ...data },
+			})),
+
+		resetForm: () =>
+			set({
+				formData: defaultFormData,
+				selectedTent: null,
+				isEditOpen: false,
+				isDeleteOpen: false,
+			}),
+
+		// API Actions
+		getTents: async () => {
+			// If we're already fetching, don't start another request
+			if (isFetching) {
+				console.log('Skipping duplicate tents API call');
+				return;
+			}
+
+			isFetching = true;
+			set({ isLoading: true });
+
+			try {
+				const response = await makeAuthenticatedRequest<ApiResponse<Tent[]>>(
+					'get',
+					'/tents',
+				);
+				if (response?.data) {
+					set({ tents: response.data });
+				}
+			} catch (error) {
+				console.error('Failed to fetch tents:', error);
+			} finally {
+				set({ isLoading: false });
+				isFetching = false;
+			}
+		},
+
+		getTentDetails: async (tentId: string) => {
+			try {
+				console.log('Fetching tent details for ID:', tentId);
+				const response = await makeAuthenticatedRequest<ApiResponse<Tent>>(
+					'get',
+					`/tents/${tentId}`,
+				);
+
+				if (response?.data) {
+					const tent = response.data;
+					console.log('Parsed tent data with images:', tent.tent_images);
+					set({ selectedTent: tent });
+					return tent;
+				}
+				return null;
+			} catch (error) {
+				console.error('Failed to fetch tent details:', error);
 				return null;
 			}
-		} catch (error) {
-			console.error('Failed to fetch tent details:', error);
-			return null;
-		} finally {
-			set({ isLoading: false });
-		}
-	},
+		},
 
-	createTent: async () => {
-		set({ isLoading: true });
-		try {
-			const { formData } = get();
-			const { data } = await leviapi.post('/tents', formData);
+		createTent: async () => {
+			try {
+				const { formData } = get();
+				console.log('Creating tent with data:', formData);
 
-			const { tents } = get();
-			set({
-				tents: [...tents, data.data],
-				isLoading: false,
-				isCreateOpen: false,
-			});
+				// Prepare the create data with tent_images array
+				const createData = {
+					name: formData.name,
+					tent_images: formData.tent_images,
+					description: formData.description,
+					facilities: formData.facilities,
+					category_id: formData.category_id,
+				};
 
-			return { success: true, message: 'Tent added successfully!' };
-		} catch (error) {
-			console.error('Failed to create tent:', error);
-			set({ isLoading: false });
+				const response = await makeAuthenticatedRequest<ApiResponse<Tent>>(
+					'post',
+					'/tents',
+					createData,
+				);
 
-			return {
-				success: false,
-				message: (error as any).response?.data?.message || 'Failed to add tent',
-			};
-		}
-	},
+				if (response?.data) {
+					const { tents } = get();
+					const newTent = response.data;
+					set({
+						tents: [...tents, newTent],
+					});
 
-	updateTent: async (tentId) => {
-		set({ isLoading: true });
-		const { formData, selectedTent } = get();
+					toast.success('Tent created successfully');
+					return {
+						success: true,
+						message: 'Tent created successfully',
+						tentId: newTent.id,
+					};
+				}
 
-		// Use tentId if provided, otherwise fall back to selectedTent
-		const idToUse = tentId || selectedTent?.id;
+				throw new Error('Invalid response format');
+			} catch (error) {
+				console.error('Failed to create tent:', error);
+				return {
+					success: false,
+					message: 'Failed to create tent',
+					tentId: null,
+				};
+			}
+		},
 
-		if (!idToUse) {
-			return {
-				success: false,
-				message: 'No tent selected for update',
-			};
-		}
+		updateTent: async (tentId: string) => {
+			try {
+				const { formData } = get();
 
-		try {
-			const { data } = await leviapi.put(`/tents/${idToUse}`, formData);
+				if (!tentId) {
+					throw new Error('Tent ID is required for update');
+				}
 
-			const { tents } = get();
-			// Update the tent in the list
-			const updatedTents = tents.map((tent) =>
-				tent.id === idToUse ? data.data : tent,
-			);
+				// Prepare the update data with tent_images array
+				const updateData = {
+					name: formData.name,
+					tent_images: formData.tent_images,
+					description: formData.description,
+					facilities: formData.facilities,
+					category_id: formData.category_id,
+				};
 
-			set({
-				tents: updatedTents,
-				isLoading: false,
-				isEditOpen: false,
-			});
+				console.log('Updating tent with ID:', tentId);
+				console.log('Updating with data:', updateData);
 
-			return {
-				success: true,
-				message: 'Tent updated successfully!',
-			};
-		} catch (error) {
-			console.error('Failed to update tent:', error);
-			set({ isLoading: false });
+				const response = await makeAuthenticatedRequest<ApiResponse<Tent>>(
+					'put',
+					`/tents/${tentId}`,
+					updateData,
+				);
 
-			return {
-				success: false,
-				message:
-					(error as any).response?.data?.message || 'Failed to update tent',
-			};
-		}
-	},
+				if (response?.data) {
+					await get().getTents();
+					set({
+						isEditOpen: false,
+						selectedTent: null,
+						formData: defaultFormData,
+					});
 
-	deleteTent: async () => {
-		const { selectedTent } = get();
-		if (!selectedTent) {
-			return {
-				success: false,
-				message: 'No tent selected for deletion',
-			};
-		}
+					toast.success('Tent updated successfully');
+					return { success: true, message: 'Tent updated successfully' };
+				}
 
-		set({ isLoading: true });
-		try {
-			await leviapi.delete(`/tents/${selectedTent.id}`);
+				throw new Error('Invalid response format');
+			} catch (error) {
+				console.error('Failed to update tent:', error);
+				return { success: false, message: 'Failed to update tent' };
+			}
+		},
 
-			const { tents } = get();
-			set({
-				tents: tents.filter((tent) => tent.id !== selectedTent.id),
-				isLoading: false,
-				isDeleteOpen: false,
-			});
+		deleteTent: async (tentId: string) => {
+			try {
+				if (!tentId) {
+					throw new Error('Tent ID is required for deletion');
+				}
 
-			return {
-				success: true,
-				message: 'Tent deleted successfully!',
-			};
-		} catch (error) {
-			console.error('Failed to delete tent:', error);
-			set({ isLoading: false });
+				console.log('Deleting tent with ID:', tentId);
 
-			return {
-				success: false,
-				message:
-					(error as any).response?.data?.message || 'Failed to delete tent',
-			};
-		}
-	},
-}));
+				await makeAuthenticatedRequest('delete', `/tents/${tentId}`);
+
+				const { tents } = get();
+				set({
+					tents: tents.filter((tent) => tent.id !== tentId),
+					isDeleteOpen: false,
+					selectedTent: null,
+				});
+
+				toast.success('Tent deleted successfully');
+				return { success: true, message: 'Tent deleted successfully' };
+			} catch (error) {
+				console.error('Failed to delete tent:', error);
+				return { success: false, message: 'Failed to delete tent' };
+			}
+		},
+	};
+});

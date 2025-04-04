@@ -1,7 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
-import { leviapi } from '@/lib/api';
-import { TentCategory } from '@/types/types';
+import { toast } from 'sonner';
+import api from '@/lib/api';
+import { useAuthStore } from '@/hooks/auth/useAuth';
+import { TentCategory, ApiResponse } from '@/types/tent';
+import { AxiosError } from 'axios';
+
+// Track if we're currently fetching to prevent duplicate requests
+let isFetching = false;
+
+const defaultFormData = {
+	name: '',
+	weekday_price: 0,
+	weekend_price: 0,
+	description: '',
+	facilities: {},
+};
 
 type CategoryState = {
 	// State
@@ -18,6 +31,7 @@ type CategoryState = {
 		description: string;
 		facilities: Record<string, string>;
 	};
+	error: string | null;
 
 	// Actions
 	setIsEditOpen: (isOpen: boolean) => void;
@@ -34,189 +48,271 @@ type CategoryState = {
 	deleteCategory: () => Promise<{ success: boolean; message: string }>;
 };
 
-const defaultFormData = {
-	name: '',
-	weekday_price: 0,
-	weekend_price: 0,
-	description: '',
-	facilities: {},
-};
+export const useCategory = create<CategoryState>((set, get) => {
+	// Helper function to handle API errors
+	const handleApiError = (
+		error: AxiosError<{ error?: { description?: string }; message?: string }>,
+		defaultMessage: string,
+	) => {
+		console.error(`Error: ${defaultMessage}`, error);
+		const errorDescription = error.response?.data?.error?.description;
+		const errorMessage =
+			errorDescription || error.response?.data?.message || defaultMessage;
 
-export const useCategoryStore = create<CategoryState>((set, get) => ({
-	// State
-	categories: [],
-	isCreateOpen: false,
-	isEditOpen: false,
-	isDeleteOpen: false,
-	isLoading: false,
-	selectedCategory: null,
-	formData: defaultFormData,
-
-	// Actions
-	setIsCreateOpen: (isOpen: boolean) => {
-		set({
-			isCreateOpen: isOpen,
-			selectedCategory: null,
-			formData: defaultFormData,
-		});
-	},
-	setIsEditOpen: (isOpen: boolean) => set({ isEditOpen: isOpen }),
-	setIsDeleteOpen: (isOpen: boolean) => set({ isDeleteOpen: isOpen }),
-	setSelectedCategory: (category) => {
-		set({ selectedCategory: category });
-		if (category) {
-			set({
-				formData: {
-					name: category.name,
-					weekday_price: category.weekday_price,
-					weekend_price: category.weekend_price,
-					description: category.description || '',
-					facilities: category.facilities || {},
-				},
-			});
+		if (error.response?.status === 429) {
+			console.log('Rate limit exceeded');
+			toast.error('Too many requests. Please try again later.');
 		} else {
-			set({ formData: defaultFormData });
+			toast.error(errorMessage);
 		}
-	},
-	setFormData: (data) =>
-		set((state) => ({
-			formData: { ...state.formData, ...data },
-		})),
-	resetForm: () =>
-		set({
-			formData: defaultFormData,
-			selectedCategory: null,
-			isEditOpen: false,
-			isDeleteOpen: false,
-		}),
 
-	// API Actions
-	getCategories: async () => {
-		if (get().categories.length > 0) return; // 🚀 Skip kalau sudah pernah fetch
+		set({ isLoading: false });
+		return null;
+	};
 
-		set({ isLoading: true });
+	// Helper function to make authenticated API requests
+	const makeAuthenticatedRequest = async <T>(
+		method: 'get' | 'put' | 'post' | 'delete',
+		endpoint: string,
+		data?: unknown,
+	): Promise<T | null> => {
+		const currentToken = useAuthStore.getState().token;
+		const config = {
+			headers: {
+				Authorization: `Bearer ${currentToken}`,
+			},
+		};
+
 		try {
-			const res = await leviapi.get('/categories');
-			if (res.data && res.data.data) {
-				set({ categories: res.data.data });
-			} else {
-				set({ categories: [] });
+			set({ isLoading: true });
+			let response;
+
+			switch (method) {
+				case 'get':
+					response = await api.get(endpoint, config);
+					break;
+				case 'put':
+					response = await api.put(endpoint, data, config);
+					break;
+				case 'post':
+					response = await api.post(endpoint, data, config);
+					break;
+				case 'delete':
+					response = await api.delete(endpoint, config);
+					break;
 			}
-		} catch (error) {
-			console.error('Failed to fetch categories:', error);
-			set({ categories: [] });
-		} finally {
+
 			set({ isLoading: false });
-		}
-	},
-
-	createCategory: async () => {
-		set({ isLoading: true });
-		try {
-			const { formData } = get();
-			const res = await leviapi.post('/categories', formData);
-
-			// If successful, update the categories list
-			const { categories } = get();
-			set({
-				categories: [...categories, res.data.data],
-				isLoading: false,
-				isCreateOpen: false, // Close the dialog on success
-			});
-
-			// Return success status and message
-			return { success: true, message: 'Category added successfully!' };
+			return response.data as T;
 		} catch (error) {
-			console.error('Failed to create category:', error);
-			set({ isLoading: false });
-
-			// Return error message
-			return {
-				success: false,
-				message:
-					(error as any).response?.data?.message || 'Failed to add category',
-			};
-		}
-	},
-
-	updateCategory: async () => {
-		set({ isLoading: true });
-		const { formData, selectedCategory } = get();
-		if (!selectedCategory) {
-			return {
-				success: false,
-				message: 'No category selected for update',
-			};
-		}
-
-		try {
-			const res = await leviapi.put(
-				`/categories/${selectedCategory.id}`,
-				formData,
+			return handleApiError(
+				error as AxiosError<{
+					error?: { description?: string };
+					message?: string;
+				}>,
+				`Failed to ${method} ${endpoint}`,
 			);
+		}
+	};
 
-			// If successful, update the categories list
-			const { categories } = get();
+	return {
+		// State
+		categories: [],
+		isCreateOpen: false,
+		isEditOpen: false,
+		isDeleteOpen: false,
+		isLoading: false,
+		selectedCategory: null,
+		formData: defaultFormData,
+		error: null,
+
+		// Actions
+		setIsCreateOpen: (isOpen: boolean) => {
 			set({
-				categories: [...categories, res.data.data],
-				isLoading: false,
-				isEditOpen: false, //
+				isCreateOpen: isOpen,
+				...(isOpen
+					? {}
+					: {
+							selectedCategory: null,
+							formData: defaultFormData,
+					  }),
 			});
+		},
 
-			// Return success status and message
-			return {
-				success: true,
-				message: 'Category updated successfully!',
-			};
-		} catch (error) {
-			console.error('Failed to update category:', error);
-			set({ isLoading: false });
+		setIsEditOpen: (isOpen: boolean) => {
+			if (!isOpen) {
+				set({
+					isEditOpen: isOpen,
+					selectedCategory: null,
+					formData: defaultFormData,
+				});
+			} else {
+				set({ isEditOpen: isOpen });
+			}
+		},
 
-			// Return error message
-			return {
-				success: false,
-				message:
-					(error as any).response?.data?.message || 'Failed to update category',
-			};
-		}
-	},
+		setIsDeleteOpen: (isOpen: boolean) => set({ isDeleteOpen: isOpen }),
 
-	deleteCategory: async () => {
-		const { selectedCategory } = get();
-		if (!selectedCategory) {
-			return {
-				success: false,
-				message: 'No category selected for deletion',
-			};
-		}
+		setSelectedCategory: (category: TentCategory | null) => {
+			const currentCategory = get().selectedCategory;
+			if (
+				category === null ||
+				(category && currentCategory?.id !== category.id)
+			) {
+				set({ selectedCategory: category });
 
-		set({ isLoading: true });
-		try {
-			const res = await leviapi.delete(`/categories/${selectedCategory.id}`);
+				if (category) {
+					if (process.env.NODE_ENV === 'development') {
+						console.log('Setting category data to form:', category);
+					}
 
-			// If successful, update the categories by refreshing the list
-			const { categories } = get();
+					set({
+						formData: {
+							name: category.name,
+							weekday_price: category.weekday_price,
+							weekend_price: category.weekend_price,
+							description: category.description || '',
+							facilities: category.facilities || {},
+						},
+					});
+				} else {
+					set({ formData: defaultFormData });
+				}
+			}
+		},
+
+		setFormData: (data: Partial<CategoryState['formData']>) =>
+			set((state) => ({
+				formData: { ...state.formData, ...data },
+			})),
+
+		resetForm: () =>
 			set({
-				categories: [...categories, res.data.data],
-				isLoading: false,
+				formData: defaultFormData,
+				selectedCategory: null,
 				isEditOpen: false,
-			});
+				isDeleteOpen: false,
+			}),
 
-			// Return success status and message
-			return {
-				success: true,
-				message: 'Category deleted successfully!',
-			};
-		} catch (error) {
-			console.error('Failed to delete category:', error);
-			set({ isLoading: false });
+		// API Actions
+		getCategories: async () => {
+			// If we're already fetching, don't start another request
+			if (isFetching) {
+				console.log('Skipping duplicate categories API call');
+				return;
+			}
 
-			// Return error message
-			return {
-				success: false,
-				message:
-					(error as any).response?.data?.message || 'Failed to delete category',
-			};
-		}
-	},
-}));
+			isFetching = true;
+			set({ isLoading: true });
+
+			try {
+				const response = await makeAuthenticatedRequest<
+					ApiResponse<TentCategory[]>
+				>('get', '/categories');
+				if (response?.data) {
+					set({ categories: response.data, error: null });
+				}
+			} catch (error) {
+				console.error('Failed to fetch categories:', error);
+				set({ error: 'Failed to fetch categories' });
+			} finally {
+				set({ isLoading: false });
+				isFetching = false;
+			}
+		},
+
+		createCategory: async () => {
+			try {
+				const { formData } = get();
+				console.log('Creating category with data:', formData);
+
+				const response = await makeAuthenticatedRequest<
+					ApiResponse<TentCategory>
+				>('post', '/categories', formData);
+
+				if (response?.data) {
+					const { categories } = get();
+					const newCategory = response.data;
+					set({
+						categories: [...categories, newCategory],
+						isCreateOpen: false,
+					});
+
+					toast.success('Category created successfully');
+					return { success: true, message: 'Category created successfully' };
+				}
+
+				throw new Error('Invalid response format');
+			} catch (error) {
+				console.error('Failed to create category:', error);
+				return { success: false, message: 'Failed to create category' };
+			}
+		},
+
+		updateCategory: async () => {
+			try {
+				const { formData, selectedCategory } = get();
+
+				if (!selectedCategory) {
+					throw new Error('No category selected for update');
+				}
+
+				console.log('Updating category with ID:', selectedCategory.id);
+				console.log('Updating with data:', formData);
+
+				const response = await makeAuthenticatedRequest<
+					ApiResponse<TentCategory>
+				>('put', `/categories/${selectedCategory.id}`, formData);
+
+				if (response?.data) {
+					await get().getCategories();
+					set({
+						isEditOpen: false,
+						selectedCategory: null,
+						formData: defaultFormData,
+					});
+
+					toast.success('Category updated successfully');
+					return { success: true, message: 'Category updated successfully' };
+				}
+
+				throw new Error('Invalid response format');
+			} catch (error) {
+				console.error('Failed to update category:', error);
+				return { success: false, message: 'Failed to update category' };
+			}
+		},
+
+		deleteCategory: async () => {
+			try {
+				const { selectedCategory } = get();
+
+				if (!selectedCategory) {
+					throw new Error('No category selected for deletion');
+				}
+
+				console.log('Deleting category with ID:', selectedCategory.id);
+
+				await makeAuthenticatedRequest(
+					'delete',
+					`/categories/${selectedCategory.id}`,
+				);
+
+				const { categories } = get();
+				set({
+					categories: categories.filter(
+						(category) => category.id !== selectedCategory.id,
+					),
+					isDeleteOpen: false,
+					selectedCategory: null,
+				});
+
+				toast.success('Category deleted successfully');
+				return { success: true, message: 'Category deleted successfully' };
+			} catch (error) {
+				console.error('Failed to delete category:', error);
+				return { success: false, message: 'Failed to delete category' };
+			}
+		},
+	};
+});

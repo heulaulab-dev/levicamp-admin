@@ -1,70 +1,106 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
-import { ArrowUpDown } from 'lucide-react';
-
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Booking } from '@/types/booking';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Eye, MoreHorizontal } from 'lucide-react';
+import { BookingDetailsModal } from '@/components/pages/booking-management/BookingDetailsModal';
+import { BookingActionDialog } from '@/components/pages/booking-management/BookingActionDialog';
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Payment = {
-	id: string;
-	amount: number;
-	status: 'pending' | 'processing' | 'success' | 'failed';
-	email: string;
+const getStatusColor = (status: string) => {
+	const colors = {
+		'pending': 'bg-yellow-100 text-yellow-800',
+		'confirmed': 'bg-blue-100 text-blue-800',
+		'checked-in': 'bg-green-100 text-green-800',
+		'completed': 'bg-purple-100 text-purple-800',
+		'cancelled': 'bg-red-100 text-red-800',
+		'refund': 'bg-orange-100 text-orange-800',
+		'rescheduled': 'bg-indigo-100 text-indigo-800',
+	};
+	return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
 };
 
-export const columns: ColumnDef<Payment>[] = [
+export const columns: ColumnDef<Booking>[] = [
 	{
-		id: 'select',
-		header: ({ table }) => (
-			<Checkbox
-				checked={
-					table.getIsAllPageRowsSelected() ||
-					(table.getIsSomePageRowsSelected() && 'indeterminate')
-				}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label='Select all'
-			/>
+		accessorKey: 'id',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Booking ID' />
 		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label='Select row'
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
 	},
 	{
-		accessorKey: 'email',
-		header: ({ column }) => {
+		accessorKey: 'guest.name',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Guest Name' />
+		),
+	},
+	{
+		accessorKey: 'total_amount',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Total Amount' />
+		),
+		cell: ({ row }) => {
+			const amount = parseFloat(row.getValue('total_amount'));
+			const formatted = new Intl.NumberFormat('id-ID', {
+				style: 'currency',
+				currency: 'IDR',
+			}).format(amount);
+
+			return <div className='font-medium'>{formatted}</div>;
+		},
+	},
+	{
+		accessorKey: 'start_date',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Start Date' />
+		),
+		cell: ({ row }) => {
 			return (
-				<Button
-					variant='ghost'
-					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-				>
-					Email
-					<ArrowUpDown className='ml-2 w-4 h-4' />
-				</Button>
+				<div className='font-medium'>
+					{new Date(row.getValue('start_date')).toLocaleDateString()}
+				</div>
+			);
+		},
+	},
+	{
+		accessorKey: 'end_date',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='End Date' />
+		),
+		cell: ({ row }) => {
+			return (
+				<div className='font-medium'>
+					{new Date(row.getValue('end_date')).toLocaleDateString()}
+				</div>
+			);
+		},
+	},
+	{
+		accessorKey: 'status',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Status' />
+		),
+		cell: ({ row }) => {
+			const status = row.getValue('status') as string;
+			return (
+				<Badge className={getStatusColor(status)}>
+					{status.charAt(0).toUpperCase() + status.slice(1)}
+				</Badge>
 			);
 		},
 	},
 	{
 		id: 'actions',
 		cell: ({ row }) => {
-			const payment = row.original;
+			const booking = row.original;
 
 			return (
 				<DropdownMenu>
@@ -75,19 +111,43 @@ export const columns: ColumnDef<Payment>[] = [
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align='end'>
-						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem
-							onClick={() => navigator.clipboard.writeText(payment.id)}
-						>
-							Copy payment ID
-						</DropdownMenuItem>
+						<BookingDetailsModal booking={booking}>
+							<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+								<Eye className='mr-2 w-4 h-4' />
+								View Details
+							</DropdownMenuItem>
+						</BookingDetailsModal>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>View customer</DropdownMenuItem>
-						<DropdownMenuItem>View payment details</DropdownMenuItem>
+						{booking.status === 'confirmed' && (
+							<BookingActionDialog booking={booking} type='checkin'>
+								<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+									Check-in Guest
+								</DropdownMenuItem>
+							</BookingActionDialog>
+						)}
+						{booking.status === 'checked-in' && (
+							<BookingActionDialog booking={booking} type='checkout'>
+								<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+									Check-out Guest
+								</DropdownMenuItem>
+							</BookingActionDialog>
+						)}
+						<BookingActionDialog booking={booking} type='modify'>
+							<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+								Modify Booking
+							</DropdownMenuItem>
+						</BookingActionDialog>
+						<BookingActionDialog booking={booking} type='cancel'>
+							<DropdownMenuItem
+								onSelect={(e) => e.preventDefault()}
+								className='text-red-600'
+							>
+								Cancel Booking
+							</DropdownMenuItem>
+						</BookingActionDialog>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
 		},
 	},
-	// ...
 ];
