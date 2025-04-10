@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, Mail, Lock, KeyRound } from 'lucide-react';
+import { toast } from 'sonner';
+import api from '@/lib/api';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -137,8 +139,7 @@ function ForgotPasswordStepper({ onComplete }: ForgotPasswordStepperProps) {
 	const [resetToken, setResetToken] = useState<string>('');
 	const [adminId, setAdminId] = useState<string>('');
 
-	const { requestResetPassword, verifyResetToken, resetPassword, isLoading } =
-		useAuthStore();
+	const { requestResetPassword, resetPassword, isLoading } = useAuthStore();
 
 	// Step 1: Email Form
 	const emailForm = useForm<EmailFormValues>({
@@ -178,12 +179,29 @@ function ForgotPasswordStepper({ onComplete }: ForgotPasswordStepperProps) {
 		const token = data.otp;
 		setResetToken(token);
 
-		const success = await verifyResetToken(token);
-		if (success) {
-			// Here you might get the admin_id from the verification response
-			// For now, we'll just hardcode it as an example
-			setAdminId('admin-id-from-verification');
-			setStep(3);
+		try {
+			const response = await api.get(`/verify-reset-token?token=${token}`);
+			if (response.data.status === 200) {
+				// Extract admin_id from the response data
+				const adminId = response.data.data?.admin_id;
+				if (!adminId) {
+					toast.error('Admin ID not found in verification response');
+					return;
+				}
+				setAdminId(adminId);
+				setStep(3);
+			}
+		} catch (error: unknown) {
+			console.error('Failed to verify reset token:', error);
+			const errorResponse =
+				error && typeof error === 'object' && 'response' in error
+					? (error.response as { data?: { message?: string } })?.data
+					: null;
+			if (errorResponse?.message) {
+				toast.error(errorResponse.message);
+			} else {
+				toast.error('Failed to verify token. Please try again.');
+			}
 		}
 	};
 
@@ -314,17 +332,35 @@ function ForgotPasswordStepper({ onComplete }: ForgotPasswordStepperProps) {
 										<FormItem>
 											<FormLabel>Verification Code</FormLabel>
 											<FormControl>
-												<InputOTP maxLength={6} {...field}>
+												<InputOTP maxLength={6} {...field} className='gap-2'>
 													<InputOTPGroup>
-														<InputOTPSlot index={0} />
-														<InputOTPSlot index={1} />
-														<InputOTPSlot index={2} />
+														<InputOTPSlot
+															index={0}
+															className='w-12 h-12 text-lg'
+														/>
+														<InputOTPSlot
+															index={1}
+															className='w-12 h-12 text-lg'
+														/>
+														<InputOTPSlot
+															index={2}
+															className='w-12 h-12 text-lg'
+														/>
 													</InputOTPGroup>
-													<InputOTPSeparator />
+													<InputOTPSeparator className='mx-2' />
 													<InputOTPGroup>
-														<InputOTPSlot index={3} />
-														<InputOTPSlot index={4} />
-														<InputOTPSlot index={5} />
+														<InputOTPSlot
+															index={3}
+															className='w-12 h-12 text-lg'
+														/>
+														<InputOTPSlot
+															index={4}
+															className='w-12 h-12 text-lg'
+														/>
+														<InputOTPSlot
+															index={5}
+															className='w-12 h-12 text-lg'
+														/>
 													</InputOTPGroup>
 												</InputOTP>
 											</FormControl>
