@@ -9,6 +9,11 @@ import { TotalGuestChart } from '@/components/pages/overview/TotalGuestChart';
 import { RevenueChart } from '@/components/pages/overview/RevenueOverview';
 import { RevenueBreakdown } from '@/components/pages/overview/RevenueBreakdown';
 import { useOverviewStore } from '@/hooks/overview/useOverview';
+import { useRevenueOverviewStore } from '@/hooks/overview/useRevenueOverview';
+import { useRevenueBreakdownStore } from '@/hooks/overview/useRevenueBreakdown';
+import { useTotalGuestStore } from '@/hooks/overview/useTotalGuest';
+import { useBookingsStore } from '@/hooks/overview/useBookings';
+import { useApiQueue } from '@/hooks/useApiQueue';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Skeleton loading component for the overview cards
@@ -87,23 +92,56 @@ function OverviewSkeleton() {
 }
 
 export default function OverviewPage() {
-	// Use the overview store instead of hardcoded data
+	const { queueRequest } = useApiQueue();
+
+	// Store hooks
 	const {
 		getOverviewMetrics,
-		isLoading,
+		isLoading: overviewLoading,
 		activeTents,
 		growthRate,
 		totalBookings,
 		totalRevenue,
 	} = useOverviewStore();
 
-	// Fetch metrics when component mounts
+	const { getRevenueOverview } = useRevenueOverviewStore();
+	const { getRevenueBreakdown } = useRevenueBreakdownStore();
+	const { getTotalGuestData } = useTotalGuestStore();
+	const { getBookings } = useBookingsStore();
+
 	useEffect(() => {
-		getOverviewMetrics();
-	}, [getOverviewMetrics]);
+		const loadDashboardData = async () => {
+			try {
+				// Queue all requests with different priorities
+				await Promise.all([
+					// High priority - main metrics
+					queueRequest('overview-metrics', () => getOverviewMetrics(), 3),
+
+					// Medium priority - charts
+					queueRequest('revenue-overview', () => getRevenueOverview(), 2),
+					queueRequest('revenue-breakdown', () => getRevenueBreakdown(), 2),
+
+					// Lower priority - additional data
+					queueRequest('total-guest', () => getTotalGuestData(), 1),
+					queueRequest('bookings', () => getBookings(), 1),
+				]);
+			} catch (error) {
+				console.error('Error loading dashboard data:', error);
+			}
+		};
+
+		loadDashboardData();
+	}, [
+		queueRequest,
+		getOverviewMetrics,
+		getRevenueOverview,
+		getRevenueBreakdown,
+		getTotalGuestData,
+		getBookings,
+	]);
 
 	// Show skeleton loading state
-	if (isLoading) {
+	if (overviewLoading) {
 		return <OverviewSkeleton />;
 	}
 

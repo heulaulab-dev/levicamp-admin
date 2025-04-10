@@ -27,6 +27,15 @@ type AuthState = {
 		new_password: string;
 		confirm_password: string;
 	}) => Promise<boolean>;
+	requestResetPassword: (email: string) => Promise<boolean>;
+	verifyResetToken: (token: string) => Promise<boolean>;
+	resetPassword: (data: {
+		admin_id: string;
+		email: string;
+		token: string;
+		new_password: string;
+		confirm_password: string;
+	}) => Promise<boolean>;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -277,6 +286,94 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				toast.error(errorResponse.message || 'Failed to change password');
 			} else {
 				toast.error('Failed to change password. Please try again.');
+			}
+
+			return false;
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	requestResetPassword: async (email) => {
+		set({ isLoading: true });
+		try {
+			const response = await api.post('/forgot-password', { email });
+
+			if (response.data.status === 200) {
+				toast.success('OTP has been sent to your email');
+				return true;
+			} else {
+				toast.error(
+					response.data.message || 'Failed to request password reset',
+				);
+				return false;
+			}
+		} catch (error) {
+			console.error('Failed to request password reset:', error);
+
+			const errorResponse = (error as any).response?.data;
+			if (errorResponse) {
+				toast.error(
+					errorResponse.message || 'Failed to request password reset',
+				);
+			} else {
+				toast.error('Failed to request password reset. Please try again.');
+			}
+
+			return false;
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	verifyResetToken: async (token) => {
+		set({ isLoading: true });
+		try {
+			const response = await api.get(`/verify-reset-token?token=${token}`);
+
+			if (response.data.status === 200) {
+				toast.success(response.data.message || 'Token verified successfully');
+				return true;
+			} else {
+				toast.error('Invalid or expired token');
+				return false;
+			}
+		} catch (error) {
+			console.error('Failed to verify reset token:', error);
+
+			const errorResponse = (error as any).response?.data;
+			if (errorResponse) {
+				toast.error(errorResponse.message || 'Invalid or expired token');
+			} else {
+				toast.error('Failed to verify token. Please try again.');
+			}
+
+			return false;
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	resetPassword: async (data) => {
+		set({ isLoading: true });
+		try {
+			const response = await api.post('/reset-password', data);
+
+			if (response.data.status === 200) {
+				toast.success(response.data.message || 'Password reset successfully');
+				return true;
+			} else {
+				toast.error(response.data.message || 'Failed to reset password');
+				return false;
+			}
+		} catch (error) {
+			console.error('Failed to reset password:', error);
+
+			const errorResponse = (error as any).response?.data;
+			if (errorResponse) {
+				toast.error(errorResponse.message || 'Failed to reset password');
+			} else {
+				toast.error('Failed to reset password. Please try again.');
 			}
 
 			return false;

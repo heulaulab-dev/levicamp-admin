@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { useAuthStore } from '@/hooks/auth/useAuth';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/form';
 import { PasswordInput } from '@/components/ui/password-input';
 import { toast, Toaster } from 'sonner';
+import ForgotPasswordModal from '@/components/pages/login/forgot-password-modal';
 
 // Definisikan schema validasi dengan Zod
 const loginSchema = z.object({
@@ -114,8 +116,20 @@ export function LoginForm({
 				</form>
 			</Form>
 
-			<div className='text-muted-foreground text-sm text-center'>
-				No account? Contact management to get started.
+			<div className='flex flex-col items-center gap-2'>
+				<ForgotPasswordModal
+					trigger={
+						<Link
+							href='#'
+							className='text-sm text-center underline hover:no-underline'
+						>
+							Forgot password?
+						</Link>
+					}
+				/>
+				<p className='text-muted-foreground text-sm text-center'>
+					No account? Contact management to get started.
+				</p>
 			</div>
 		</div>
 	);
