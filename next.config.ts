@@ -25,9 +25,10 @@ const nextConfig: NextConfig = {
 				hostname: 'assets.levicamp.id',
 			},
 			{
-				protocol: 'https',
+				protocol: 'http',
 				hostname: '89.116.34.215',
 			},
+
 			{
 				protocol: 'https',
 				hostname: 'levicamp.id',
