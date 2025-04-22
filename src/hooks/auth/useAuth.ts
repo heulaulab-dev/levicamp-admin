@@ -131,11 +131,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			if (errorResponse) {
 				console.error('Error response:', errorResponse);
-				toast.error(
-					errorResponse.message ||
-						errorResponse.error?.description ||
-						'Failed to fetch user data',
-				);
 			} else {
 				toast.error('Failed to fetch user data. Please try again.');
 			}

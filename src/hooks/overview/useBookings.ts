@@ -63,14 +63,8 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 				errorDescription ||
 				(error as any).response?.data?.message ||
 				'Failed to fetch bookings';
-
-			// Handle 429 error specifically
-			if ((error as any).response?.status === 429) {
-				console.log('Rate limit exceeded for bookings endpoint');
-				toast.error('Too many requests. Please try again later.');
-			} else {
-				toast.error(errorMessage);
-			}
+			set({ isLoading: false });
+			toast.error(errorMessage);
 		} finally {
 			set({ isLoading: false });
 			isFetching = false;

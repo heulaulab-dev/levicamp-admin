@@ -199,18 +199,15 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 	deleteAdmin: async () => {
 		set({ isLoading: true });
 		const { selectedAdmin } = get();
-		const currentToken = useAuthStore.getState().token;
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const res = await api.delete(`/admins/${selectedAdmin?.id}`, {
-				headers: {
-					Authorization: `Bearer ${currentToken}`,
-				},
-			});
 			const { admins } = get();
 
+			if (!selectedAdmin) {
+				throw new Error('No admin selected for deletion');
+			}
+
 			set({
-				admins: admins.filter((admin) => admin.id !== selectedAdmin?.id),
+				admins: admins.filter((admin) => admin.id !== selectedAdmin.id),
 				isLoading: false,
 				isDeleteModalOpen: false,
 			});

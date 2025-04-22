@@ -20,10 +20,8 @@ export default function TentCategoriesPage() {
 
 	useEffect(() => {
 		console.log('Fetching categories data...');
-		getCategories().then(() => {
-			console.log('Categories data loaded:', categories);
-		});
-	}, [categories, getCategories]);
+		getCategories();
+	}, []);
 
 	const handleOpenCreateModal = () => {
 		resetForm();
@@ -31,7 +29,7 @@ export default function TentCategoriesPage() {
 	};
 
 	const handleRefresh = useCallback(async () => {
-		await getCategories(); // Remove force refresh parameter since it's not expected
+		await getCategories();
 	}, [getCategories]);
 
 	return (

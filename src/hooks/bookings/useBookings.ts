@@ -16,82 +16,80 @@ import { AxiosError } from 'axios';
 let isFetching = false;
 
 export const useBookings = create<BookingState>((set, get) => {
-	// Define the fetch function outside the store to avoid recreation
 	const fetchBookings = async (options?: PaginationOptions) => {
 		const page = options?.page || 1;
 		const pageSize = options?.per_page || 10;
 
-		// If we're already fetching, don't start another request
-		if (isFetching) {
-			console.log('Skipping duplicate bookings API call');
-			return;
-		}
+		if (isFetching) return;
 
 		isFetching = true;
 		set({ isLoading: true });
 		const currentToken = useAuthStore.getState().token;
 
-		try {
-			console.log('Fetching bookings data');
-			const response = await api.get('/bookings', {
-				headers: {
-					Authorization: `Bearer ${currentToken}`,
-				},
-				params: {
-					page,
-					pageSize,
-					...(options?.search && { search: options.search }),
-					...(options?.status && { status: options.status }),
-				},
-			});
+		let retries = 3;
+		const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-			// Store the response data
-			const responseData = response.data as BookingsResponse;
-
-			// Check if the response is valid
-			if (responseData && responseData.data) {
-				set({
-					bookings: responseData.data,
-					pagination: {
-						total: responseData.pagination.totalItems,
-						page: responseData.pagination.page,
-						pageSize: responseData.pagination.pageSize,
+		while (retries > 0) {
+			try {
+				const response = await api.get('/bookings', {
+					headers: {
+						Authorization: `Bearer ${currentToken}`,
 					},
-					isLoading: false,
+					params: {
+						page,
+						pageSize,
+						...(options?.search && { search: options.search }),
+						...(options?.status && { status: options.status }),
+					},
 				});
-			} else {
-				console.error('Unexpected API response format:', responseData);
-				toast.error('Invalid response format from server');
-			}
-		} catch (error) {
-			console.error('Error fetching bookings:', error);
-			const typedError = error as AxiosError<{
-				error?: { description?: string };
-				message?: string;
-			}>;
-			const errorDescription = typedError.response?.data?.error?.description;
-			const errorMessage =
-				errorDescription ||
-				typedError.response?.data?.message ||
-				'Failed to fetch bookings';
 
-			// Handle 429 error specifically
-			if (typedError.response?.status === 429) {
-				console.log('Rate limit exceeded for bookings endpoint');
-				toast.error('Too many requests. Please try again later.');
-			} else {
-				toast.error(errorMessage);
+				const responseData = response.data as BookingsResponse;
+
+				if (responseData && responseData.data) {
+					set({
+						bookings: responseData.data,
+						pagination: {
+							total: responseData.pagination.totalItems,
+							page: responseData.pagination.page,
+							pageSize: responseData.pagination.pageSize,
+						},
+						isLoading: false,
+					});
+					return;
+				} else {
+					toast.error('Invalid response format from server');
+					break;
+				}
+			} catch (error) {
+				const typedError = error as AxiosError<{ message?: string }>;
+				if (typedError.response?.status === 429) {
+					console.log('Rate limit hit. Retrying...');
+					retries--;
+					await delay(1000 * Math.pow(2, 3 - retries)); // 1s → 2s → 4s
+					continue;
+				}
+
+				const msg =
+					typedError.response?.data?.message || 'Failed to fetch bookings';
+				toast.error(msg);
+				break;
 			}
-		} finally {
-			set({ isLoading: false });
-			isFetching = false;
 		}
+
+		// fallback state
+		set({
+			bookings: [],
+			pagination: { total: 0, page, pageSize },
+			isLoading: false,
+		});
+		isFetching = false;
 	};
 
 	// Helper function to handle API errors
 	const handleApiError = (
 		error: AxiosError<{ error?: { description?: string }; message?: string }>,
 		defaultMessage: string,
+		showToast = true,
 	) => {
 		console.error(`Error: ${defaultMessage}`, error);
 		const errorDescription = error.response?.data?.error?.description;
@@ -100,7 +98,9 @@ export const useBookings = create<BookingState>((set, get) => {
 
 		if (error.response?.status === 429) {
 			console.log('Rate limit exceeded');
-			toast.error('Too many requests. Please try again later.');
+			if (showToast) {
+				toast.error('Too many requests. Please try again later.');
+			}
 		} else {
 			toast.error(errorMessage);
 		}
@@ -150,6 +150,7 @@ export const useBookings = create<BookingState>((set, get) => {
 					message?: string;
 				}>,
 				`Failed to ${method} ${endpoint}`,
+				false,
 			);
 		}
 	};

@@ -69,7 +69,6 @@ export const useTotalGuestStore = create<TotalGuestState>((set) => {
 			// Handle 429 error specifically
 			if (errorResponse?.status === 429) {
 				console.log('Rate limit exceeded for total-guest endpoint');
-				toast.error('Too many requests. Please try again later.');
 			} else {
 				toast.error(errorMessage);
 			}
