@@ -9,7 +9,7 @@ import {
 	DialogDescription,
 	DialogFooter,
 } from '@/components/ui/dialog';
-import { useAdminStore } from '@/hooks/admin/useAdmin';
+import { useAdminStore } from '@/hooks/admin/use-admins';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
