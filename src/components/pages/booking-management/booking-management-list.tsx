@@ -219,7 +219,7 @@ export function BookingManagementList() {
 								<SelectItem value='all'>All Statuses</SelectItem>
 								<SelectItem value='pending'>Pending</SelectItem>
 								<SelectItem value='confirmed'>Confirmed</SelectItem>
-								<SelectItem value='checked-in'>Checked In</SelectItem>
+								<SelectItem value='checked_in'>Checked In</SelectItem>
 								<SelectItem value='completed'>Completed</SelectItem>
 								<SelectItem value='cancelled'>Cancelled</SelectItem>
 								<SelectItem value='refund'>Refund</SelectItem>
