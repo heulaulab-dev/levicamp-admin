@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { toast } from 'sonner';
 import { useBookings } from '@/hooks/bookings/use-bookings';
 import { Skeleton } from '@/components/ui/skeleton';
 import BookingTable from '@/components/pages/booking-management/booking-table';
@@ -20,11 +19,13 @@ import {
 	PaginationContent,
 	PaginationItem,
 } from '@/components/ui/pagination';
+import { toast } from 'sonner';
 
 import { Label } from '@/components/ui/label';
 import { useId } from 'react';
 
 import { ChevronFirst, ChevronLast } from 'lucide-react';
+import { useExport } from '@/hooks/export/use-export';
 
 // Loading skeleton for the booking list
 function BookingListSkeleton() {
@@ -47,6 +48,7 @@ function BookingListSkeleton() {
 
 export function BookingManagementList() {
 	const { getBookings, bookings, isLoading, pagination } = useBookings();
+	const { exportBookings } = useExport();
 	const initialFetchDone = useRef(false);
 	const [pageSize, setPageSize] = useState<number>(10);
 	const [currentPage, setCurrentPage] = useState<number>(1);
@@ -138,8 +140,17 @@ export function BookingManagementList() {
 	]);
 
 	const handleExport = () => {
-		// In a real application, this would generate a CSV or Excel file
-		toast.success('Data exported successfully');
+		const promise = () => {
+			return exportBookings();
+		};
+
+		toast.promise(promise, {
+			loading: 'Exporting booking data...',
+			success: () => {
+				return 'Bookings exported successfully';
+			},
+			error: 'Failed to export bookings',
+		});
 	};
 
 	const handlePageChange = (newPage: number) => {
