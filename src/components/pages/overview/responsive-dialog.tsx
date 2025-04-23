@@ -35,7 +35,7 @@ import {
 const statusOptions = [
 	'pending',
 	'confirmed',
-	'checked-in',
+	'checked_in',
 	'completed',
 	'canceled',
 	'refund',

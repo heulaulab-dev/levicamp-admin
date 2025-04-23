@@ -37,7 +37,7 @@ import { Label } from '@/components/ui/label';
 const statusOptions = [
 	'pending',
 	'confirmed',
-	'checked-in',
+	'checked_in',
 	'completed',
 	'cancelled',
 	'refund',
@@ -79,8 +79,8 @@ export function BookingActionDialog({
 					await checkInBooking(booking.id);
 					break;
 				case 'checkout':
-					if (booking.status !== 'checked-in') {
-						toast.error('Only checked-in bookings can be checked out');
+					if (booking.status !== 'checked_in') {
+						toast.error('Only checked_in bookings can be checked out');
 						return;
 					}
 					await checkOutBooking(booking.id);
@@ -142,11 +142,11 @@ export function BookingActionDialog({
 			};
 		}
 
-		if (type === 'checkout' && booking.status !== 'checked-in') {
+		if (type === 'checkout' && booking.status !== 'checked_in') {
 			return {
 				title: 'Cannot Check-out Guest',
 				description:
-					'This booking must be in checked-in status before check-out.',
+					'This booking must be in checked_in status before check-out.',
 				buttonText: 'Close',
 				showAction: false,
 			};

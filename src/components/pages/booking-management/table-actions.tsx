@@ -35,7 +35,7 @@ export default function TableActions({ booking }: { booking: Booking }) {
 						</DropdownMenuItem>
 					</BookingActionDialog>
 				)}
-				{booking.status === 'checked-in' && (
+				{booking.status === 'checked_in' && (
 					<BookingActionDialog booking={booking} type='checkout'>
 						<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
 							Check-out Guest
