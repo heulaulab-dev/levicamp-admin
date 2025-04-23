@@ -35,7 +35,7 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 				},
 				params: {
 					page: options?.page || 1,
-					pageSize: options?.per_page || 10,
+					pageSize: options?.page_size || 10,
 					search: options?.search,
 					status: options?.status,
 				},
