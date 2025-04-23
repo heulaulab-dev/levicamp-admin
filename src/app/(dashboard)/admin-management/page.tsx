@@ -1,7 +1,7 @@
 'use client';
 
 import { columns } from '@/components/pages/admin-management/admin-columns';
-import { PageHeader } from '@/components/common/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
 import { useAdminStore } from '@/hooks/admin/use-admins';
 import { useEffect } from 'react';
 import { Dialog } from '@/components/ui/dialog';

@@ -1,6 +1,6 @@
 'use client';
 
-import { PageHeader } from '@/components/common/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
 import { BookingManagementList } from '@/components/pages/booking-management/booking-management-list';
 
 export default function BookingManagementPage() {
