@@ -6,7 +6,7 @@ import { useEffect, useCallback } from 'react';
 import { useCategory } from '@/hooks/category/useCategory';
 import { Dialog } from '@/components/ui/dialog';
 import { AddCategoryForm } from '@/components/pages/tent-management/tent-categories/AddCategoryForm';
-import { PageHeader } from '@/components/common/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
 
 export default function TentCategoriesPage() {
 	const {
@@ -20,10 +20,8 @@ export default function TentCategoriesPage() {
 
 	useEffect(() => {
 		console.log('Fetching categories data...');
-		getCategories().then(() => {
-			console.log('Categories data loaded:', categories);
-		});
-	}, [categories, getCategories]);
+		getCategories();
+	}, []);
 
 	const handleOpenCreateModal = () => {
 		resetForm();
@@ -31,7 +29,7 @@ export default function TentCategoriesPage() {
 	};
 
 	const handleRefresh = useCallback(async () => {
-		await getCategories(); // Remove force refresh parameter since it's not expected
+		await getCategories();
 	}, [getCategories]);
 
 	return (

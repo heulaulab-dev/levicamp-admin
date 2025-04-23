@@ -30,7 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { useRefunds } from '@/hooks/refunds/useRefunds';
 import { toast } from 'sonner';
-import { PaymentProofUploader } from './PaymentProofUploader';
+import { PaymentProofUploader } from './payment-proof-uploader';
 
 export default function UpdateStatusDialog({
 	children,
@@ -143,16 +143,12 @@ function UpdateStatus({ refund, onOpenChange }: UpdateStatusProps) {
 					<Input value={refund.id} disabled />
 				</div>
 				<div>
-					<Label>Guest Name</Label>
-					<Input value={refund.guestName} disabled />
-				</div>
-				<div>
 					<Label>Booking ID</Label>
 					<Input value={refund.bookingId} disabled />
 				</div>
 				<div>
 					<Label>Refund Amount</Label>
-					<Input value={`$${refund.amount.toFixed(2)}`} disabled />
+					<Input value={`Rp. ${refund.amount.toFixed(2)}`} disabled />
 				</div>
 				<div>
 					<Label>Current Status</Label>
@@ -210,7 +206,9 @@ function UpdateStatus({ refund, onOpenChange }: UpdateStatusProps) {
 					</div>
 				)}
 				<div>
-					<Label>Notes (Optional)</Label>
+					<Label>
+						Notes <span className='text-red-500'>*</span>
+					</Label>
 					<Textarea
 						value={notes}
 						onChange={(e) => setNotes(e.target.value)}

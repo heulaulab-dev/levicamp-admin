@@ -6,7 +6,6 @@ import { TentCategory, ApiResponse } from '@/types/tent';
 import { AxiosError } from 'axios';
 
 // Track if we're currently fetching to prevent duplicate requests
-let isFetching = false;
 
 const defaultFormData = {
 	name: '',
@@ -196,13 +195,6 @@ export const useCategory = create<CategoryState>((set, get) => {
 
 		// API Actions
 		getCategories: async () => {
-			// If we're already fetching, don't start another request
-			if (isFetching) {
-				console.log('Skipping duplicate categories API call');
-				return;
-			}
-
-			isFetching = true;
 			set({ isLoading: true });
 
 			try {
@@ -210,14 +202,13 @@ export const useCategory = create<CategoryState>((set, get) => {
 					ApiResponse<TentCategory[]>
 				>('get', '/categories');
 				if (response?.data) {
-					set({ categories: response.data, error: null });
+					set({ categories: response.data, error: null, isLoading: false });
 				}
 			} catch (error) {
 				console.error('Failed to fetch categories:', error);
 				set({ error: 'Failed to fetch categories' });
 			} finally {
 				set({ isLoading: false });
-				isFetching = false;
 			}
 		},
 

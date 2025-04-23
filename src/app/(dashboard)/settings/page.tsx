@@ -1,13 +1,13 @@
 'use client';
 
-import { PageHeader } from '@/components/common/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
 import { useEffect, useState } from 'react';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Loader2, Lock } from 'lucide-react';
 import { useAuthStore } from '@/hooks/auth/useAuth';
-import { useAdminStore } from '@/hooks/admin/useAdmin';
+import { useAdminStore } from '@/hooks/admin/use-admins';
 import { toast } from 'sonner';
 import { Dialog } from '@/components/ui/dialog';
 import { ChangePasswordDialog } from '@/components/change-password-dialog';

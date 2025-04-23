@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import api from '@/lib/api';
-import { toast } from 'sonner';
 import { useAuthStore } from '@/hooks/auth/useAuth';
 import { OverviewStoreState, initialMetrics } from '@/types/overview';
 
@@ -53,15 +52,6 @@ export const useOverviewStore = create<OverviewStoreState>((set) => {
 			const errorResponse = (error as any)?.response?.data;
 			const errorMessage =
 				errorResponse?.error?.description || 'Failed to fetch overview metrics';
-
-			// Handle 429 error specifically
-			if (errorResponse?.status === 429) {
-				// console.log('Rate limit exceeded for overview metrics');
-				toast.error('Too many requests. Please try again later.');
-			} else {
-				toast.error(errorMessage);
-			}
-
 			set({ error: errorMessage });
 		} finally {
 			set({ isLoading: false });

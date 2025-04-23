@@ -86,7 +86,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 		} catch (error) {
 			console.error('Error fetching admins:', error);
 			toast.error(
-				(error as any).response?.data?.message || 'Failed to fetch admins',
+				(error as any).response?.data?.error?.description ||
+					'Failed to fetch admins',
 			);
 			set({ admins: [] });
 		} finally {
@@ -109,7 +110,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 		} catch (error) {
 			console.error(`Error fetching admin ${id}:`, error);
 			toast.error(
-				(error as any).response?.data?.message ||
+				(error as any).response?.data?.error?.description ||
 					'Failed to fetch admin details',
 			);
 			return null;
@@ -144,7 +145,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
 			return {
 				success: false,
-				message: (error as any).response?.data?.message || 'Failed to add tent',
+				message:
+					(error as any).response?.data?.error?.description ||
+					'Failed to create admin',
 			};
 		}
 	},
@@ -191,7 +194,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 			return {
 				success: false,
 				message:
-					(error as any).response?.data?.message || 'Failed to update admin',
+					(error as any).response?.data?.error?.description ||
+					'Failed to update admin',
 			};
 		}
 	},
@@ -223,7 +227,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 			set({ isLoading: false });
 			console.error(`Error deleting admin ${selectedAdmin}:`, error);
 			const errorMessage =
-				(error as any).response?.data?.message || 'Failed to delete admin';
+				(error as any).response?.data?.error?.description ||
+				'Failed to delete admin';
 			toast.error(errorMessage);
 			return {
 				success: false,

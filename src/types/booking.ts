@@ -115,8 +115,9 @@ export type UpdateAddonsRequest = AddOn[];
 
 // Pagination options for API requests
 export interface PaginationOptions {
+	category?: string;
 	page?: number;
-	per_page?: number;
+	page_size?: number;
 	search?: string;
 	status?: string;
 }
@@ -126,9 +127,10 @@ export type BookingState = {
 	bookings: Booking[];
 	isLoading: boolean;
 	pagination: {
-		total: number;
 		page: number;
 		pageSize: number;
+		totalItems: number;
+		totalPages: number;
 	} | null;
 	selectedBooking: Booking | null;
 	getBookings: (options?: PaginationOptions) => Promise<void>;

@@ -2,27 +2,30 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCcw } from 'lucide-react';
+import { Download, RefreshCw } from 'lucide-react';
 import {
 	allColumns,
 	pendingColumns,
 	processingColumns,
 	rejectedColumns,
 	successColumns,
-} from './columns';
-import { DataTable } from '@/components/ui/data-table';
-import { PageHeader } from '@/components/common/PageHeader';
+} from '@/components/pages/refund-management/refund-columns';
+import { PageHeader } from '@/components/common/page-header';
 import { useRefunds } from '@/hooks/refunds/useRefunds';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefundStatus } from '@/types/refund';
+import { useExport } from '@/hooks/export/use-export';
+import { toast } from 'sonner';
+import RefundTable from '@/components/pages/refund-management/refund-table';
 
 export default function RefundManagement() {
 	const { refunds, isLoading, getRefunds, pendingNotificationRefund } =
 		useRefunds();
 	const [activeTab, setActiveTab] = useState<'all' | RefundStatus>('all');
 	const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+	const { exportRefunds } = useExport();
 
 	useEffect(() => {
 		// Load all refunds only once on component mount
@@ -56,6 +59,20 @@ export default function RefundManagement() {
 	const handleTabChange = (value: string) => {
 		setActiveTab(value as 'all' | RefundStatus);
 		// No API calls here, just switching the tab view
+	};
+
+	const handleExport = () => {
+		const promise = () => {
+			return exportRefunds();
+		};
+
+		toast.promise(promise, {
+			loading: 'Exporting refund data...',
+			success: () => {
+				return 'Refunds exported successfully';
+			},
+			error: 'Failed to export refunds',
+		});
 	};
 
 	// Only show skeleton on initial load, not during refreshes
@@ -148,43 +165,51 @@ export default function RefundManagement() {
 				<TabsContent value='all'>
 					<div className='flex justify-between items-center mb-4'>
 						<h3 className='font-semibold text-lg'>All Refund Requests</h3>
-						<Button
-							variant='ghost'
-							size='icon'
-							onClick={handleRefresh}
-							disabled={isLoading}
-						>
-							<RefreshCcw
-								className={`w-5 h-5 ${
-									isLoading
-										? 'animate-spin text-primary'
-										: 'text-muted-foreground hover:text-primary'
-								} transition-colors`}
-							/>
-						</Button>
+						<div className='flex items-center gap-2'>
+							<Button
+								variant='outline'
+								size='icon'
+								onClick={handleRefresh}
+								disabled={isLoading}
+								className='w-9 h-9'
+							>
+								<RefreshCw
+									className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+								/>
+								<span className='sr-only'>Refresh data</span>
+							</Button>
+							<Button onClick={handleExport} disabled={isLoading}>
+								<Download className='mr-2 w-4 h-4' />
+								Export Data
+							</Button>
+						</div>
 					</div>
-					<DataTable data={refunds} columns={allColumns} />
+					<RefundTable data={refunds} columns={allColumns} />
 				</TabsContent>
 
 				<TabsContent value='pending'>
 					<div className='flex justify-between items-center mb-4'>
 						<h3 className='font-semibold text-lg'>Pending Refund Requests</h3>
-						<Button
-							variant='ghost'
-							size='icon'
-							onClick={handleRefresh}
-							disabled={isLoading}
-						>
-							<RefreshCcw
-								className={`w-5 h-5 ${
-									isLoading
-										? 'animate-spin text-primary'
-										: 'text-muted-foreground hover:text-primary'
-								} transition-colors`}
-							/>
-						</Button>
+						<div className='flex items-center gap-2'>
+							<Button
+								variant='outline'
+								size='icon'
+								onClick={handleRefresh}
+								disabled={isLoading}
+								className='w-9 h-9'
+							>
+								<RefreshCw
+									className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+								/>
+								<span className='sr-only'>Refresh data</span>
+							</Button>
+							<Button onClick={handleExport} disabled={isLoading}>
+								<Download className='mr-2 w-4 h-4' />
+								Export Data
+							</Button>
+						</div>
 					</div>
-					<DataTable data={pendingRefunds} columns={pendingColumns} />
+					<RefundTable data={pendingRefunds} columns={pendingColumns} />
 				</TabsContent>
 
 				<TabsContent value='processing'>
@@ -192,66 +217,79 @@ export default function RefundManagement() {
 						<h3 className='font-semibold text-lg'>
 							Processing Refund Requests
 						</h3>
-						<Button
-							variant='ghost'
-							size='icon'
-							onClick={handleRefresh}
-							disabled={isLoading}
-						>
-							<RefreshCcw
-								className={`w-5 h-5 ${
-									isLoading
-										? 'animate-spin text-primary'
-										: 'text-muted-foreground hover:text-primary'
-								} transition-colors`}
-							/>
-						</Button>
+						<div className='flex items-center gap-2'>
+							<Button
+								variant='outline'
+								size='icon'
+								onClick={handleRefresh}
+								disabled={isLoading}
+								className='w-9 h-9'
+							>
+								<RefreshCw
+									className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+								/>
+								<span className='sr-only'>Refresh data</span>
+							</Button>
+							<Button onClick={handleExport} disabled={isLoading}>
+								<Download className='mr-2 w-4 h-4' />
+								Export Data
+							</Button>
+						</div>
 					</div>
-					<DataTable data={processingRefunds} columns={processingColumns} />
+					<RefundTable data={processingRefunds} columns={processingColumns} />
 				</TabsContent>
 
 				<TabsContent value='rejected'>
 					<div className='flex justify-between items-center mb-4'>
 						<h3 className='font-semibold text-lg'>Rejected Refund Requests</h3>
-						<Button
-							variant='ghost'
-							size='icon'
-							onClick={handleRefresh}
-							disabled={isLoading}
-						>
-							<RefreshCcw
-								className={`w-5 h-5 ${
-									isLoading
-										? 'animate-spin text-primary'
-										: 'text-muted-foreground hover:text-primary'
-								} transition-colors`}
-							/>
-						</Button>
+						<div className='flex items-center gap-2'>
+							<Button
+								variant='outline'
+								size='icon'
+								onClick={handleRefresh}
+								disabled={isLoading}
+								className='w-9 h-9'
+							>
+								<RefreshCw
+									className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+								/>
+								<span className='sr-only'>Refresh data</span>
+							</Button>
+							<Button onClick={handleExport} disabled={isLoading}>
+								<Download className='mr-2 w-4 h-4' />
+								Export Data
+							</Button>
+						</div>
 					</div>
-					<DataTable data={rejectedRefunds} columns={rejectedColumns} />
+					<RefundTable data={rejectedRefunds} columns={rejectedColumns} />
 				</TabsContent>
 
 				<TabsContent value='success'>
 					<div className='flex justify-between items-center mb-4'>
 						<h3 className='font-semibold text-lg'>Successful Refunds</h3>
-						<Button
-							variant='ghost'
-							size='icon'
-							onClick={handleRefresh}
-							disabled={isLoading}
-						>
-							<RefreshCcw
-								className={`w-5 h-5 ${
-									isLoading
-										? 'animate-spin text-primary'
-										: 'text-muted-foreground hover:text-primary'
-								} transition-colors`}
-							/>
-						</Button>
+						<div className='flex items-center gap-2'>
+							<Button
+								variant='outline'
+								size='icon'
+								onClick={handleRefresh}
+								disabled={isLoading}
+								className='w-9 h-9'
+							>
+								<RefreshCw
+									className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+								/>
+								<span className='sr-only'>Refresh data</span>
+							</Button>
+							<Button onClick={handleExport} disabled={isLoading}>
+								<Download className='mr-2 w-4 h-4' />
+								Export Data
+							</Button>
+						</div>
 					</div>
-					<DataTable data={successRefunds} columns={successColumns} />
+					<RefundTable data={successRefunds} columns={successColumns} />
 				</TabsContent>
 			</Tabs>
 		</div>
 	);
 }
+
