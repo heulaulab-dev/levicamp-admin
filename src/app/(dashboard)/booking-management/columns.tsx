@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Eye, MoreHorizontal } from 'lucide-react';
-import { BookingDetailsModal } from '@/components/pages/booking-management/BookingDetailsModal';
-import { BookingActionDialog } from '@/components/pages/booking-management/BookingActionDialog';
+import { BookingDetailsModal } from '@/components/pages/booking-management/booking-details-modal';
+import { BookingActionDialog } from '@/components/pages/booking-management/booking-action-dialog';
 
 const getStatusColor = (status: string) => {
 	const colors = {

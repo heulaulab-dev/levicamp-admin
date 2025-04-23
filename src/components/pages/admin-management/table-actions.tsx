@@ -1,15 +1,10 @@
-'use client';
-
-import { ColumnDef } from '@tanstack/react-table';
-
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import {
 	DropdownMenu,
+	DropdownMenuTrigger,
 	DropdownMenuContent,
-	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger,
+	DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@radix-ui/react-dialog';
@@ -18,9 +13,7 @@ import { EditAdminForm } from '@/components/pages/admin-management/EditAdminForm
 import { useAdminStore } from '@/hooks/admin/use-admins';
 import { DeleteAdminDialog } from '@/components/pages/admin-management/DeleteAdminDialog';
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Admin = {
+type Admin = {
 	id: string;
 	name: string;
 	username: string;
@@ -30,38 +23,6 @@ export type Admin = {
 	created_at: string;
 	updated_at: string;
 };
-
-export const columns: ColumnDef<Admin>[] = [
-	{
-		accessorKey: 'name',
-		header: 'Name',
-	},
-	{
-		accessorKey: 'username',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Username' />
-		),
-	},
-	{
-		accessorKey: 'email',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Email' />
-		),
-	},
-	{
-		accessorKey: 'phone',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Phone' />
-		),
-	},
-	{
-		id: 'actions',
-		cell: ({ row }) => {
-			const admin = row.original;
-			return <ActionsDropdown admin={admin} />;
-		},
-	},
-];
 
 const ActionsDropdown = ({ admin }: { admin: Admin }) => {
 	const {
@@ -128,3 +89,5 @@ const ActionsDropdown = ({ admin }: { admin: Admin }) => {
 		</>
 	);
 };
+
+export { ActionsDropdown };

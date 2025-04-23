@@ -7,7 +7,7 @@ import { useEffect, useCallback } from 'react';
 import { useTentStore } from '@/hooks/tents/useTents';
 import { Dialog } from '@/components/ui/dialog';
 import { AddTentForm } from '@/components/pages/tent-management/tents/AddTentForm';
-import { PageHeader } from '@/components/common/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
 
 export default function TentsPage() {
 	const {

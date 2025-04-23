@@ -1,12 +1,13 @@
 'use client';
 
-import { columns } from './columns';
-import { DataTable } from '@/components/ui/data-table';
-import { PageHeader } from '@/components/common/PageHeader';
-import { useAdminStore } from '@/hooks/admin/useAdmin';
+import { columns } from '@/components/pages/admin-management/admin-columns';
+import { PageHeader } from '@/components/common/page-header';
+import { useAdminStore } from '@/hooks/admin/use-admins';
 import { useEffect } from 'react';
 import { Dialog } from '@/components/ui/dialog';
-import { AddAdminForm } from '@/components/pages/login/AddAdminForm';
+import { AddAdminForm } from '@/components/pages/admin-management/add-admin-form';
+import AdminTable from '@/components/pages/admin-management/admin-table';
+
 export default function AdminManagementPage() {
 	const {
 		admins,
@@ -35,7 +36,7 @@ export default function AdminManagementPage() {
 				isLoading={isLoading}
 			/>
 
-			<DataTable columns={columns} data={admins} />
+			<AdminTable columns={columns} data={admins} />
 
 			<Dialog
 				modal

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import api from '@/lib/api';
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
 import { useAuthStore } from '@/hooks/auth/useAuth';
 import { RevenueBreakdownState } from '@/types/revenue';
 
@@ -40,7 +40,6 @@ export const useRevenueBreakdownStore = create<RevenueBreakdownState>((set) => {
 			const errorMessage =
 				errorResponse?.error?.description ||
 				'Failed to fetch revenue breakdown';
-			toast.error(errorMessage);
 			set({
 				error: errorMessage,
 				isLoading: false,

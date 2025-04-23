@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useAdminStore } from '@/hooks/admin/useAdmin';
+import { useAdminStore } from '@/hooks/admin/use-admins';
 import { toast } from 'sonner';
 
 // UI Components
@@ -83,17 +83,19 @@ export function AddAdminForm() {
 		try {
 			const result = await createAdmin();
 
-			if (result && result.message) {
+			if (result.success === true) {
 				toast.success(result.message);
 				form.reset(); // Reset form hanya kalau API berhasil
 				setIsCreateModalOpen(false); // Tutup modal kalau berhasil
-			} else {
-				toast.error('Failed to create admin. Please try again.');
+			}
+			if (result.success === false) {
+				toast.error(result.message);
 			}
 		} catch (error) {
 			const errorMessage =
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(error as any).response?.data?.message || 'Failed to create admin';
+				(error as any).response?.data?.error?.description ||
+				'Failed to create admin';
 			toast.error(errorMessage);
 			console.error(error);
 		} finally {
@@ -125,7 +127,7 @@ export function AddAdminForm() {
 									<FormLabel>Full Name</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='John Doe'
+											placeholder='Input your full name'
 											{...field}
 											onChange={(e) => {
 												field.onChange(e);
@@ -146,7 +148,7 @@ export function AddAdminForm() {
 									<FormLabel>Username</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='johndoe'
+											placeholder='Input your username'
 											{...field}
 											onChange={(e) => {
 												field.onChange(e);
@@ -167,7 +169,7 @@ export function AddAdminForm() {
 									<FormLabel>Password</FormLabel>
 									<FormControl>
 										<PasswordInput
-											placeholder='••••••••'
+											placeholder='Input your password'
 											{...field}
 											onChange={(e) => {
 												field.onChange(e);
@@ -187,15 +189,21 @@ export function AddAdminForm() {
 								<FormItem>
 									<FormLabel>Phone Number</FormLabel>
 									<FormControl>
-										<Input
-											autoComplete='off'
-											placeholder='+1234567890'
-											{...field}
-											onChange={(e) => {
-												field.onChange(e);
-												handleFormChange('phone', e.target.value);
-											}}
-										/>
+										<div className='flex shadow-black/5 shadow-sm rounded-lg'>
+											<span className='inline-flex items-center bg-background px-3 border border-input rounded-s-lg text-muted-foreground text-sm'>
+												+62
+											</span>
+											<Input
+												autoComplete='off'
+												className='z-10 shadow-none -ms-px rounded-s-none'
+												placeholder='Input your phone number'
+												{...field}
+												onChange={(e) => {
+													field.onChange(e);
+													handleFormChange('phone', e.target.value);
+												}}
+											/>
+										</div>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -212,7 +220,7 @@ export function AddAdminForm() {
 										<Input
 											autoComplete='off'
 											type='email'
-											placeholder='john@example.com'
+											placeholder='Input your email'
 											{...field}
 											onChange={(e) => {
 												field.onChange(e);

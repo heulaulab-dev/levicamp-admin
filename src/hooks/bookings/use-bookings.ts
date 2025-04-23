@@ -16,14 +16,12 @@ import { AxiosError } from 'axios';
 let isFetching = false;
 
 export const useBookings = create<BookingState>((set, get) => {
-	// Define the fetch function outside the store to avoid recreation
 	const fetchBookings = async (options?: PaginationOptions) => {
-		const page = options?.page || 1;
-		const pageSize = options?.per_page || 10;
-
-		// If we're already fetching, don't start another request
+		// Prevent duplicate requests if a request is already in progress
 		if (isFetching) {
-			console.log('Skipping duplicate bookings API call');
+			console.log(
+				'Skipping duplicate fetchBookings call as a request is already in progress',
+			);
 			return;
 		}
 
@@ -32,66 +30,65 @@ export const useBookings = create<BookingState>((set, get) => {
 		const currentToken = useAuthStore.getState().token;
 
 		try {
-			console.log('Fetching bookings data');
+			const params = {
+				...(options?.page && { page: options.page }),
+				...(options?.page_size && { page_size: options.page_size }),
+				...(options?.search && { search: options.search }),
+				...(options?.status &&
+					options.status !== 'all' && { status: options.status }),
+				...(options?.category &&
+					options.category !== 'all' && { category: options.category }),
+			};
+
+			console.log('API Params:', params); // Debugging log
+
 			const response = await api.get('/bookings', {
 				headers: {
 					Authorization: `Bearer ${currentToken}`,
 				},
-				params: {
-					page,
-					pageSize,
-					...(options?.search && { search: options.search }),
-					...(options?.status && { status: options.status }),
-				},
+				params,
 			});
 
-			// Store the response data
 			const responseData = response.data as BookingsResponse;
 
-			// Check if the response is valid
 			if (responseData && responseData.data) {
 				set({
 					bookings: responseData.data,
 					pagination: {
-						total: responseData.pagination.totalItems,
 						page: responseData.pagination.page,
 						pageSize: responseData.pagination.pageSize,
+						totalItems: responseData.pagination.totalItems,
+						totalPages: responseData.pagination.totalPages,
 					},
 					isLoading: false,
 				});
+				isFetching = false;
+				return;
 			} else {
-				console.error('Unexpected API response format:', responseData);
 				toast.error('Invalid response format from server');
 			}
 		} catch (error) {
-			console.error('Error fetching bookings:', error);
-			const typedError = error as AxiosError<{
-				error?: { description?: string };
-				message?: string;
-			}>;
-			const errorDescription = typedError.response?.data?.error?.description;
-			const errorMessage =
-				errorDescription ||
-				typedError.response?.data?.message ||
-				'Failed to fetch bookings';
+			const typedError = error as AxiosError<{ message?: string }>;
 
-			// Handle 429 error specifically
-			if (typedError.response?.status === 429) {
-				console.log('Rate limit exceeded for bookings endpoint');
-				toast.error('Too many requests. Please try again later.');
-			} else {
-				toast.error(errorMessage);
-			}
-		} finally {
-			set({ isLoading: false });
-			isFetching = false;
+			const msg =
+				typedError.response?.data?.message || 'Failed to fetch bookings';
+			toast.error(msg);
 		}
+
+		// fallback state
+		set({
+			bookings: [],
+			pagination: { totalItems: 0, totalPages: 0, page: 1, pageSize: 10 },
+			isLoading: false,
+		});
+		isFetching = false;
 	};
 
 	// Helper function to handle API errors
 	const handleApiError = (
 		error: AxiosError<{ error?: { description?: string }; message?: string }>,
 		defaultMessage: string,
+		showToast = true,
 	) => {
 		console.error(`Error: ${defaultMessage}`, error);
 		const errorDescription = error.response?.data?.error?.description;
@@ -100,7 +97,9 @@ export const useBookings = create<BookingState>((set, get) => {
 
 		if (error.response?.status === 429) {
 			console.log('Rate limit exceeded');
-			toast.error('Too many requests. Please try again later.');
+			if (showToast) {
+				toast.error('Too many requests. Please try again later.');
+			}
 		} else {
 			toast.error(errorMessage);
 		}
@@ -150,6 +149,7 @@ export const useBookings = create<BookingState>((set, get) => {
 					message?: string;
 				}>,
 				`Failed to ${method} ${endpoint}`,
+				false,
 			);
 		}
 	};

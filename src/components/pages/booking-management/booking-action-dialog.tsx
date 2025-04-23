@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { toast } from 'sonner';
-import { useBookings } from '@/hooks/bookings/useBookings';
+import { useBookings } from '@/hooks/bookings/use-bookings';
 import { Booking, UpdateBookingRequest } from '@/types/booking';
 import { Button } from '@/components/ui/button';
 import {
