@@ -17,69 +17,68 @@ let isFetching = false;
 
 export const useBookings = create<BookingState>((set, get) => {
 	const fetchBookings = async (options?: PaginationOptions) => {
-		const page = options?.page || 1;
-		const pageSize = options?.per_page || 10;
-
-		if (isFetching) return;
+		// Prevent duplicate requests if a request is already in progress
+		if (isFetching) {
+			console.log(
+				'Skipping duplicate fetchBookings call as a request is already in progress',
+			);
+			return;
+		}
 
 		isFetching = true;
 		set({ isLoading: true });
 		const currentToken = useAuthStore.getState().token;
 
-		let retries = 3;
-		const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+		try {
+			const params = {
+				...(options?.page && { page: options.page }),
+				...(options?.page_size && { page_size: options.page_size }),
+				...(options?.search && { search: options.search }),
+				...(options?.status &&
+					options.status !== 'all' && { status: options.status }),
+				...(options?.category &&
+					options.category !== 'all' && { category: options.category }),
+			};
 
-		while (retries > 0) {
-			try {
-				const response = await api.get('/bookings', {
-					headers: {
-						Authorization: `Bearer ${currentToken}`,
+			console.log('API Params:', params); // Debugging log
+
+			const response = await api.get('/bookings', {
+				headers: {
+					Authorization: `Bearer ${currentToken}`,
+				},
+				params,
+			});
+
+			const responseData = response.data as BookingsResponse;
+
+			if (responseData && responseData.data) {
+				set({
+					bookings: responseData.data,
+					pagination: {
+						page: responseData.pagination.page,
+						pageSize: responseData.pagination.pageSize,
+						totalItems: responseData.pagination.totalItems,
+						totalPages: responseData.pagination.totalPages,
 					},
-					params: {
-						page,
-						pageSize,
-						...(options?.search && { search: options.search }),
-						...(options?.status && { status: options.status }),
-					},
+					isLoading: false,
 				});
-
-				const responseData = response.data as BookingsResponse;
-
-				if (responseData && responseData.data) {
-					set({
-						bookings: responseData.data,
-						pagination: {
-							total: responseData.pagination.totalItems,
-							page: responseData.pagination.page,
-							pageSize: responseData.pagination.pageSize,
-						},
-						isLoading: false,
-					});
-					return;
-				} else {
-					toast.error('Invalid response format from server');
-					break;
-				}
-			} catch (error) {
-				const typedError = error as AxiosError<{ message?: string }>;
-				if (typedError.response?.status === 429) {
-					console.log('Rate limit hit. Retrying...');
-					retries--;
-					await delay(1000 * Math.pow(2, 3 - retries)); // 1s → 2s → 4s
-					continue;
-				}
-
-				const msg =
-					typedError.response?.data?.message || 'Failed to fetch bookings';
-				toast.error(msg);
-				break;
+				isFetching = false;
+				return;
+			} else {
+				toast.error('Invalid response format from server');
 			}
+		} catch (error) {
+			const typedError = error as AxiosError<{ message?: string }>;
+
+			const msg =
+				typedError.response?.data?.message || 'Failed to fetch bookings';
+			toast.error(msg);
 		}
 
 		// fallback state
 		set({
 			bookings: [],
-			pagination: { total: 0, page, pageSize },
+			pagination: { totalItems: 0, totalPages: 0, page: 1, pageSize: 10 },
 			isLoading: false,
 		});
 		isFetching = false;

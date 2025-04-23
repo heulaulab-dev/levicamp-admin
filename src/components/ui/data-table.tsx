@@ -8,7 +8,6 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
-	getPaginationRowModel,
 	useReactTable,
 } from '@tanstack/react-table';
 
@@ -20,8 +19,6 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-
-// import { DataTablePagination } from './data-table-pagination';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -38,7 +35,6 @@ export function DataTable<TData, TValue>({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
 		state: {
@@ -100,9 +96,6 @@ export function DataTable<TData, TValue>({
 					</Table>
 				</div>
 			</div>
-			{/* <div className='pt-4'>
-				<DataTablePagination table={table} />
-			</div> */}
 		</div>
 	);
 }
