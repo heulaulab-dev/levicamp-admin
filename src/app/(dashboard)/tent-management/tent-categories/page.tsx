@@ -6,7 +6,7 @@ import { useEffect, useCallback } from 'react';
 import { useCategory } from '@/hooks/category/useCategory';
 import { Dialog } from '@/components/ui/dialog';
 import { AddCategoryForm } from '@/components/pages/tent-management/tent-categories/AddCategoryForm';
-import { PageHeader } from '@/components/common/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
 
 export default function TentCategoriesPage() {
 	const {
