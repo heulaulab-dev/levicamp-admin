@@ -196,19 +196,19 @@ export default function AddBookingPage() {
 		if (showResults) {
 			setTimeout(() => {
 				showResultsRef.current?.scrollIntoView({ behavior: 'smooth' });
-			}, 100); // kasih delay dikit biar render kelar
+			}, 100);
 		}
 
 		if (reservationDataStore) {
 			setTimeout(() => {
 				showPersonalDetailRef.current?.scrollIntoView({ behavior: 'smooth' });
-			}, 100); // kasih delay dikit biar render kelar
+			}, 100);
 		}
 
 		if (checkDetail) {
 			setTimeout(() => {
 				showCheckDetailRef.current?.scrollIntoView({ behavior: 'smooth' });
-			}, 100); // kasih delay dikit biar render kelar
+			}, 100); 
 		}
 	}, [showResults, reservationDataStore, checkDetail]);
 
