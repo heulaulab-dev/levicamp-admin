@@ -29,11 +29,11 @@ const chartConfig = {
 	},
 	vip: {
 		label: 'VIP',
-		color: 'hsl(var(--chart-1))',
+		color: 'var(--chart-1)',
 	},
 	standard: {
 		label: 'Standard',
-		color: 'hsl(var(--chart-2))',
+		color: 'var(--chart-2)',
 	},
 } satisfies ChartConfig;
 

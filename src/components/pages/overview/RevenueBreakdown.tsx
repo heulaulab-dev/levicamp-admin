@@ -36,30 +36,31 @@ const fallbackData = [
 const chartConfig = {
 	visitors: {
 		label: 'Revenue',
+		color: 'var(--chart-1)',
 	},
 	food: {
 		label: 'Food',
-		color: 'hsl(var(--chart-1))',
+		color: 'var(--chart-1)',
 	},
 	beverage: {
 		label: 'Beverage',
-		color: 'hsl(var(--chart-2))',
+		color: 'var(--chart-2)',
 	},
 	accommodation: {
 		label: 'Accommodation',
-		color: 'hsl(var(--chart-3))',
+		color: 'var(--chart-3)',
 	},
 	service: {
 		label: 'Service',
-		color: 'hsl(var(--chart-4))',
+		color: 'var(--chart-4)',
 	},
 	event: {
 		label: 'Event',
-		color: 'hsl(var(--chart-5))',
+		color: 'var(--chart-5)',
 	},
 	other: {
 		label: 'Other',
-		color: 'hsl(var(--chart-6, 217 91% 60%))',
+		color: 'var(--chart-6)',
 	},
 } satisfies ChartConfig;
 
