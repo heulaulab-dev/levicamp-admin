@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import {
+	Download,
+	ChevronLeft,
+	ChevronRight,
+	Search,
+	Plus,
+} from 'lucide-react';
 import { useBookings } from '@/hooks/bookings/use-bookings';
 import { Skeleton } from '@/components/ui/skeleton';
 import BookingTable from '@/components/pages/booking-management/booking-table';
@@ -26,6 +32,8 @@ import { useId } from 'react';
 
 import { ChevronFirst, ChevronLast } from 'lucide-react';
 import { useExport } from '@/hooks/export/use-export';
+
+import Link from 'next/link';
 
 // Loading skeleton for the booking list
 function BookingListSkeleton() {
@@ -241,10 +249,18 @@ export function BookingManagementList() {
 						</Select>
 					</div>
 				</div>
-				<Button onClick={handleExport}>
-					<Download className='mr-2 w-4 h-4' />
-					Export Data
-				</Button>
+				<div className='flex flex-row gap-4'>
+					<Button asChild>
+						<Link href='/booking-management/add-booking'>
+							<Plus className='mr-2 w-4 h-4' />
+							Add Booking
+						</Link>
+					</Button>
+					<Button onClick={handleExport} variant={'outline'}>
+						<Download className='mr-2 w-4 h-4' />
+						Export Data
+					</Button>
+				</div>
 			</div>
 
 			<div className='mb-2'>
