@@ -53,54 +53,48 @@ interface StepperProps extends React.HTMLAttributes<HTMLDivElement> {
 	orientation?: 'horizontal' | 'vertical';
 }
 
-const Stepper = (
-    {
-        ref,
-        defaultValue = 0,
-        value,
-        onValueChange,
-        orientation = 'horizontal',
-        className,
-        ...props
-    }: StepperProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
-    const [activeStep, setInternalStep] = React.useState(defaultValue);
+function Stepper({
+	defaultValue = 0,
+	value,
+	onValueChange,
+	orientation = 'horizontal',
+	className,
+	...props
+}: StepperProps) {
+	const [activeStep, setInternalStep] = React.useState(defaultValue);
 
-    const setActiveStep = React.useCallback(
-        (step: number) => {
-            if (value === undefined) {
-                setInternalStep(step);
-            }
-            onValueChange?.(step);
-        },
-        [value, onValueChange],
-    );
+	const setActiveStep = React.useCallback(
+		(step: number) => {
+			if (value === undefined) {
+				setInternalStep(step);
+			}
+			onValueChange?.(step);
+		},
+		[value, onValueChange],
+	);
 
-    const currentStep = value ?? activeStep;
+	const currentStep = value ?? activeStep;
 
-    return (
-        <StepperContext.Provider
-            value={{
-                activeStep: currentStep,
-                setActiveStep,
-                orientation,
-            }}
-        >
-            <div
-                ref={ref}
-                className={cn(
-                    'group/stepper inline-flex data-[orientation=horizontal]:w-full data-[orientation=horizontal]:flex-row data-[orientation=vertical]:flex-col',
-                    className,
-                )}
-                data-orientation={orientation}
-                {...props}
-            />
-        </StepperContext.Provider>
-    );
-};
-Stepper.displayName = 'Stepper';
+	return (
+		<StepperContext.Provider
+			value={{
+				activeStep: currentStep,
+				setActiveStep,
+				orientation,
+			}}
+		>
+			<div
+				data-slot='stepper'
+				className={cn(
+					'group/stepper inline-flex data-[orientation=horizontal]:w-full data-[orientation=horizontal]:flex-row data-[orientation=vertical]:flex-col',
+					className,
+				)}
+				data-orientation={orientation}
+				{...props}
+			/>
+		</StepperContext.Provider>
+	);
+}
 
 // StepperItem
 interface StepperItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -110,51 +104,45 @@ interface StepperItemProps extends React.HTMLAttributes<HTMLDivElement> {
 	loading?: boolean;
 }
 
-const StepperItem = (
-    {
-        ref,
-        step,
-        completed = false,
-        disabled = false,
-        loading = false,
-        className,
-        children,
-        ...props
-    }: StepperItemProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
-    const { activeStep } = useStepper();
+function StepperItem({
+	step,
+	completed = false,
+	disabled = false,
+	loading = false,
+	className,
+	children,
+	...props
+}: StepperItemProps) {
+	const { activeStep } = useStepper();
 
-    const state: StepState =
-        completed || step < activeStep
-            ? 'completed'
-            : activeStep === step
-            ? 'active'
-            : 'inactive';
+	const state: StepState =
+		completed || step < activeStep
+			? 'completed'
+			: activeStep === step
+			? 'active'
+			: 'inactive';
 
-    const isLoading = loading && step === activeStep;
+	const isLoading = loading && step === activeStep;
 
-    return (
-        <StepItemContext.Provider
-            value={{ step, state, isDisabled: disabled, isLoading }}
-        >
-            <div
-                ref={ref}
-                className={cn(
-                    'group/step flex items-center group-data-[orientation=horizontal]/stepper:flex-row group-data-[orientation=vertical]/stepper:flex-col',
-                    className,
-                )}
-                data-state={state}
-                {...(isLoading ? { 'data-loading': true } : {})}
-                {...props}
-            >
-                {children}
-            </div>
-        </StepItemContext.Provider>
-    );
-};
-StepperItem.displayName = 'StepperItem';
+	return (
+		<StepItemContext.Provider
+			value={{ step, state, isDisabled: disabled, isLoading }}
+		>
+			<div
+				data-slot='stepper-item'
+				className={cn(
+					'group/step flex items-center group-data-[orientation=horizontal]/stepper:flex-row group-data-[orientation=vertical]/stepper:flex-col',
+					className,
+				)}
+				data-state={state}
+				{...(isLoading ? { 'data-loading': true } : {})}
+				{...props}
+			>
+				{children}
+			</div>
+		</StepItemContext.Provider>
+	);
+}
 
 // StepperTrigger
 interface StepperTriggerProps
@@ -162,62 +150,51 @@ interface StepperTriggerProps
 	asChild?: boolean;
 }
 
-const StepperTrigger = (
-    {
-        ref,
-        asChild = false,
-        className,
-        children,
-        ...props
-    }: StepperTriggerProps & {
-        ref: React.RefObject<HTMLButtonElement>;
-    }
-) => {
-    const { setActiveStep } = useStepper();
-    const { step, isDisabled } = useStepItem();
+function StepperTrigger({
+	asChild = false,
+	className,
+	children,
+	...props
+}: StepperTriggerProps) {
+	const { setActiveStep } = useStepper();
+	const { step, isDisabled } = useStepItem();
 
-    if (asChild) {
-        return <div className={className}>{children}</div>;
-    }
+	if (asChild) {
+		return <div className={className}>{children}</div>;
+	}
 
-    return (
-        <button
-            ref={ref}
-            className={cn(
-                'inline-flex items-center gap-3 disabled:pointer-events-none disabled:opacity-50',
-                className,
-            )}
-            onClick={() => setActiveStep(step)}
-            disabled={isDisabled}
-            {...props}
-        >
-            {children}
-        </button>
-    );
-};
-StepperTrigger.displayName = 'StepperTrigger';
+	return (
+		<button
+			data-slot='stepper-trigger'
+			className={cn(
+				'inline-flex items-center gap-3 disabled:pointer-events-none disabled:opacity-50',
+				className,
+			)}
+			onClick={() => setActiveStep(step)}
+			disabled={isDisabled}
+			{...props}
+		>
+			{children}
+		</button>
+	);
+}
 
 // StepperIndicator
 interface StepperIndicatorProps extends React.HTMLAttributes<HTMLDivElement> {
 	asChild?: boolean;
 }
 
-const StepperIndicator = (
-    {
-        ref,
-        asChild = false,
-        className,
-        children,
-        ...props
-    }: StepperIndicatorProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
+function StepperIndicator({
+	asChild = false,
+	className,
+	children,
+	...props
+}: StepperIndicatorProps) {
 	const { state, step, isLoading } = useStepItem();
 
 	return (
 		<div
-			ref={ref}
+			data-slot='stepper-indicator'
 			className={cn(
 				'relative flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground data-[state=active]:bg-primary data-[state=completed]:bg-primary data-[state=active]:text-primary-foreground data-[state=completed]:text-primary-foreground',
 				className,
@@ -252,50 +229,41 @@ const StepperIndicator = (
 			)}
 		</div>
 	);
-};
-StepperIndicator.displayName = 'StepperIndicator';
+}
 
 // StepperTitle
-const StepperTitle = (
-    {
-        ref,
-        className,
-        ...props
-    }: React.HTMLAttributes<HTMLHeadingElement> & {
-        ref: React.RefObject<HTMLHeadingElement>;
-    }
-) => (<h3 ref={ref} className={cn('text-sm font-medium', className)} {...props} />);
-StepperTitle.displayName = 'StepperTitle';
+function StepperTitle({ className, ...props }: React.ComponentProps<'h3'>) {
+	return (
+		<h3
+			data-slot='stepper-title'
+			className={cn('text-sm font-medium', className)}
+			{...props}
+		/>
+	);
+}
 
 // StepperDescription
-const StepperDescription = (
-    {
-        ref,
-        className,
-        ...props
-    }: React.HTMLAttributes<HTMLParagraphElement> & {
-        ref: React.RefObject<HTMLParagraphElement>;
-    }
-) => (<p
-    ref={ref}
-    className={cn('text-sm text-muted-foreground', className)}
-    {...props}
-/>);
-StepperDescription.displayName = 'StepperDescription';
+function StepperDescription({
+	className,
+	...props
+}: React.ComponentProps<'p'>) {
+	return (
+		<p
+			data-slot='stepper-description'
+			className={cn('text-sm text-muted-foreground', className)}
+			{...props}
+		/>
+	);
+}
 
 // StepperSeparator
-const StepperSeparator = (
-    {
-        ref,
-        className,
-        ...props
-    }: React.HTMLAttributes<HTMLDivElement> & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
+function StepperSeparator({
+	className,
+	...props
+}: React.ComponentProps<'div'>) {
 	return (
 		<div
-			ref={ref}
+			data-slot='stepper-separator'
 			className={cn(
 				'm-0.5 bg-muted group-data-[orientation=horizontal]/stepper:h-0.5 group-data-[orientation=vertical]/stepper:h-12 group-data-[orientation=horizontal]/stepper:w-full group-data-[orientation=vertical]/stepper:w-0.5 group-data-[orientation=horizontal]/stepper:flex-1 group-data-[state=completed]/step:bg-primary',
 				className,
@@ -303,8 +271,7 @@ const StepperSeparator = (
 			{...props}
 		/>
 	);
-};
-StepperSeparator.displayName = 'StepperSeparator';
+}
 
 export {
 	Stepper,

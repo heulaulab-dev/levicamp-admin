@@ -19,115 +19,87 @@ interface StepperProps extends React.HTMLAttributes<HTMLDivElement> {
 	defaultValue?: number;
 }
 
-const Stepper = (
-    {
-        ref,
-        activeStep,
-        children,
-        className,
-        ...props
-    }: StepperProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
-    const childrenArray = React.Children.toArray(children);
-    const steps = childrenArray.length;
+function Stepper({ activeStep, children, className, ...props }: StepperProps) {
+	const childrenArray = React.Children.toArray(children);
+	const steps = childrenArray.length;
 
-    return (
-        <StepperContext.Provider value={{ activeStep, steps }}>
-            <div
-                ref={ref}
-                className={cn('flex w-full items-center', className)}
-                {...props}
-            >
-                {children}
-            </div>
-        </StepperContext.Provider>
-    );
-};
-Stepper.displayName = 'Stepper';
+	return (
+		<StepperContext.Provider value={{ activeStep, steps }}>
+			<div
+				data-slot='stepper'
+				className={cn('flex w-full items-center', className)}
+				{...props}
+			>
+				{children}
+			</div>
+		</StepperContext.Provider>
+	);
+}
 
 interface StepperItemProps extends React.HTMLAttributes<HTMLDivElement> {
 	step: number;
 	children: React.ReactNode;
 }
 
-const StepperItem = (
-    {
-        ref,
-        step,
-        children,
-        className,
-        ...props
-    }: StepperItemProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
-    const { activeStep } = React.useContext(StepperContext);
-    const isActive = step === activeStep;
-    const isCompleted = step < activeStep;
+function StepperItem({
+	step,
+	children,
+	className,
+	...props
+}: StepperItemProps) {
+	const { activeStep } = React.useContext(StepperContext);
+	const isActive = step === activeStep;
+	const isCompleted = step < activeStep;
 
-    return (
-        <div
-            ref={ref}
-            className={cn(
-                'flex flex-1 flex-col items-center',
-                isActive && 'text-primary',
-                isCompleted && 'text-primary',
-                !isActive && !isCompleted && 'text-muted-foreground',
-                className,
-            )}
-            {...props}
-        >
-            {children}
-        </div>
-    );
-};
-StepperItem.displayName = 'StepperItem';
+	return (
+		<div
+			data-slot='stepper-item'
+			className={cn(
+				'flex flex-1 flex-col items-center',
+				isActive && 'text-primary',
+				isCompleted && 'text-primary',
+				!isActive && !isCompleted && 'text-muted-foreground',
+				className,
+			)}
+			{...props}
+		>
+			{children}
+		</div>
+	);
+}
 
 interface StepperTriggerProps extends React.HTMLAttributes<HTMLDivElement> {
 	children: React.ReactNode;
 }
 
-const StepperTrigger = (
-    {
-        ref,
-        children,
-        className,
-        ...props
-    }: StepperTriggerProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
-    return (
-        <div
-            ref={ref}
-            className={cn('flex flex-col items-center', className)}
-            {...props}
-        >
-            {children}
-        </div>
-    );
-};
-StepperTrigger.displayName = 'StepperTrigger';
+function StepperTrigger({
+	children,
+	className,
+	...props
+}: StepperTriggerProps) {
+	return (
+		<div
+			data-slot='stepper-trigger'
+			className={cn('flex flex-col items-center', className)}
+			{...props}
+		>
+			{children}
+		</div>
+	);
+}
 
 interface StepperIndicatorProps extends React.HTMLAttributes<HTMLDivElement> {
 	children?: React.ReactNode;
 }
 
-const StepperIndicator = (
-    {
-        ref,
-        children,
-        className,
-        ...props
-    }: StepperIndicatorProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
+function StepperIndicator({
+	children,
+	className,
+	...props
+}: StepperIndicatorProps) {
 	return (
 		<div
-			ref={ref}
+			data-slot='stepper-indicator'
 			className={cn(
 				'relative flex h-10 w-10 items-center justify-center rounded-full border-2 bg-background',
 				className,
@@ -137,29 +109,23 @@ const StepperIndicator = (
 			{children}
 		</div>
 	);
-};
-StepperIndicator.displayName = 'StepperIndicator';
+}
 
 interface StepperSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-const StepperSeparator = (
-    {
-        ref,
-        className,
-        ...props
-    }: StepperSeparatorProps & {
-        ref: React.RefObject<HTMLDivElement>;
-    }
-) => {
+function StepperSeparator({ className, ...props }: StepperSeparatorProps) {
 	const { activeStep, steps } = React.useContext(StepperContext);
 
 	return (
-		<div ref={ref} className={cn('flex-1', className)} {...props}>
+		<div
+			data-slot='stepper-separator'
+			className={cn('flex-1', className)}
+			{...props}
+		>
 			<div className='bg-muted w-full h-[2px]' />
 		</div>
 	);
-};
-StepperSeparator.displayName = 'StepperSeparator';
+}
 
 export {
 	Stepper,

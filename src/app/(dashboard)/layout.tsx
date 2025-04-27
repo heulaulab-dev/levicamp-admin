@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -20,6 +21,7 @@ import { SettingsIcon } from 'lucide-react';
 import { BottomProgress } from '@/components/ui/progress-bar';
 import { MobileDetectionDialog } from '@/components/common/mobile-detection-dialog';
 import { BreadcrumbNavigation } from '@/components/common/BreadcrumbNavigation';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export default function DashboardLayout({
 	children,
@@ -28,6 +30,7 @@ export default function DashboardLayout({
 }) {
 	const pathname = usePathname();
 	const [isLoading, setIsLoading] = useState(false);
+	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
 
 	// Show loading bar on route changes
 	useEffect(() => {
@@ -60,12 +63,13 @@ export default function DashboardLayout({
 							</Suspense>
 						</div>
 						<div className='flex justify-between items-center gap-2 px-4'>
+							<ThemeSwitcher onChange={setTheme} />
 							<Link href='/settings'>
 								<Button variant={'ghost'} size={'icon'}>
 									<SettingsIcon />
 								</Button>
 							</Link>
-							<Separator orientation='vertical' className='mr-2 h-4' />
+							<Separator orientation='vertical' className='my-1 mr-2 h-4' />
 							{user && <NavUser user={user} />}
 						</div>
 					</header>
