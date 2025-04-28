@@ -23,7 +23,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton size='lg' className='pointer-events-none'>
-							<div className='flex justify-center items-center bg-sidebar-primary rounded-lg size-8 aspect-square text-sidebar-primary-foreground'>
+							<div className='flex justify-center items-center rounded-lg size-8 aspect-square'>
 								<Image
 									src='https://assets.levicamp.id/assets/logo/levicamp-logo-orange.png'
 									alt='Levi Camp'

@@ -27,7 +27,7 @@ export default function CardTent({
 	return (
 		<Card
 			key={tent.id}
-			className='shadow-md border rounded-xl w-full h-auto overflow-hidden'
+			className='shadow-md pt-0 border rounded-xl w-full h-auto overflow-hidden'
 		>
 			{/* Gambar dan Kategori */}
 			<div className='relative'>
