@@ -1,0 +1,137 @@
+---
+title: Admin Management
+description: Learn how to create, edit, and manage administrator accounts for the Levicamp Admin system, including best practices for security and access control.
+---
+
+# Admin Management
+
+<Callout type="info">
+  This section provides comprehensive instructions for managing administrator accounts in the Levicamp Admin Panel.
+</Callout>
+
+## Administrator Roles and Access
+
+The Admin Management module allows you to control who has access to the Levicamp Admin dashboard. Proper administrator management is essential for:
+
+<Cards>
+  <Card title="Security" href="#">
+    Limit system access to authorized personnel only
+  </Card>
+  <Card title="Accountability" href="#">
+    Track which admin made specific changes to the system
+  </Card>
+  <Card title="Efficiency" href="#">
+    Assign appropriate permissions based on job roles
+  </Card>
+</Cards>
+
+## Managing Administrators
+
+### Viewing Administrator List
+
+When you navigate to the Admin Management section, you'll see a table with all existing administrators, including:
+
+- **Name**: Full name of the administrator
+- **Username**: Login credential
+- **Email**: Contact information
+- **Phone**: Contact number
+- **Created At**: When the account was created
+- **Last Updated**: When the account was last modified 
+- **Actions**: Options to edit or delete the account
+
+### Adding a New Administrator
+
+<Steps>
+  <Step>
+    Click the **Add Admin** button at the top of the Admin Management page
+  </Step>
+  <Step>
+    Fill out the required information in the form:
+    - Full Name
+    - Username
+    - Password
+    - Phone Number
+    - Email Address
+  </Step>
+  <Step>
+    Click the **Create Admin** button to save the new administrator account
+  </Step>
+</Steps>
+
+### Editing Administrator Details
+
+<Steps>
+  <Step>
+    Locate the administrator account in the table
+  </Step>
+  <Step>
+    Click the **Edit** action in the Actions column
+  </Step>
+  <Step>
+    Update any necessary information in the form
+  </Step>
+  <Step>
+    Click **Save Changes** to apply the modifications
+  </Step>
+</Steps>
+
+### Removing an Administrator
+
+<Steps>
+  <Step>
+    Find the administrator account you wish to remove
+  </Step>
+  <Step>
+    Click the **Delete** action in the Actions column
+  </Step>
+  <Step>
+    Confirm the deletion in the confirmation dialog
+  </Step>
+</Steps>
+
+<Callout type="warning">
+  Deleting an administrator account is permanent and cannot be undone. Make sure you really want to remove the account before confirming.
+</Callout>
+
+## Best Practices
+
+<Tabs items={["Security Guidelines", "Account Management", "Troubleshooting"]}>
+  <Tab>
+    ### Security Guidelines
+    
+    - Use strong, unique passwords for each administrator
+    - Change passwords regularly (every 90 days recommended)
+    - Remove administrator access immediately when an employee leaves
+    - Limit the number of administrator accounts to only those who need access
+  </Tab>
+  <Tab>
+    ### Account Management
+    
+    - Regularly review the administrator list to ensure it's up to date
+    - Keep contact information current for all administrators
+    - Document who has administrator access and why
+    - Consider implementing a review process for administrator account creation
+  </Tab>
+  <Tab>
+    ### Troubleshooting
+    
+    <Callout type="error">
+      If an administrator is unable to log in, check these common issues:
+    </Callout>
+    
+    <Steps>
+      <Step>
+        Verify the username is spelled correctly
+      </Step>
+      <Step>
+        Check if their account has been accidentally deactivated
+      </Step>
+      <Step>
+        Reset their password if necessary
+      </Step>
+      <Step>
+        Confirm they're using the correct URL for the admin panel
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>

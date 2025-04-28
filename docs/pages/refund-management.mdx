@@ -1,0 +1,207 @@
+---
+title: Refund Management
+description: Manage and process guest refund requests efficiently with step-by-step guidance on reviewing, approving, and tracking refunds in the Levicamp Admin system.
+---
+
+# Refund Management
+
+<Callout type="info">
+  The Refund Management module allows you to process, track, and manage all refund requests from guests in a streamlined manner.
+</Callout>
+
+## Getting Started
+
+When you access the Refund Management section, you'll see a tab-based interface organizing refunds by status:
+
+<Tabs items={["All Refunds", "Pending", "Processing", "Success", "Rejected"]}>
+  <Tab>
+    Shows all refund requests regardless of status. Use this view to get a comprehensive overview of all refund activity.
+  </Tab>
+  <Tab>
+    Displays newly submitted refund requests that need your attention. These are requests that have been received but not yet reviewed.
+  </Tab>
+  <Tab>
+    Lists refund requests that have been approved and are currently being processed through the payment system.
+  </Tab>
+  <Tab>
+    Contains completed refunds where the money has been successfully returned to the guest.
+  </Tab>
+  <Tab>
+    Shows refund requests that have been denied, along with the reasons for rejection.
+  </Tab>
+</Tabs>
+
+## Processing Refund Requests
+
+### Reviewing New Requests
+
+<Steps>
+  <Step>
+    Navigate to the "Pending" tab to find new refund requests
+  </Step>
+  <Step>
+    Click on a refund request to view the complete details
+  </Step>
+  <Step>
+    Review the booking information, cancellation reason, and refund policy that applies
+  </Step>
+  <Step>
+    Verify the refund amount calculation is correct based on your policies
+  </Step>
+</Steps>
+
+### Approving a Refund
+
+<Steps>
+  <Step>
+    After reviewing the details, click the "Approve" button
+  </Step>
+  <Step>
+    Confirm the refund amount or adjust if necessary
+  </Step>
+  <Step>
+    Select the refund method (original payment method, store credit, etc.)
+  </Step>
+  <Step>
+    Add any notes regarding the decision that might be relevant for future reference
+  </Step>
+  <Step>
+    Submit the approval - the status will change to "Processing"
+  </Step>
+</Steps>
+
+<Callout type="warning">
+  Once a refund is approved and processing begins, it cannot be easily reversed. Double-check all details before confirming.
+</Callout>
+
+### Rejecting a Refund Request
+
+<Steps>
+  <Step>
+    Click the "Reject" button after reviewing the request
+  </Step>
+  <Step>
+    Select a rejection reason from the dropdown menu
+  </Step>
+  <Step>
+    Provide a detailed explanation that will be shared with the guest
+  </Step>
+  <Step>
+    Submit the rejection - the status will change to "Rejected"
+  </Step>
+</Steps>
+
+### Completing a Refund
+
+<Steps>
+  <Step>
+    Once the payment processor confirms the funds have been returned, the system will automatically update the status to "Success"
+  </Step>
+  <Step>
+    Verify that the confirmation email has been sent to the guest
+  </Step>
+  <Step>
+    Add any additional notes if necessary
+  </Step>
+</Steps>
+
+## Refund Policies
+
+<Cards>
+  <Card title="Full Refund (100%)" href="#">
+    Cancellations made more than 7 days before check-in
+  </Card>
+  <Card title="Partial Refund (50%)" href="#">
+    Cancellations made 3-7 days before check-in
+  </Card>
+  <Card title="No Refund (0%)" href="#">
+    Cancellations made less than 3 days before check-in
+  </Card>
+  <Card title="Special Cases" href="#">
+    Emergency situations requiring management approval
+  </Card>
+</Cards>
+
+## Reporting and Export
+
+<Steps>
+  <Step>
+    Use the "Export" button to download refund data as CSV or Excel files
+  </Step>
+  <Step>
+    Select the date range and refund statuses to include
+  </Step>
+  <Step>
+    Choose the fields you want in the exported report
+  </Step>
+  <Step>
+    Click "Generate Report" to download the file
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<Tabs items={["Payment Gateway Issues", "Calculation Problems", "Status Stuck"]}>
+  <Tab>
+    ### Payment Gateway Issues
+    
+    <Callout type="error">
+      If the refund is approved but fails to process through the payment gateway:
+    </Callout>
+    
+    <Steps>
+      <Step>
+        Check the payment gateway error message in the refund details
+      </Step>
+      <Step>
+        Verify the original payment method is still valid and can accept refunds
+      </Step>
+      <Step>
+        Try processing the refund again after 15-30 minutes
+      </Step>
+      <Step>
+        If the problem persists, contact your payment processor's support
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab>
+    ### Calculation Problems
+    
+    <Steps>
+      <Step>
+        Verify the original booking amount from the booking details
+      </Step>
+      <Step>
+        Check which refund policy applies based on cancellation timing
+      </Step>
+      <Step>
+        Manually calculate the expected refund amount
+      </Step>
+      <Step>
+        If there's a discrepancy, contact technical support to investigate
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab>
+    ### Status Stuck
+    
+    <Callout type="warning">
+      If a refund appears stuck in "Processing" status for more than 24 hours:
+    </Callout>
+    
+    <Steps>
+      <Step>
+        Check your payment gateway dashboard to see if the refund was actually processed
+      </Step>
+      <Step>
+        Look for any error messages in the system logs
+      </Step>
+      <Step>
+        Try refreshing the status manually using the "Refresh" button
+      </Step>
+      <Step>
+        If needed, contact technical support with the refund ID
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>

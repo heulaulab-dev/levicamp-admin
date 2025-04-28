@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -20,6 +21,7 @@ import { SettingsIcon } from 'lucide-react';
 import { BottomProgress } from '@/components/ui/progress-bar';
 import { MobileDetectionDialog } from '@/components/common/mobile-detection-dialog';
 import { BreadcrumbNavigation } from '@/components/common/BreadcrumbNavigation';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export default function DashboardLayout({
 	children,
@@ -28,6 +30,7 @@ export default function DashboardLayout({
 }) {
 	const pathname = usePathname();
 	const [isLoading, setIsLoading] = useState(false);
+	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
 
 	// Show loading bar on route changes
 	useEffect(() => {
@@ -51,7 +54,7 @@ export default function DashboardLayout({
 			<UISidebarProvider>
 				<AppSidebar />
 				<SidebarInset className='overflow-hidden'>
-					<header className='flex justify-between items-center gap-2 shadow-sm w-full h-16 group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 transition-[width,height] ease-linear shrink-0'>
+					<header className='flex justify-between items-center gap-2 shadow-xs w-full h-16 group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 transition-[width,height] ease-linear shrink-0'>
 						<div className='flex items-center gap-2 px-4'>
 							<SidebarTrigger className='-ml-1' />
 							<Separator orientation='vertical' className='mr-2 h-4' />
@@ -60,12 +63,11 @@ export default function DashboardLayout({
 							</Suspense>
 						</div>
 						<div className='flex justify-between items-center gap-2 px-4'>
-							<Link href='/settings'>
-								<Button variant={'ghost'} size={'icon'}>
-									<SettingsIcon />
-								</Button>
-							</Link>
-							<Separator orientation='vertical' className='mr-2 h-4' />
+							<ThemeSwitcher onChange={setTheme} />
+							<Separator
+								orientation='vertical'
+								className='my-1 bg-border h-full'
+							/>
 							{user && <NavUser user={user} />}
 						</div>
 					</header>

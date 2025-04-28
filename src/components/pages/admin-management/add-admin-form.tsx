@@ -189,7 +189,7 @@ export function AddAdminForm() {
 								<FormItem>
 									<FormLabel>Phone Number</FormLabel>
 									<FormControl>
-										<div className='flex shadow-black/5 shadow-sm rounded-lg'>
+										<div className='flex shadow-black/5 shadow-xs rounded-lg'>
 											<span className='inline-flex items-center bg-background px-3 border border-input rounded-s-lg text-muted-foreground text-sm'>
 												+62
 											</span>

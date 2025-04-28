@@ -34,7 +34,7 @@ function Component() {
 					<StepperItem
 						key={step}
 						step={step}
-						className='relative !flex-col flex-1'
+						className='relative flex-col! flex-1'
 					>
 						<StepperTrigger className='flex-col gap-3'>
 							<StepperIndicator />

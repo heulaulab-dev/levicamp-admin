@@ -20,13 +20,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '@/components/ui/drawer';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 
 export function MobileDetectionDialog() {
 	const [open, setOpen] = React.useState(false);
 	const isDesktop = useMediaQuery('(min-width: 768px)');
-	const isMobile = useMobile();
+	const isMobile = useIsMobile();
 
 	React.useEffect(() => {
 		// Only show dialog on mobile devices

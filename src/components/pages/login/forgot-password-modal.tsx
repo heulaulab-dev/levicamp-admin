@@ -36,7 +36,7 @@ import {
 	DrawerTitle,
 	DrawerTrigger,
 } from '@/components/ui/drawer';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
 	InputOTP,
 	InputOTPGroup,
@@ -86,7 +86,7 @@ export default function ForgotPasswordModal({
 	trigger: React.ReactNode;
 }) {
 	const [open, setOpen] = useState(false);
-	const isMobile = useMobile();
+	const isMobile = useIsMobile();
 
 	if (isMobile) {
 		return (
