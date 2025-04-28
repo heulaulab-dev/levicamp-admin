@@ -64,12 +64,10 @@ export default function DashboardLayout({
 						</div>
 						<div className='flex justify-between items-center gap-2 px-4'>
 							<ThemeSwitcher onChange={setTheme} />
-							<Link href='/settings'>
-								<Button variant={'ghost'} size={'icon'}>
-									<SettingsIcon />
-								</Button>
-							</Link>
-							<Separator orientation='vertical' className='my-1 mr-2 h-4' />
+							<Separator
+								orientation='vertical'
+								className='my-1 bg-border h-full'
+							/>
 							{user && <NavUser user={user} />}
 						</div>
 					</header>

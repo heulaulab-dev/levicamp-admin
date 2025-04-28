@@ -98,7 +98,7 @@ export function NavUser({
 								</DropdownMenuItem>
 							</DropdownMenuGroup>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem asChild onClick={handleLogout}>
+							<DropdownMenuItem asChild>
 								<Link href='/settings'>
 									<Settings className='mr-2 w-4 h-4' />
 									Settings

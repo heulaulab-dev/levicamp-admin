@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 const themes = [
 	{
@@ -32,6 +33,36 @@ export type ThemeSwitcherProps = {
 
 export const ThemeSwitcher = ({ className }: ThemeSwitcherProps) => {
 	const { theme, setTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
+
+	// Only show the theme switcher after mounting to avoid hydration mismatch
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	// Don't render anything until mounted on the client
+	if (!mounted) {
+		return (
+			<div
+				className={cn(
+					'relative flex h-8 rounded-full bg-background p-1 ring-1 ring-border',
+					className,
+				)}
+			>
+				{/* Render placeholder buttons with the same structure but no active state */}
+				{themes.map(({ key, icon: Icon, label }) => (
+					<button
+						type='button'
+						key={key}
+						className='relative rounded-full w-6 h-6'
+						aria-label={label}
+					>
+						<Icon className='relative m-auto w-4 h-4 text-muted-foreground' />
+					</button>
+				))}
+			</div>
+		);
+	}
 
 	return (
 		<div

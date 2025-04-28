@@ -31,7 +31,7 @@ export default function TentCategoriesTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([
 		{
-			id: 'id',
+			id: 'name',
 			desc: false,
 		},
 	]);

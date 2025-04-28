@@ -8,7 +8,6 @@ import {
 	Plus,
 } from 'lucide-react';
 import { useBookings } from '@/hooks/bookings/use-bookings';
-import { Skeleton } from '@/components/ui/skeleton';
 import BookingTable from '@/components/pages/booking-management/booking-table';
 import { columns } from '@/components/pages/booking-management/booking-columns';
 import {
@@ -35,27 +34,8 @@ import { useExport } from '@/hooks/export/use-export';
 
 import Link from 'next/link';
 
-// Loading skeleton for the booking list
-function BookingListSkeleton() {
-	return (
-		<div>
-			<div className='flex justify-end mb-4'>
-				<Skeleton className='w-32 h-10' />
-			</div>
-			<div className='border rounded-md'>
-				<div className='p-4'>
-					<div className='space-y-3'>
-						<Skeleton className='w-full h-10' />
-						<Skeleton className='w-full h-32' />
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-}
-
 export function BookingManagementList() {
-	const { getBookings, bookings, isLoading, pagination } = useBookings();
+	const { getBookings, bookings, pagination } = useBookings();
 	const { exportBookings } = useExport();
 	const initialFetchDone = useRef(false);
 	const [pageSize, setPageSize] = useState<number>(10);
@@ -188,11 +168,6 @@ export function BookingManagementList() {
 		setSearchQuery(e.target.value);
 		// fetchBookings is called by the useEffect
 	};
-
-	// Show loading state
-	if (isLoading && bookings.length === 0) {
-		return <BookingListSkeleton />;
-	}
 
 	// Calculate total pages
 	const totalPages = pagination?.totalPages || 0;
