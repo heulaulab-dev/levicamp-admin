@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
-import { columns } from './columns';
-import { DataTable } from '@/components/ui/data-table';
 import { useEffect, useCallback } from 'react';
 import { useTentStore } from '@/hooks/tents/useTents';
 import { Dialog } from '@/components/ui/dialog';
 import { AddTentForm } from '@/components/pages/tent-management/tents/AddTentForm';
 import { PageHeader } from '@/components/common/page-header';
+import TentsTable from '@/components/pages/tent-management/tents/tents-table';
+import { columns } from '@/components/pages/tent-management/tents/tents-columns';
 
 export default function TentsPage() {
 	const {
@@ -45,7 +45,7 @@ export default function TentsPage() {
 				isLoading={isLoading}
 			/>
 
-			<DataTable columns={columns} data={tents} />
+			<TentsTable columns={columns} data={tents} />
 
 			<Dialog modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
 				<AddTentForm />
