@@ -1,6 +1,13 @@
 'use client';
 
-import { ChevronsUpDown, LogOut, Mail, Phone, User } from 'lucide-react';
+import {
+	ChevronsUpDown,
+	LogOut,
+	Mail,
+	Phone,
+	Settings,
+	User,
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
 	DropdownMenu,
@@ -20,6 +27,7 @@ import {
 
 import { useAuthStore } from '@/hooks/auth/useAuth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export function NavUser({
 	user,
@@ -66,7 +74,7 @@ export function NavUser({
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
-							className='rounded-lg w-[--radix-dropdown-menu-trigger-width] min-w-56'
+							className='rounded-lg w-(--radix-dropdown-menu-trigger-width) min-w-56'
 							side={isMobile ? 'bottom' : 'bottom'}
 							align='end'
 							sideOffset={4}
@@ -90,6 +98,12 @@ export function NavUser({
 								</DropdownMenuItem>
 							</DropdownMenuGroup>
 							<DropdownMenuSeparator />
+							<DropdownMenuItem asChild>
+								<Link href='/settings'>
+									<Settings className='mr-2 w-4 h-4' />
+									Settings
+								</Link>
+							</DropdownMenuItem>
 							<DropdownMenuItem onClick={handleLogout}>
 								<LogOut className='mr-2 w-4 h-4' />
 								Log out

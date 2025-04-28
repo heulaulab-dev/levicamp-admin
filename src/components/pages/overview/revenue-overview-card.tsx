@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import {
 	Card,
@@ -40,11 +40,11 @@ const fallbackData = [
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'hsl(var(--chart-1))',
+		color: 'var(--chart-1)',
 	},
 } satisfies ChartConfig;
 
-export function RevenueChart() {
+export function RevenueOverviewChart() {
 	// Get revenue data and controls from our store
 	const { getRevenueOverview, setPeriod, period, isLoading, revenueData } =
 		useRevenueOverviewStore();
@@ -111,7 +111,7 @@ export function RevenueChart() {
 	// Show skeleton loading state
 	if (isLoading) {
 		return (
-			<Card className='col-span-4'>
+			<Card className='flex flex-col col-span-4'>
 				<CardHeader>
 					<div className='flex justify-between items-center'>
 						<div>
@@ -135,7 +135,7 @@ export function RevenueChart() {
 	const displayData = chartData.length > 0 ? chartData : fallbackData;
 
 	return (
-		<Card className='col-span-4'>
+		<Card className='flex flex-col col-span-4'>
 			<CardHeader>
 				<div className='flex justify-between items-center'>
 					<div>
@@ -161,13 +161,10 @@ export function RevenueChart() {
 					</div>
 				) : (
 					<ChartContainer config={chartConfig}>
-						<LineChart
+						<AreaChart
 							accessibilityLayer
 							data={displayData}
-							margin={{
-								left: 12,
-								right: 12,
-							}}
+							margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
 						>
 							<CartesianGrid vertical={false} />
 							<XAxis
@@ -175,27 +172,55 @@ export function RevenueChart() {
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
-								tickFormatter={(value) => value}
+								tickFormatter={(value) => {
+									const date = new Date(value);
+									switch (period) {
+										case 'daily':
+											return date.toLocaleDateString('id-ID', {
+												day: '2-digit',
+												month: 'short',
+											});
+										case 'monthly':
+											return date.toLocaleDateString('id-ID', {
+												month: 'short',
+												year: '2-digit',
+											});
+										case 'yearly':
+											return date.getFullYear();
+										default:
+											return value;
+									}
+								}}
+							/>
+							<YAxis
+								tickLine={false}
+								axisLine={false}
+								tickMargin={8}
+								tickFormatter={(value) =>
+									'Rp' +
+									Number(value).toLocaleString('id-ID', {
+										maximumFractionDigits: 0,
+									})
+								}
 							/>
 							<ChartTooltip
-								cursor={false}
+								cursor={true}
 								content={
 									<ChartTooltipContent
-										hideLabel
 										formatter={(value) =>
 											`Rp.${Number(value).toLocaleString('id-ID')}`
 										}
 									/>
 								}
 							/>
-							<Line
+							<Area
 								dataKey='amount'
 								type='natural'
-								stroke='var(--color-revenue)'
-								strokeWidth={2}
-								dot={false}
+								fill='var(--chart-1)'
+								fillOpacity={0.4}
+								stroke='var(--chart-1)'
 							/>
-						</LineChart>
+						</AreaChart>
 					</ChartContainer>
 				)}
 			</CardContent>

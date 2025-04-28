@@ -23,7 +23,7 @@ function DialogStepper({ currentStep, isLoading = false }: DialogStepperProps) {
 						step={step}
 						completed={step < currentStep}
 						loading={isLoading && step === currentStep}
-						className='[&:not(:last-child)]:flex-1'
+						className='not-last:flex-1'
 					>
 						<StepperTrigger>
 							<StepperIndicator />

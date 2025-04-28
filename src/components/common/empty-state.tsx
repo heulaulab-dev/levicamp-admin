@@ -66,7 +66,7 @@ export function EmptyState({
 				<Button
 					onClick={action.onClick}
 					variant='outline'
-					className={cn('mt-4', 'shadow-sm active:shadow-none')}
+					className={cn('mt-4', 'shadow-xs active:shadow-none')}
 				>
 					{action.label}
 				</Button>
