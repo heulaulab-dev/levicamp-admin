@@ -97,10 +97,10 @@ export const useBreakdownChartData = () => {
 // Helper function to assign colors to categories
 function getCategoryColor(category: string): string {
 	const colorMap: Record<string, string> = {
-		'VIP': 'var(--color-vip, hsl(var(--chart-1)))',
-		'Standart': 'var(--color-standard, hsl(var(--chart-2)))',
-		'Additional Services': 'var(--color-services, hsl(var(--chart-3)))',
+		'VIP': 'var(--chart-1)',
+		'Standard': 'var(--chart-2)',
+		'Additional Services': 'var(--chart-3)',
 	};
 
-	return colorMap[category] || 'var(--color-other, hsl(var(--chart-6)))';
+	return colorMap[category] || 'var(--chart-6)';
 }

@@ -44,7 +44,7 @@ const chartConfig = {
 	},
 } satisfies ChartConfig;
 
-export function RevenueChart() {
+export function RevenueOverviewChart() {
 	// Get revenue data and controls from our store
 	const { getRevenueOverview, setPeriod, period, isLoading, revenueData } =
 		useRevenueOverviewStore();
@@ -111,7 +111,7 @@ export function RevenueChart() {
 	// Show skeleton loading state
 	if (isLoading) {
 		return (
-			<Card>
+			<Card className='flex flex-col col-span-4'>
 				<CardHeader>
 					<div className='flex justify-between items-center'>
 						<div>
@@ -135,7 +135,7 @@ export function RevenueChart() {
 	const displayData = chartData.length > 0 ? chartData : fallbackData;
 
 	return (
-		<Card>
+		<Card className='flex flex-col col-span-4'>
 			<CardHeader>
 				<div className='flex justify-between items-center'>
 					<div>

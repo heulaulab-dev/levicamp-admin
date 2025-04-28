@@ -2,12 +2,9 @@
 
 import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookingList } from '@/components/pages/overview/booking-list';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { OverviewCard } from '@/components/pages/overview/overview-card';
-import { TotalGuestChart } from '@/components/pages/overview/TotalGuestChart';
-import { RevenueChart } from '@/components/pages/overview/RevenueOverview';
-import { RevenueBreakdown } from '@/components/pages/overview/RevenueBreakdown';
+import { TotalGuestChart } from '@/components/pages/overview/total-guest-card';
 import { useOverviewStore } from '@/hooks/overview/useOverview';
 import { useRevenueOverviewStore } from '@/hooks/overview/useRevenueOverview';
 import { useRevenueBreakdownStore } from '@/hooks/overview/useRevenueBreakdown';
@@ -15,6 +12,9 @@ import { useTotalGuestStore } from '@/hooks/overview/useTotalGuest';
 import { useBookingsStore } from '@/hooks/overview/useBookings';
 import { useApiQueue } from '@/hooks/useApiQueue';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RevenueBreakdownChart } from '@/components/pages/overview/revenue-breakdown-card';
+import { BookingManagementList } from '@/components/pages/booking-management/booking-management-list';
+import { RevenueOverviewChart } from '@/components/pages/overview/revenue-overview-card';
 
 // Skeleton loading component for the overview cards
 function OverviewSkeleton() {
@@ -184,17 +184,17 @@ export default function OverviewPage() {
 				/>
 			</div>
 			<div className='gap-4 grid md:grid-cols-2 lg:grid-cols-7'>
-				<RevenueChart />
-				<RevenueBreakdown />
+				<RevenueOverviewChart />
+				<RevenueBreakdownChart />
 			</div>
 			<TotalGuestChart />
-			<div className='gap-4 grid'>
+			<div>
 				<Card>
 					<CardHeader>
 						<CardTitle>Booking List</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<BookingList />
+						<BookingManagementList />
 					</CardContent>
 				</Card>
 			</div>

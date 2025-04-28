@@ -95,7 +95,7 @@ export function RevenueBreakdownChart() {
 	}
 
 	return (
-		<Card>
+		<Card className='flex flex-col col-span-3'>
 			<CardHeader className='items-center pb-0'>
 				<CardTitle>Revenue Breakdown</CardTitle>
 				<CardDescription>{dateDisplay}</CardDescription>
@@ -150,13 +150,13 @@ export function RevenueBreakdownChart() {
 					</PieChart>
 				</ChartContainer>
 			</CardContent>
-			<CardFooter className='flex-col gap-2 text-sm'>
+			<CardFooter className='flex-col justify-center items-center gap-2 text-sm'>
 				{breakdownData ? (
 					<>
 						<div className='flex items-center gap-2 font-medium leading-none'>
 							Percentage by category analysis
 						</div>
-						<div className='text-muted-foreground leading-none'>
+						<div className='flex justify-center items-center text-muted-foreground leading-none'>
 							Showing breakdown of percentage by category
 						</div>
 					</>
