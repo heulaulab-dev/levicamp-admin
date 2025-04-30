@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useAdminStore } from '@/hooks/admin/use-admins';
 import { toast } from 'sonner';
@@ -148,7 +148,7 @@ export function EditAdminForm() {
 										<Input
 											placeholder='John Doe'
 											{...field}
-											onChange={(e) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												field.onChange(e);
 												handleFormChange('name', e.target.value);
 											}}
@@ -169,7 +169,7 @@ export function EditAdminForm() {
 										<Input
 											placeholder='johndoe'
 											{...field}
-											onChange={(e) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												field.onChange(e);
 												handleFormChange('username', e.target.value);
 											}}
@@ -191,7 +191,7 @@ export function EditAdminForm() {
 											type='hidden'
 											placeholder='••••••••'
 											{...field}
-											onChange={(e) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												field.onChange(e);
 												handleFormChange('password', e.target.value);
 											}}
@@ -213,7 +213,7 @@ export function EditAdminForm() {
 											autoComplete='off'
 											placeholder='+1234567890'
 											{...field}
-											onChange={(e) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												field.onChange(e);
 												handleFormChange('phone', e.target.value);
 											}}
@@ -236,7 +236,7 @@ export function EditAdminForm() {
 											type='email'
 											placeholder='john@example.com'
 											{...field}
-											onChange={(e) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												field.onChange(e);
 												handleFormChange('email', e.target.value);
 											}}

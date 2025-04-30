@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@radix-ui/react-dialog';
 import { MoreHorizontal } from 'lucide-react';
-import { EditAdminForm } from '@/components/pages/admin-management/EditAdminForm';
+import { EditAdminForm } from '@/components/pages/admin-management/edit-admin-form';
 import { useAdminStore } from '@/hooks/admin/use-admins';
 import { DeleteAdminDialog } from '@/components/pages/admin-management/DeleteAdminDialog';
 
