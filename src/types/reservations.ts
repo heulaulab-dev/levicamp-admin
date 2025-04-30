@@ -68,6 +68,7 @@ export interface ReservationRequest {
 	tent_id: string[];
 	start_date: string;
 	end_date: string;
+	external: string;
 }
 
 export interface DetailBooking {

@@ -168,6 +168,7 @@ export default function AddBookingPage() {
 				email: personalInfo.email,
 				phone: personalInfo.phone,
 				address: personalInfo.address,
+				external: personalInfo.external,
 				tent_id: reservationDataStore.selectedTents.map((tent) => tent.id),
 				start_date: format(reservationDataStore.checkInDate, 'yyyy-MM-dd'),
 				end_date: format(reservationDataStore.checkOutDate, 'yyyy-MM-dd'),

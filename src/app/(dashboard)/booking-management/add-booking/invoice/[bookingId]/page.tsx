@@ -113,6 +113,7 @@ export default function InvoicePage() {
 					guestEmail={personalInfo?.email || ''}
 					guestPhone={personalInfo?.phone || ''}
 					guestCount={personalInfo?.guestCount || '1'}
+					external={personalInfo?.external || ''}
 					checkInDate={formattedCheckInDate}
 					checkOutDate={formattedCheckOutDate}
 					tents={tents}

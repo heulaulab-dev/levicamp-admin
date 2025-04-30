@@ -11,6 +11,7 @@ export interface PersonalInfoData {
 	guestCount: string;
 	address: string;
 	source: string;
+	external: string;
 	agreeToTerms: boolean;
 	agreeToPrivacy: boolean;
 }

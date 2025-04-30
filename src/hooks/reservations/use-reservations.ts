@@ -11,6 +11,8 @@ import {
 	responseArray,
 } from '@/types/reservations';
 
+import { useAuthStore } from '@/hooks/auth/useAuth';
+
 export const useReservations = create<ReservationStore>((set) => ({
 	date: {
 		from: undefined,
@@ -70,10 +72,16 @@ export const useReservations = create<ReservationStore>((set) => ({
 	createReservation: async (
 		data: ReservationRequest,
 	): Promise<ReservationResponse> => {
+		const currentToken = useAuthStore.getState().token;
 		try {
 			const response = await api.post<ReservationResponse>(
 				'/reservations',
 				data,
+				{
+					headers: {
+						Authorization: `Bearer ${currentToken}`,
+					},
+				},
 			);
 			return response.data;
 		} catch (error) {
