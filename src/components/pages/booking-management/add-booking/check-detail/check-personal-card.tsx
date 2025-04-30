@@ -55,6 +55,13 @@ export function CheckPersonalCard() {
 						<Input value={personalInfo.source} disabled />
 					</div>
 
+					<div className='space-y-2'>
+						<label className='font-medium text-sm'>
+							From where the booking is made?
+						</label>
+						<Input value={personalInfo.external} disabled />
+					</div>
+
 					<div className='space-y-4 pt-4 border-t'>
 						<div className='flex items-center space-x-2'>
 							<Checkbox checked={personalInfo.agreeToTerms} disabled />
