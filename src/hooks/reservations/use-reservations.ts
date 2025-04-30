@@ -74,15 +74,11 @@ export const useReservations = create<ReservationStore>((set) => ({
 	): Promise<ReservationResponse> => {
 		const currentToken = useAuthStore.getState().token;
 		try {
-			const response = await api.post<ReservationResponse>(
-				'/reservations',
-				data,
-				{
-					headers: {
-						Authorization: `Bearer ${currentToken}`,
-					},
+			const response = await api.post<ReservationResponse>('/bookings', data, {
+				headers: {
+					Authorization: `Bearer ${currentToken}`,
 				},
-			);
+			});
 			return response.data;
 		} catch (error) {
 			throw error instanceof Error
