@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { useAuthStore } from '../auth/useAuth';
+import { useAuthStore } from '@/hooks/auth/useAuth';
 import { AdminFormData, AdminState } from '@/types/admin';
 
 // Initial form data

@@ -12,6 +12,7 @@ export interface InvoiceDetailProps {
 	guestEmail: string;
 	guestPhone: string;
 	guestCount: string;
+	external: string;
 	checkInDate: string;
 	checkOutDate: string;
 	tents: Array<{
@@ -34,6 +35,7 @@ export default function InvoiceDetail({
 	guestEmail,
 	guestPhone,
 	guestCount,
+	external,
 	checkInDate,
 	checkOutDate,
 	tents = [],
@@ -90,6 +92,9 @@ export default function InvoiceDetail({
 
 						<div className='text-muted-foreground'>Total Guests</div>
 						<div className='text-primary text-right'>{guestCount} Guests</div>
+
+						<div className='text-muted-foreground'>Booking From</div>
+						<div className='text-primary text-right'>{external}</div>
 					</div>
 				</section>
 
