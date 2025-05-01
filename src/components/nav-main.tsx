@@ -4,7 +4,7 @@ import { ChevronRight, type LucideIcon } from "lucide-react"
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { useRefunds } from '@/hooks/refunds/use-refunds';
 import { Badge } from '@/components/ui/badge';
 
 import {
@@ -43,8 +43,6 @@ export function NavMain({
 
 	// Fetch pending refund count when component mounts
 	useEffect(() => {
-		pendingNotificationRefund();
-
 		// Set up interval to periodically check for new pending refunds
 		const interval = setInterval(() => {
 			pendingNotificationRefund();

@@ -19,7 +19,6 @@ export default function TentCategoriesPage() {
 	} = useCategory();
 
 	useEffect(() => {
-		console.log('Fetching categories data...');
 		getCategories();
 	}, []);
 

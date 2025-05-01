@@ -32,6 +32,7 @@ export const useTotalGuestStore = create<TotalGuestState>((set) => {
 
 			// Store the entire response data
 			const responseData = response.data;
+			console.log('Total guest data response:', responseData);
 
 			// Check if the response is valid and has data
 			if (responseData?.status === 200 && Array.isArray(responseData.data)) {
@@ -39,7 +40,7 @@ export const useTotalGuestStore = create<TotalGuestState>((set) => {
 				const transformedData = responseData.data.map((item: any) => ({
 					date: item.date,
 					vip: item.VIP || 0,
-					standard: item.Standart || 0,
+					standard: item.Standard || 0,
 				}));
 
 				set({
@@ -48,7 +49,6 @@ export const useTotalGuestStore = create<TotalGuestState>((set) => {
 				});
 			} else if (responseData?.data === null) {
 				// Handle null data scenario - set empty array but don't trigger error
-				console.log('API returned null data for guest metrics');
 				set({
 					guestData: [],
 					isLoading: false,
@@ -68,7 +68,6 @@ export const useTotalGuestStore = create<TotalGuestState>((set) => {
 
 			// Handle 429 error specifically
 			if (errorResponse?.status === 429) {
-				console.log('Rate limit exceeded for total-guest endpoint');
 			} else {
 				toast.error(errorMessage);
 			}

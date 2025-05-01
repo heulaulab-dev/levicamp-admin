@@ -28,7 +28,6 @@ export const useTentStore = create<TentState>((set, get) => {
 			errorDescription || error.response?.data?.message || defaultMessage;
 
 		if (error.response?.status === 429) {
-			console.log('Rate limit exceeded');
 			toast.error('Too many requests. Please try again later.');
 		} else {
 			toast.error(errorMessage);
@@ -168,7 +167,6 @@ export const useTentStore = create<TentState>((set, get) => {
 		getTents: async () => {
 			// If we're already fetching, don't start another request
 			if (isFetching) {
-				console.log('Skipping duplicate tents API call');
 				return;
 			}
 
@@ -193,7 +191,6 @@ export const useTentStore = create<TentState>((set, get) => {
 
 		getTentDetails: async (tentId: string) => {
 			try {
-				console.log('Fetching tent details for ID:', tentId);
 				const response = await makeAuthenticatedRequest<ApiResponse<Tent>>(
 					'get',
 					`/tents/${tentId}`,
@@ -201,7 +198,6 @@ export const useTentStore = create<TentState>((set, get) => {
 
 				if (response?.data) {
 					const tent = response.data;
-					console.log('Parsed tent data with images:', tent.tent_images);
 					set({ selectedTent: tent });
 					return tent;
 				}
@@ -215,7 +211,6 @@ export const useTentStore = create<TentState>((set, get) => {
 		createTent: async () => {
 			try {
 				const { formData } = get();
-				console.log('Creating tent with data:', formData);
 
 				// Prepare the create data with tent_images array
 				const createData = {
@@ -275,9 +270,6 @@ export const useTentStore = create<TentState>((set, get) => {
 					category_id: formData.category_id,
 				};
 
-				console.log('Updating tent with ID:', tentId);
-				console.log('Updating with data:', updateData);
-
 				const response = await makeAuthenticatedRequest<ApiResponse<Tent>>(
 					'put',
 					`/tents/${tentId}`,
@@ -308,8 +300,6 @@ export const useTentStore = create<TentState>((set, get) => {
 				if (!tentId) {
 					throw new Error('Tent ID is required for deletion');
 				}
-
-				console.log('Deleting tent with ID:', tentId);
 
 				await makeAuthenticatedRequest('delete', `/tents/${tentId}`);
 

@@ -107,13 +107,11 @@ const ActionsDropdown = ({ category }: { category: TentCategory }) => {
 	} = useCategory();
 
 	const handleEditClick = () => {
-		console.log('Opening edit modal for category ID:', category.id);
 		setSelectedCategory(category);
 		setIsEditOpen(true);
 	};
 
 	const handleDeleteClick = () => {
-		console.log('Opening delete modal for category ID:', category.id);
 		setSelectedCategory(category);
 		setIsDeleteOpen(true);
 	};

@@ -19,9 +19,6 @@ export const useBookings = create<BookingState>((set, get) => {
 	const fetchBookings = async (options?: PaginationOptions) => {
 		// Prevent duplicate requests if a request is already in progress
 		if (isFetching) {
-			console.log(
-				'Skipping duplicate fetchBookings call as a request is already in progress',
-			);
 			return;
 		}
 
@@ -39,8 +36,6 @@ export const useBookings = create<BookingState>((set, get) => {
 				...(options?.category &&
 					options.category !== 'all' && { category: options.category }),
 			};
-
-			console.log('API Params:', params); // Debugging log
 
 			const response = await api.get('/bookings', {
 				headers: {
@@ -96,7 +91,6 @@ export const useBookings = create<BookingState>((set, get) => {
 			errorDescription || error.response?.data?.message || defaultMessage;
 
 		if (error.response?.status === 429) {
-			console.log('Rate limit exceeded');
 			if (showToast) {
 				toast.error('Too many requests. Please try again later.');
 			}
