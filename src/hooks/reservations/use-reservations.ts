@@ -60,7 +60,6 @@ export const useReservations = create<ReservationStore>((set) => ({
 				reservationData: response.data.data,
 				showResults: response.data.data.length > 0,
 			});
-			console.log(response.data.data);
 		} catch (err: unknown) {
 			onError(err instanceof Error ? err.message : 'Something went wrong');
 			set({ showResults: false });

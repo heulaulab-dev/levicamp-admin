@@ -20,10 +20,7 @@ export default function TentsPage() {
 	} = useTentStore();
 
 	useEffect(() => {
-		console.log('Fetching tents data...');
-		getTents().then(() => {
-			console.log('Tents data loaded:', tents);
-		});
+		getTents();
 	}, [getTents]);
 
 	const handleOpenCreateModal = () => {

@@ -80,7 +80,6 @@ export function BookingManagementList() {
 				queryParams.category = categoryFilter;
 			}
 
-			console.log('Fetching bookings with params:', queryParams);
 			getBookings(queryParams);
 		},
 		[
@@ -97,7 +96,6 @@ export function BookingManagementList() {
 	useEffect(() => {
 		// Skip the first render if we're just initializing state
 		if (!initialFetchDone.current) {
-			console.log('Initial bookings management list mount - fetching data');
 			initialFetchDone.current = true;
 			fetchBookings();
 			return;
@@ -171,10 +169,6 @@ export function BookingManagementList() {
 
 	// Calculate total pages
 	const totalPages = pagination?.totalPages || 0;
-
-	// console.log('Bookings:', bookings);
-
-	console.log(columns);
 
 	return (
 		<div>

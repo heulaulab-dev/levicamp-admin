@@ -150,7 +150,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		const currentToken = useAuthStore.getState().token;
 		set({ user: null, token: null, refreshToken: null });
 		try {
-			const res = await api.post(
+			await api.post(
 				'/logout',
 				{},
 				{
@@ -159,8 +159,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 					},
 				},
 			);
-
-			console.log('Logout API Response:', res.data); // Debugging
 
 			localStorage.removeItem('token');
 			localStorage.removeItem('refreshToken');
@@ -210,7 +208,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		if (!token) return false;
 
 		try {
-			console.log('Checking token validity...');
 			const response = await api.post(
 				'/check-token',
 				{},
@@ -221,32 +218,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				},
 			);
 
-			console.log('Token check response:', response.data);
-
 			// Cek format response yang benar
 			if (
 				response.data?.status === 200 &&
 				response.data?.message === 'Valid token'
 			) {
-				console.log('Token validation successful');
 				return true;
 			}
 
-			console.log('Token seems invalid based on response');
 			return false;
 		} catch (error) {
-			console.error('Token validation failed:', error);
-
 			// Jika unauthorized (401), token memang invalid
 			if ((error as any).response?.status === 401) {
-				console.log('Token is invalid (401)');
 				return false;
 			}
 
-			// Untuk error network/koneksi, anggap token mungkin masih valid
-			console.log(
-				'Network error during token check, assuming token might be valid',
-			);
 			return true;
 		}
 	},
@@ -389,7 +375,6 @@ export function useInitAuth() {
 				if (storedUserData) {
 					const storedUser = JSON.parse(storedUserData);
 					useAuthStore.setState({ user: storedUser });
-					console.log('Loaded user from localStorage:', storedUser);
 				}
 			} catch (error) {
 				console.error('Failed to parse user from localStorage', error);
@@ -398,7 +383,6 @@ export function useInitAuth() {
 
 		// Only fetch user if we have a token but no user data
 		if (token && !user) {
-			console.log('Token exists but no user data, fetching user');
 			checkToken().then((isValid) => {
 				if (isValid) {
 					fetchUser();

@@ -21,9 +21,9 @@ import {
 import {
 	useRevenueBreakdownStore,
 	useBreakdownChartData,
-} from '@/hooks/overview/useRevenueBreakdown';
+} from '@/hooks/overview/use-revenue-breakdown';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -53,15 +53,13 @@ export function RevenueBreakdownChart() {
 	const { getRevenueBreakdown, breakdownData, isLoading } =
 		useRevenueBreakdownStore();
 	const { categoryChartData, totalRevenue } = useBreakdownChartData();
-	// Use ref to prevent duplicate API calls on mount
-	const initialFetchDone = useRef(false);
 
 	// Fetch data only once when component mounts
 	useEffect(() => {
-		if (!initialFetchDone.current) {
-			console.log('Initial revenue breakdown mount - fetching data');
-			initialFetchDone.current = true;
+		try {
 			getRevenueBreakdown();
+		} catch (error) {
+			console.error('Error fetching revenue breakdown:', error);
 		}
 	}, [getRevenueBreakdown]);
 
