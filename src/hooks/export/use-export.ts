@@ -25,11 +25,10 @@ export const useExport = create<ExportState>((set) => {
       errorDescription || error.response?.data?.message || defaultMessage;
 
     if (error.response?.status === 429) {
-      console.log('Rate limit exceeded');
-      toast.error('Too many requests. Please try again later.');
-    } else {
-      toast.error(errorMessage);
-    }
+			toast.error('Too many requests. Please try again later.');
+		} else {
+			toast.error(errorMessage);
+		}
 
     set({ isExporting: false });
     return null;
@@ -38,8 +37,7 @@ export const useExport = create<ExportState>((set) => {
   // Helper function to make authenticated API requests for exports
   const makeExportRequest = async <T>(endpoint: string): Promise<T | null> => {
     if (isExportingInProgress) {
-      console.log('Export already in progress, skipping duplicate request');
-    }
+		}
 
     isExportingInProgress = true;
     const currentToken = useAuthStore.getState().token;

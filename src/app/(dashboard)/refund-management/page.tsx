@@ -11,7 +11,7 @@ import {
 	successColumns,
 } from '@/components/pages/refund-management/refund-columns';
 import { PageHeader } from '@/components/common/page-header';
-import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { useRefunds } from '@/hooks/refunds/use-refunds';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';

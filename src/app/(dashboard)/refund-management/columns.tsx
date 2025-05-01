@@ -6,7 +6,7 @@ import { MoreHorizontal, CheckCircle } from 'lucide-react';
 import RefundDialogDrawer from '@/components/pages/refund-management/refund-dialog-drawer';
 import UpdateStatusDialog from '@/components/pages/refund-management/update-status-drawer';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { useRefunds } from '@/hooks/refunds/use-refunds';
 import { toast } from 'sonner';
 import {
 	DropdownMenu,

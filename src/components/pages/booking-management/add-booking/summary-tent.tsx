@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { differenceInDays, format } from 'date-fns';
@@ -170,12 +171,6 @@ export default function SummaryTent({
 			// The parent component should handle clearing previous data
 			// based on the clearPreviousData flag
 			onRequestBook();
-
-			// The clearPreviousData flag is passed to indicate whether
-			// the parent should clear previous data when booking
-			console.log(
-				`Request to book with clearPreviousData: ${clearPreviousData}`,
-			);
 		}
 	};
 

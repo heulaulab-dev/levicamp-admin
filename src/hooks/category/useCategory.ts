@@ -59,7 +59,6 @@ export const useCategory = create<CategoryState>((set, get) => {
 			errorDescription || error.response?.data?.message || defaultMessage;
 
 		if (error.response?.status === 429) {
-			console.log('Rate limit exceeded');
 			toast.error('Too many requests. Please try again later.');
 		} else {
 			toast.error(errorMessage);
@@ -215,7 +214,6 @@ export const useCategory = create<CategoryState>((set, get) => {
 		createCategory: async () => {
 			try {
 				const { formData } = get();
-				console.log('Creating category with data:', formData);
 
 				const response = await makeAuthenticatedRequest<
 					ApiResponse<TentCategory>
@@ -248,9 +246,6 @@ export const useCategory = create<CategoryState>((set, get) => {
 					throw new Error('No category selected for update');
 				}
 
-				console.log('Updating category with ID:', selectedCategory.id);
-				console.log('Updating with data:', formData);
-
 				const response = await makeAuthenticatedRequest<
 					ApiResponse<TentCategory>
 				>('put', `/categories/${selectedCategory.id}`, formData);
@@ -281,8 +276,6 @@ export const useCategory = create<CategoryState>((set, get) => {
 				if (!selectedCategory) {
 					throw new Error('No category selected for deletion');
 				}
-
-				console.log('Deleting category with ID:', selectedCategory.id);
 
 				await makeAuthenticatedRequest(
 					'delete',

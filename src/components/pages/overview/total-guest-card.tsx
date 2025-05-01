@@ -21,7 +21,7 @@ import {
 import {
 	useTotalGuestStore,
 	useGuestChartData,
-} from '@/hooks/overview/useTotalGuest';
+} from '@/hooks/overview/use-total-guest';
 
 const chartConfig = {
 	views: {

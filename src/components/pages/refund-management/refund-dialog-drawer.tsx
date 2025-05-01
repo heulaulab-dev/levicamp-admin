@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { useRefunds } from '@/hooks/refunds/use-refunds';
 import { Button } from '@/components/ui/button';
 import {
 	DrawerTitle,

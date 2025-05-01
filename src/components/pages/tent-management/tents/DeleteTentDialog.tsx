@@ -21,9 +21,6 @@ export function DeleteTentDialog() {
 			return;
 		}
 
-		// Log the tent ID to confirm it's correct
-		console.log('Attempting to delete tent with ID:', selectedTent.id);
-
 		try {
 			const result = await deleteTent(selectedTent.id);
 			if (result.success) {

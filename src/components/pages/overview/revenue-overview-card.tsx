@@ -56,7 +56,6 @@ export function RevenueOverviewChart() {
 	// Fetch data only once when component mounts
 	useEffect(() => {
 		if (!initialFetchDone.current) {
-			console.log('Initial revenue chart mount - fetching data');
 			initialFetchDone.current = true;
 			// Only fetch if we don't already have data
 			if (revenueData.length === 0) {
@@ -69,7 +68,6 @@ export function RevenueOverviewChart() {
 	const handlePeriodChange = (value: string) => {
 		// Only call setPeriod if the period has actually changed
 		if (value !== period) {
-			console.log(`Changing revenue period from ${period} to ${value}`);
 			setPeriod(value as RevenuePeriod);
 		}
 	};

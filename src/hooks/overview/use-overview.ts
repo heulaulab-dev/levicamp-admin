@@ -14,7 +14,6 @@ export const useOverviewStore = create<OverviewStoreState>((set) => {
 	const fetchOverviewMetrics = async () => {
 		// If we're already fetching, don't start another request
 		if (isFetching) {
-			// console.log('Skipping duplicate overview API call');
 			return;
 		}
 
@@ -23,7 +22,6 @@ export const useOverviewStore = create<OverviewStoreState>((set) => {
 		const currentToken = useAuthStore.getState().token;
 
 		try {
-			// console.log('Fetching overview metrics data');
 			const response = await api.get('/admin/overview', {
 				headers: {
 					Authorization: `Bearer ${currentToken}`,

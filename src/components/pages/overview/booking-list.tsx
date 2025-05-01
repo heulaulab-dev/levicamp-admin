@@ -15,7 +15,6 @@ export function BookingList() {
 	// Fetch bookings when component mounts
 	useEffect(() => {
 		if (!initialFetchDone.current) {
-			console.log('Initial bookings list mount - fetching data');
 			initialFetchDone.current = true;
 			getBookings();
 		}

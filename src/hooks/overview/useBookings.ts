@@ -19,7 +19,6 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 	const fetchBookings = async (options?: PaginationOptions) => {
 		// If we're already fetching, don't start another request
 		if (isFetching) {
-			console.log('Skipping duplicate bookings API call - request in progress');
 			return;
 		}
 
@@ -28,7 +27,6 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 		const currentToken = useAuthStore.getState().token;
 
 		try {
-			console.log('Fetching bookings data');
 			const response = await api.get('/bookings', {
 				headers: {
 					Authorization: `Bearer ${currentToken}`,
@@ -79,7 +77,6 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 			errorDescription || error.response?.data?.message || defaultMessage;
 
 		if (error.response?.status === 429) {
-			console.log('Rate limit exceeded');
 			toast.error('Too many requests. Please try again later.');
 		} else {
 			toast.error(errorMessage);

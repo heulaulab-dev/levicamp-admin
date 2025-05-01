@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
-import { useRefunds } from '@/hooks/refunds/useRefunds';
+import { useRefunds } from '@/hooks/refunds/use-refunds';
 import { toast } from 'sonner';
 import { PaymentProofUploader } from './payment-proof-uploader';
 
