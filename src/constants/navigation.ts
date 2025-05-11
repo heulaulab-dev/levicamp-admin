@@ -4,6 +4,7 @@ import {
 	PieChartIcon,
 	ReceiptText,
 	Users,
+	FileText,
 } from 'lucide-react';
 
 export const NavigationItem = [
@@ -42,5 +43,10 @@ export const NavigationItem = [
 		title: 'Admin Management',
 		url: '/admin-management',
 		icon: Users,
+	},
+	{
+		title: 'Article Management',
+		url: '/article-management',
+		icon: FileText,
 	},
 ];
