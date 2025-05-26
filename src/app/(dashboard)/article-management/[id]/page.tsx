@@ -1,11 +1,13 @@
 import { Suspense } from 'react';
 import EditArticleContent from './EditArticleContent';
 
-export default function EditArticlePage({
+export default async function EditArticlePage({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
+	const { id } = await params;
+
 	return (
 		<Suspense
 			fallback={
@@ -17,7 +19,7 @@ export default function EditArticlePage({
 				</div>
 			}
 		>
-			<EditArticleContent id={params.id} />
+			<EditArticleContent id={id} />
 		</Suspense>
 	);
 }
