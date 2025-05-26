@@ -33,6 +33,10 @@ const nextConfig: NextConfig = {
 				protocol: 'https',
 				hostname: 'levicamp.id',
 			},
+			{
+				protocol: 'https',
+				hostname: 'cdn.dribbble.com',
+			},
 		],
 	},
 	experimental: {
