@@ -39,7 +39,7 @@ export const useTentStore = create<TentState>((set, get) => {
 
 	// Helper function to make authenticated API requests
 	const makeAuthenticatedRequest = async <T>(
-		method: 'get' | 'put' | 'post' | 'delete',
+		method: 'get' | 'put' | 'post' | 'delete' | 'patch',
 		endpoint: string,
 		data?: unknown,
 	): Promise<T | null> => {
@@ -66,6 +66,9 @@ export const useTentStore = create<TentState>((set, get) => {
 					break;
 				case 'delete':
 					response = await api.delete(endpoint, config);
+					break;
+				case 'patch':
+					response = await api.patch(endpoint, data, config);
 					break;
 			}
 
@@ -315,6 +318,34 @@ export const useTentStore = create<TentState>((set, get) => {
 			} catch (error) {
 				console.error('Failed to delete tent:', error);
 				return { success: false, message: 'Failed to delete tent' };
+			}
+		},
+
+		updateTentStatus: async (
+			tentId: string,
+			status: 'available' | 'unavailable' | 'maintenance',
+		) => {
+			try {
+				if (!tentId) {
+					throw new Error('Tent ID is required for status update');
+				}
+
+				await makeAuthenticatedRequest('patch', `/tents/${tentId}/status`, {
+					status: status,
+				});
+
+				// Update the tent in the local state
+				const { tents } = get();
+				const updatedTents = tents.map((tent) =>
+					tent.id === tentId ? { ...tent, status: status } : tent,
+				);
+				set({ tents: updatedTents });
+
+				toast.success(`Tent status updated to ${status}`);
+				return { success: true, message: 'Tent status updated successfully' };
+			} catch (error) {
+				console.error('Failed to update tent status:', error);
+				return { success: false, message: 'Failed to update tent status' };
 			}
 		},
 	};

@@ -10,7 +10,7 @@ export type Tent = {
 	facilities: string[];
 	category_id: string;
 	category?: Category;
-	status: 'available' | 'unavailable';
+	status: 'available' | 'unavailable' | 'maintenance';
 	updated_at?: string;
 	created_at?: string;
 	capacity: number;

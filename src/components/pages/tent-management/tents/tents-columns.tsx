@@ -89,7 +89,7 @@ export const columns: ColumnDef<Tent>[] = [
 					: status === 'unavailable'
 					? 'destructive'
 					: status === 'maintenance'
-					? 'secondary'
+					? 'outline'
 					: 'default';
 
 			return <Badge variant={statusColor}>{status}</Badge>;
@@ -134,6 +134,7 @@ const ActionsDropdown = memo(({ tent }: { tent: Tent }) => {
 		setIsEditOpen,
 		setIsDeleteOpen,
 		setSelectedTent,
+		updateTentStatus,
 	} = useTentStore();
 
 	// Memoize the click handlers to prevent recreating functions on every render
@@ -162,6 +163,17 @@ const ActionsDropdown = memo(({ tent }: { tent: Tent }) => {
 		setIsDeleteOpen(true);
 	}, [tent, setSelectedTent, setIsDeleteOpen]);
 
+	const handleStatusUpdate = useCallback(
+		async (status: 'available' | 'unavailable' | 'maintenance') => {
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Updating tent status for ID:', tent.id, 'to:', status);
+			}
+
+			await updateTentStatus(tent.id, status);
+		},
+		[tent.id, updateTentStatus],
+	);
+
 	// Memoize dropdown items to avoid recreating on each render
 	const dropdownItems = useMemo(
 		() => (
@@ -184,9 +196,35 @@ const ActionsDropdown = memo(({ tent }: { tent: Tent }) => {
 				>
 					Delete Tent
 				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<DropdownMenuLabel>Update Status</DropdownMenuLabel>
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						handleStatusUpdate('available');
+					}}
+				>
+					Set Available
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						handleStatusUpdate('unavailable');
+					}}
+				>
+					Set Unavailable
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						handleStatusUpdate('maintenance');
+					}}
+				>
+					Set Maintenance
+				</DropdownMenuItem>
 			</>
 		),
-		[handleEditClick, handleDeleteClick],
+		[handleEditClick, handleDeleteClick, handleStatusUpdate],
 	);
 
 	return (

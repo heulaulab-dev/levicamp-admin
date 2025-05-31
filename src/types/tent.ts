@@ -30,6 +30,10 @@ export interface TentState {
 	deleteTent: (
 		tentId: string,
 	) => Promise<{ success: boolean; message: string }>;
+	updateTentStatus: (
+		tentId: string,
+		status: 'available' | 'unavailable' | 'maintenance',
+	) => Promise<{ success: boolean; message: string }>;
 }
 
 export interface Tent {
@@ -87,7 +91,7 @@ export interface Tents {
 	facilities: string[];
 	category_id: string;
 	category: TentCategory;
-	status: 'available' | 'unavailable';
+	status: 'available' | 'unavailable' | 'maintenance';
 	weekday_price: number;
 	weekend_price: number;
 	created_at: string;

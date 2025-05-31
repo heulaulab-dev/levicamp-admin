@@ -42,7 +42,11 @@ export default function CardTent({
 				/>
 				<div className='top-3 left-3 absolute'>
 					<Badge variant={status === 'available' ? 'success' : 'destructive'}>
-						{status === 'available' ? 'Available' : 'Booked'}
+						{status === 'available'
+							? 'Available'
+							: tent.status === 'maintenance'
+							? 'Maintenance'
+							: 'Booked'}
 					</Badge>
 				</div>
 				<span
