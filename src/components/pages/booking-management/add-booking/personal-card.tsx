@@ -23,7 +23,7 @@ interface PersonalInfoCardProps {
 export interface PersonalInfoData {
 	name: string;
 	phone: string;
-	email: string;
+	email?: string;
 	guestCount: string;
 	address: string;
 	source: string;
@@ -96,12 +96,11 @@ export function PersonalInfoCard({
 			<div className='gap-4 grid grid-cols-1 md:grid-cols-2'>
 				<div className='space-y-2'>
 					<label htmlFor='email' className='font-medium text-sm'>
-						Email *
+						Email
 					</label>
 					<Input
 						id='email'
 						name='email'
-						required
 						type='email'
 						placeholder='your@email.com'
 						defaultValue={initialData?.email || ''}

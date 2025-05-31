@@ -62,7 +62,7 @@ export type responseObject = {
 
 export interface ReservationRequest {
 	name: string;
-	email: string;
+	email?: string;
 	phone: string;
 	address: string;
 	tent_id: string[];
@@ -91,7 +91,7 @@ export interface Booking {
 export interface Guest {
 	id: string;
 	name: string;
-	email: string;
+	email?: string;
 	phone: string;
 	address: string;
 	created_at: string;

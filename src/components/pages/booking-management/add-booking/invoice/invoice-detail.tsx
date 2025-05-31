@@ -9,7 +9,7 @@ export interface InvoiceDetailProps {
 	bookingId: string;
 	paymentDate: string;
 	guestName: string;
-	guestEmail: string;
+	guestEmail?: string;
 	guestPhone: string;
 	guestCount: string;
 	external: string;
@@ -85,7 +85,9 @@ export default function InvoiceDetail({
 						<div className='text-primary text-right'>{guestName}</div>
 
 						<div className='text-muted-foreground'>Guest Email</div>
-						<div className='text-primary text-right'>{guestEmail}</div>
+						<div className='text-primary text-right'>
+							{guestEmail || 'Not provided'}
+						</div>
 
 						<div className='text-muted-foreground'>Guest Phone</div>
 						<div className='text-primary text-right'>{guestPhone}</div>

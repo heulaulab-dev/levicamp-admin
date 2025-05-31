@@ -35,7 +35,7 @@ export function CheckPersonalCard() {
 					<div className='gap-4 grid grid-cols-1 md:grid-cols-2'>
 						<div className='space-y-2'>
 							<label className='font-medium text-sm'>Email</label>
-							<Input value={personalInfo.email} disabled />
+							<Input value={personalInfo.email || 'Not provided'} disabled />
 						</div>
 						<div className='space-y-2'>
 							<label className='font-medium text-sm'>Number of Guests</label>
