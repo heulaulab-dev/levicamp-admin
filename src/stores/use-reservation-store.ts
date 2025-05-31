@@ -7,7 +7,7 @@ import { PaymentDetails } from '@/types/payments';
 export interface PersonalInfoData {
 	name: string;
 	phone: string;
-	email: string;
+	email?: string;
 	guestCount: string;
 	address: string;
 	source: string;
