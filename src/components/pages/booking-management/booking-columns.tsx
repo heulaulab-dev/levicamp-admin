@@ -69,6 +69,28 @@ export const columns: ColumnDef<Booking>[] = [
 		),
 	},
 	{
+		header: 'Total Guest',
+		accessorKey: 'guest_count',
+		cell: ({ row }) => (
+			<div className='text-center'>
+				<span className='inline-flex items-center bg-blue-100 px-2.5 py-0.5 rounded-full font-medium text-blue-800 text-xs'>
+					{row.original.guest.guest_count}
+				</span>
+			</div>
+		),
+	},
+	{
+		header: 'Source',
+		accessorKey: 'source',
+		cell: ({ row }) => (
+			<div>
+				<span className='inline-flex items-center bg-green-100 px-2.5 py-0.5 rounded-full font-medium text-green-800 text-xs'>
+					{row.original.guest.source}
+				</span>
+			</div>
+		),
+	},
+	{
 		header: 'Tent',
 		accessorKey: 'tent',
 		cell: ({ row }) => {
