@@ -6,6 +6,7 @@ import {
 	ChevronRight,
 	Search,
 	Plus,
+	Calendar,
 } from 'lucide-react';
 import { useBookings } from '@/hooks/bookings/use-bookings';
 import BookingTable from '@/components/pages/booking-management/booking-table';
@@ -31,18 +32,34 @@ import { useId } from 'react';
 
 import { ChevronFirst, ChevronLast } from 'lucide-react';
 import { useExport } from '@/hooks/export/use-export';
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 import Link from 'next/link';
 
 export function BookingManagementList() {
 	const { getBookings, bookings, pagination } = useBookings();
-	const { exportBookings } = useExport();
+	const { exportBookings, exportDailyGuestCount } = useExport();
 	const initialFetchDone = useRef(false);
 	const [pageSize, setPageSize] = useState<number>(10);
 	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [statusFilter, setStatusFilter] = useState<string>('');
 	const [categoryFilter, setCategoryFilter] = useState<string>('');
+	const [dateRange, setDateRange] = useState<{
+		startDate: Date | undefined;
+		endDate: Date | undefined;
+	}>({
+		startDate: undefined,
+		endDate: undefined,
+	});
+	const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 	const id = useId();
 
 	// Debounce search to avoid too many API calls
@@ -139,6 +156,30 @@ export function BookingManagementList() {
 		});
 	};
 
+	const handleDailyGuestExport = () => {
+		if (!dateRange.startDate || !dateRange.endDate) {
+			toast.error('Please select both start and end dates');
+			return;
+		}
+
+		const startDateStr = format(dateRange.startDate, 'yyyy-MM-dd');
+		const endDateStr = format(dateRange.endDate, 'yyyy-MM-dd');
+
+		const promise = () => {
+			return exportDailyGuestCount(startDateStr, endDateStr);
+		};
+
+		toast.promise(promise, {
+			loading: 'Exporting daily guest count data...',
+			success: () => {
+				setIsDatePickerOpen(false);
+				setDateRange({ startDate: undefined, endDate: undefined });
+				return 'Daily guest count exported successfully';
+			},
+			error: 'Failed to export daily guest count',
+		});
+	};
+
 	const handlePageChange = (newPage: number) => {
 		setCurrentPage(newPage);
 		// fetchBookings is called by the useEffect
@@ -225,6 +266,100 @@ export function BookingManagementList() {
 							Add Booking
 						</Link>
 					</Button>
+					<Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+						<PopoverTrigger asChild>
+							<Button variant={'outline'}>
+								<Calendar className='mr-2 w-4 h-4' />
+								Daily Guest Export
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className='p-0 w-auto' align='end'>
+							<div className='space-y-4 p-4'>
+								<div className='space-y-2'>
+									<h4 className='font-medium'>Select Date Range</h4>
+									<p className='text-muted-foreground text-sm'>
+										Choose start and end dates for guest count export
+									</p>
+								</div>
+								<div className='gap-2 grid grid-cols-2'>
+									<div className='space-y-2'>
+										<Label className='text-xs'>Start Date</Label>
+										<Button
+											variant='outline'
+											className={cn(
+												'w-full justify-start text-left font-normal',
+												!dateRange.startDate && 'text-muted-foreground',
+											)}
+											onClick={() => {
+												// Open calendar for start date
+											}}
+										>
+											{dateRange.startDate ? (
+												format(dateRange.startDate, 'PPP')
+											) : (
+												<span>Pick start date</span>
+											)}
+										</Button>
+									</div>
+									<div className='space-y-2'>
+										<Label className='text-xs'>End Date</Label>
+										<Button
+											variant='outline'
+											className={cn(
+												'w-full justify-start text-left font-normal',
+												!dateRange.endDate && 'text-muted-foreground',
+											)}
+											onClick={() => {
+												// Open calendar for end date
+											}}
+										>
+											{dateRange.endDate ? (
+												format(dateRange.endDate, 'PPP')
+											) : (
+												<span>Pick end date</span>
+											)}
+										</Button>
+									</div>
+								</div>
+								<CalendarComponent
+									mode='range'
+									selected={{
+										from: dateRange.startDate,
+										to: dateRange.endDate,
+									}}
+									onSelect={(range) => {
+										setDateRange({
+											startDate: range?.from,
+											endDate: range?.to,
+										});
+									}}
+									numberOfMonths={2}
+									className='border rounded-md'
+								/>
+								<div className='flex gap-2'>
+									<Button
+										variant='outline'
+										size='sm'
+										onClick={() => {
+											setDateRange({
+												startDate: undefined,
+												endDate: undefined,
+											});
+										}}
+									>
+										Clear
+									</Button>
+									<Button
+										size='sm'
+										onClick={handleDailyGuestExport}
+										disabled={!dateRange.startDate || !dateRange.endDate}
+									>
+										Export Excel
+									</Button>
+								</div>
+							</div>
+						</PopoverContent>
+					</Popover>
 					<Button onClick={handleExport} variant={'outline'}>
 						<Download className='mr-2 w-4 h-4' />
 						Export Data
