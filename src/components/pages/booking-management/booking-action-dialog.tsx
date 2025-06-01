@@ -193,6 +193,8 @@ export function BookingActionDialog({
 					<p className='mb-2 font-medium'>Booking Details</p>
 					<p>Guest: {booking.guest.name}</p>
 					<p>Phone: {booking.guest.phone}</p>
+					<p>Guest Count: {booking.guest.guest_count} guests</p>
+					<p>Source: {booking.guest.source}</p>
 					<p>
 						Tent: {booking.detail_booking[0]?.reservation.tent.name} (
 						{booking.detail_booking[0]?.reservation.tent.category.name})

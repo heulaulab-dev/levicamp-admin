@@ -65,6 +65,10 @@ export const columns: ColumnDef<Booking>[] = [
 				<p className='text-muted-foreground text-sm'>
 					{row.original.guest.phone}
 				</p>
+				<div className='flex gap-2 mt-1 text-muted-foreground text-xs'>
+					<span>👥 {row.original.guest.guest_count} guests</span>
+					<span>📍 {row.original.guest.source}</span>
+				</div>
 			</div>
 		),
 	},

@@ -73,6 +73,11 @@ export function BookingDetailsModal({
 						<DetailRow label='Phone' value={booking.guest.phone} />
 						<DetailRow label='Email' value={booking.guest.email} />
 						<DetailRow label='Address' value={booking.guest.address} />
+						<DetailRow
+							label='Guest Count'
+							value={`${booking.guest.guest_count} guests`}
+						/>
+						<DetailRow label='Source' value={booking.guest.source} />
 					</CardContent>
 				</Card>
 
