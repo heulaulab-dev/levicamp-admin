@@ -69,6 +69,8 @@ export interface ReservationRequest {
 	start_date: string;
 	end_date: string;
 	external: string;
+	guest_count: number;
+	source: string;
 }
 
 export interface DetailBooking {

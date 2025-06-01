@@ -19,7 +19,7 @@ export interface InvoiceDetailProps {
 	tents: Array<{
 		id: string;
 		name: string;
-		image: string;
+		tent_images: Array<string>;
 		category: string;
 		capacity: number;
 		price: number;
@@ -115,7 +115,7 @@ export default function InvoiceDetail({
 							<div className='flex gap-4'>
 								<div className='relative rounded-md w-28 h-20 overflow-hidden'>
 									<Image
-										src={'/tent-image.jpg'}
+										src={tent.tent_images?.[0] || '/tent-image.jpg'}
 										alt={tent.name}
 										fill
 										className='object-cover'

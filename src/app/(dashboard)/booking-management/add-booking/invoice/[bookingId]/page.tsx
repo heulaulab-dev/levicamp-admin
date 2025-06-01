@@ -134,7 +134,7 @@ export default function InvoicePage() {
 			reservationDataStore?.selectedTents?.map((tent) => ({
 				id: tent.id,
 				name: tent.name,
-				image: tent.tent_images[0],
+				tent_images: tent.tent_images || [],
 				category: tent.category?.name || 'Standard',
 				capacity: tent.capacity,
 				price: tent.api_price || tent.weekend_price || 0,
@@ -173,7 +173,7 @@ export default function InvoicePage() {
 			fetchedBooking.detail_booking?.map((detail) => ({
 				id: detail.reservation.tent.id,
 				name: detail.reservation.tent.name,
-				image: detail.reservation.tent.tent_image || '/tent-image.jpg',
+				tent_images: detail.reservation.tent.tent_images || [],
 				category: detail.reservation.tent.category?.name || 'Standard',
 				capacity: detail.reservation.tent.category?.facilities
 					? Object.keys(detail.reservation.tent.category.facilities).length
@@ -187,9 +187,9 @@ export default function InvoicePage() {
 			guestName: fetchedBooking.guest?.name || '',
 			guestEmail: fetchedBooking.guest?.email || '',
 			guestPhone: fetchedBooking.guest?.phone || '',
-			guestCount: '1', // Default since we don't have this in booking data
-			external: 'Direct', // Default since we don't have this in booking data
-			source: 'Direct', // Default since we don't have this in booking data
+			guestCount: fetchedBooking.guest?.guest_count?.toString() || '1',
+			external: fetchedBooking.external || 'Direct',
+			source: fetchedBooking.guest?.source || 'Not specified',
 			checkInDate: formattedCheckInDate,
 			checkOutDate: formattedCheckOutDate,
 			tents,
