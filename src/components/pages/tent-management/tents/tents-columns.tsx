@@ -89,7 +89,7 @@ export const columns: ColumnDef<Tent>[] = [
 					: status === 'unavailable'
 					? 'destructive'
 					: status === 'maintenance'
-					? 'outline'
+					? 'destructive'
 					: 'default';
 
 			return <Badge variant={statusColor}>{status}</Badge>;
