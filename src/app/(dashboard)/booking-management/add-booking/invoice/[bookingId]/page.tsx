@@ -71,8 +71,35 @@ export default function InvoicePage() {
 		getBookingById,
 	]);
 
-	const handleDownload = () => {
-		alert('Download functionality will be implemented here');
+	const handleDownload = async () => {
+		try {
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/exports/invoice?id=${bookingId}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/pdf',
+					},
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to download invoice');
+			}
+
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = `invoice-${bookingId}.pdf`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('Error downloading invoice:', error);
+			alert('Failed to download invoice. Please try again.');
+		}
 	};
 
 	if (loading) {
@@ -121,6 +148,7 @@ export default function InvoicePage() {
 			guestPhone: personalInfo?.phone || '',
 			guestCount: personalInfo?.guestCount || '1',
 			external: personalInfo?.external || '',
+			source: personalInfo?.source || 'Not provided',
 			checkInDate: formattedCheckInDate,
 			checkOutDate: formattedCheckOutDate,
 			tents,
@@ -161,6 +189,7 @@ export default function InvoicePage() {
 			guestPhone: fetchedBooking.guest?.phone || '',
 			guestCount: '1', // Default since we don't have this in booking data
 			external: 'Direct', // Default since we don't have this in booking data
+			source: 'Direct', // Default since we don't have this in booking data
 			checkInDate: formattedCheckInDate,
 			checkOutDate: formattedCheckOutDate,
 			tents,

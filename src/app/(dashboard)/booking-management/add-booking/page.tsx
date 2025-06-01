@@ -163,12 +163,27 @@ export default function AddBookingPage() {
 				return;
 			}
 
+			// Validate guest count
+			const guestCount = parseInt(personalInfo.guestCount, 10);
+			if (isNaN(guestCount) || guestCount < 1) {
+				toast.error('Guest count must be at least 1');
+				return;
+			}
+
+			// Validate required fields
+			if (!personalInfo.source) {
+				toast.error('Please select how you heard about us');
+				return;
+			}
+
 			const reservationRequest = {
 				name: personalInfo.name,
 				email: personalInfo.email,
 				phone: personalInfo.phone,
 				address: personalInfo.address,
 				external: personalInfo.external,
+				guest_count: guestCount,
+				source: personalInfo.source,
 				tent_id: reservationDataStore.selectedTents.map((tent) => tent.id),
 				start_date: format(reservationDataStore.checkInDate, 'yyyy-MM-dd'),
 				end_date: format(reservationDataStore.checkOutDate, 'yyyy-MM-dd'),
