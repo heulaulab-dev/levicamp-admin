@@ -45,7 +45,7 @@ export default function TentsPage() {
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [statusFilter, setStatusFilter] = useState<string>('');
 	const [categoryFilter, setCategoryFilter] = useState<string>('');
-	const [sortField, setSortField] = useState<string>('');
+	const [sortField, setSortField] = useState<string>('none');
 	const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 	const id = useId();
 
@@ -83,7 +83,10 @@ export default function TentsPage() {
 			}
 
 			// Include sort options
-			if (options?.sort ?? sortField) {
+			if (
+				(options?.sort ?? sortField) &&
+				(options?.sort ?? sortField) !== 'none'
+			) {
 				queryParams.sort = options?.sort ?? sortField;
 				queryParams.order = options?.order ?? sortOrder;
 			}
@@ -238,7 +241,7 @@ export default function TentsPage() {
 								<SelectValue placeholder='Sort by' />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value=''>No Sort</SelectItem>
+								<SelectItem value='none'>No Sort</SelectItem>
 								<SelectItem value='name'>Name</SelectItem>
 								<SelectItem value='status'>Status</SelectItem>
 								<SelectItem value='category'>Category</SelectItem>
@@ -250,7 +253,7 @@ export default function TentsPage() {
 						<Select
 							value={sortOrder}
 							onValueChange={handleOrderChange}
-							disabled={!sortField}
+							disabled={!sortField || sortField === 'none'}
 						>
 							<SelectTrigger className='w-[120px]'>
 								<SelectValue />
