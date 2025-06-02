@@ -31,6 +31,7 @@ import { Loader2 } from 'lucide-react';
 import { useRefunds } from '@/hooks/refunds/use-refunds';
 import { toast } from 'sonner';
 import { PaymentProofUploader } from './payment-proof-uploader';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function UpdateStatusDialog({
 	children,
@@ -50,7 +51,9 @@ export default function UpdateStatusDialog({
 					<DialogHeader>
 						<DialogTitle>Update Refund Status</DialogTitle>
 					</DialogHeader>
-					<UpdateStatus refund={refund} onOpenChange={setOpen} />
+					<ScrollArea className='h-[500px]'>
+						<UpdateStatus refund={refund} onOpenChange={setOpen} />
+					</ScrollArea>
 				</DialogContent>
 			</Dialog>
 		);

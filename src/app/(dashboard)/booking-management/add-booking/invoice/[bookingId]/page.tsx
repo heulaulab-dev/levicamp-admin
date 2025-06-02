@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Confetti } from '@/components/ui/confetti';
 import { useHydration } from '@/hooks/use-hydration';
 import { useReservationStore } from '@/stores/use-reservation-store';
+import { useBookings } from '@/hooks/bookings/use-bookings';
+import { Booking } from '@/types/booking';
 
 export default function InvoicePage() {
 	const params = useParams();
@@ -19,6 +21,7 @@ export default function InvoicePage() {
 	const [loading, setLoading] = useState(true);
 	const isHydrated = useHydration();
 	const [showConfetti, setShowConfetti] = useState(true);
+	const [fetchedBooking, setFetchedBooking] = useState<Booking | null>(null);
 
 	const {
 		reservationDataStore,
@@ -27,31 +30,76 @@ export default function InvoicePage() {
 		paymentData,
 	} = useReservationStore();
 
+	const { getBookingById } = useBookings();
+
 	useEffect(() => {
 		if (!isHydrated) return;
 
-		// Verify that we have the required data
-		if (
-			!reservationDataStore ||
-			!personalInfo ||
-			!bookingResponseData ||
-			!paymentData
-		) {
-			// If missing data, you could either redirect or attempt to fetch it using the bookingId
-			console.error('Missing required data for invoice');
-		}
+		const fetchBookingData = async () => {
+			// Check if we have all required data from the store
+			const hasStoreData =
+				reservationDataStore &&
+				personalInfo &&
+				bookingResponseData &&
+				paymentData;
 
-		setLoading(false);
+			if (!hasStoreData) {
+				console.log('Missing store data, fetching booking from API...');
+				try {
+					const booking = await getBookingById(bookingId);
+					if (booking) {
+						setFetchedBooking(booking);
+					} else {
+						console.error('Failed to fetch booking data');
+					}
+				} catch (error) {
+					console.error('Error fetching booking:', error);
+				}
+			}
+
+			setLoading(false);
+		};
+
+		fetchBookingData();
 	}, [
 		isHydrated,
 		reservationDataStore,
 		personalInfo,
 		bookingResponseData,
 		paymentData,
+		bookingId,
+		getBookingById,
 	]);
 
-	const handleDownload = () => {
-		alert('Download functionality will be implemented here');
+	const handleDownload = async () => {
+		try {
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/exports/invoice?id=${bookingId}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/pdf',
+					},
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to download invoice');
+			}
+
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = `invoice-${bookingId}.pdf`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('Error downloading invoice:', error);
+			alert('Failed to download invoice. Please try again.');
+		}
 	};
 
 	if (loading) {
@@ -62,33 +110,111 @@ export default function InvoicePage() {
 		);
 	}
 
-	// Format dates for display
-	const formattedCheckInDate = reservationDataStore?.checkInDate
-		? format(new Date(reservationDataStore.checkInDate), 'EEE, MMM dd yyyy')
-		: 'N/A';
+	// Use store data if available, otherwise use fetched booking data
+	const useStoreData =
+		reservationDataStore && personalInfo && bookingResponseData && paymentData;
 
-	const formattedCheckOutDate = reservationDataStore?.checkOutDate
-		? format(new Date(reservationDataStore.checkOutDate), 'EEE, MMM dd yyyy')
-		: 'N/A';
+	let invoiceData;
 
-	const paymentDate = paymentData?.payment?.created_at
-		? format(new Date(paymentData.payment.created_at), 'MMMM d, yyyy')
-		: 'N/A';
+	if (useStoreData) {
+		// Use data from store (normal flow)
+		const formattedCheckInDate = reservationDataStore?.checkInDate
+			? format(new Date(reservationDataStore.checkInDate), 'EEE, MMM dd yyyy')
+			: 'N/A';
 
-	// Prepare tents data for the InvoiceDetail component
-	const tents =
-		reservationDataStore?.selectedTents?.map((tent) => ({
-			id: tent.id,
-			name: tent.name,
-			image: tent.tent_images[0],
-			category: tent.category?.name || 'Standard',
-			capacity: tent.capacity,
-			price: tent.api_price || tent.weekend_price || 0,
-		})) || [];
+		const formattedCheckOutDate = reservationDataStore?.checkOutDate
+			? format(new Date(reservationDataStore.checkOutDate), 'EEE, MMM dd yyyy')
+			: 'N/A';
+
+		const paymentDate = paymentData?.payment?.created_at
+			? format(new Date(paymentData.payment.created_at), 'MMMM d, yyyy')
+			: 'N/A';
+
+		const tents =
+			reservationDataStore?.selectedTents?.map((tent) => ({
+				id: tent.id,
+				name: tent.name,
+				tent_images: tent.tent_images || [],
+				category: tent.category?.name || 'Standard',
+				capacity: tent.capacity,
+				price: tent.api_price || tent.weekend_price || 0,
+			})) || [];
+
+		invoiceData = {
+			bookingId,
+			paymentDate,
+			guestName: personalInfo?.name || '',
+			guestEmail: personalInfo?.email || '',
+			guestPhone: personalInfo?.phone || '',
+			guestCount: personalInfo?.guestCount || '1',
+			external: personalInfo?.external || '',
+			source: personalInfo?.source || 'Not provided',
+			checkInDate: formattedCheckInDate,
+			checkOutDate: formattedCheckOutDate,
+			tents,
+			totalPrice: reservationDataStore?.totalPrice || 0,
+		};
+	} else if (fetchedBooking) {
+		// Use data from API (fallback when store is empty)
+		const formattedCheckInDate = format(
+			new Date(fetchedBooking.start_date),
+			'EEE, MMM dd yyyy',
+		);
+		const formattedCheckOutDate = format(
+			new Date(fetchedBooking.end_date),
+			'EEE, MMM dd yyyy',
+		);
+		const paymentDate = format(
+			new Date(fetchedBooking.created_at),
+			'MMMM d, yyyy',
+		);
+
+		const tents =
+			fetchedBooking.detail_booking?.map((detail) => ({
+				id: detail.reservation.tent.id,
+				name: detail.reservation.tent.name,
+				tent_images: detail.reservation.tent.tent_images || [],
+				category: detail.reservation.tent.category?.name || 'Standard',
+				capacity: detail.reservation.tent.category?.facilities
+					? Object.keys(detail.reservation.tent.category.facilities).length
+					: 2,
+				price: detail.reservation.price,
+			})) || [];
+
+		invoiceData = {
+			bookingId,
+			paymentDate,
+			guestName: fetchedBooking.guest?.name || '',
+			guestEmail: fetchedBooking.guest?.email || '',
+			guestPhone: fetchedBooking.guest?.phone || '',
+			guestCount: fetchedBooking.guest?.guest_count?.toString() || '1',
+			external: fetchedBooking.external || 'Direct',
+			source: fetchedBooking.guest?.source || 'Not specified',
+			checkInDate: formattedCheckInDate,
+			checkOutDate: formattedCheckOutDate,
+			tents,
+			totalPrice: fetchedBooking.total_amount,
+		};
+	} else {
+		// No data available
+		return (
+			<div className='flex flex-col justify-center items-center h-screen'>
+				<h1 className='mb-4 font-bold text-red-600 text-2xl'>
+					Invoice Not Found
+				</h1>
+				<p className='mb-4 text-gray-600'>
+					Unable to load invoice data for booking ID: {bookingId}
+				</p>
+				<Button asChild>
+					<Link href='/booking-management'>Back to Bookings</Link>
+				</Button>
+			</div>
+		);
+	}
 
 	return (
 		<>
-			{showConfetti && (
+			{showConfetti && useStoreData && (
 				<Confetti
 					style={{
 						position: 'fixed',
@@ -106,20 +232,7 @@ export default function InvoicePage() {
 			)}
 
 			<div className='mx-auto my-24 px-4 container'>
-				<InvoiceDetail
-					bookingId={bookingId}
-					paymentDate={paymentDate}
-					guestName={personalInfo?.name || ''}
-					guestEmail={personalInfo?.email || ''}
-					guestPhone={personalInfo?.phone || ''}
-					guestCount={personalInfo?.guestCount || '1'}
-					external={personalInfo?.external || ''}
-					checkInDate={formattedCheckInDate}
-					checkOutDate={formattedCheckOutDate}
-					tents={tents}
-					totalPrice={reservationDataStore?.totalPrice || 0}
-					onDownload={handleDownload}
-				/>
+				<InvoiceDetail {...invoiceData} onDownload={handleDownload} />
 			</div>
 		</>
 	);

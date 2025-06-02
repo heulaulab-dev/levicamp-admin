@@ -2,7 +2,14 @@ import { create } from 'zustand';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useAuthStore } from '@/hooks/auth/useAuth';
-import { ApiResponse, Tent, TentState, TentFormData } from '@/types/tent';
+import {
+	ApiResponse,
+	Tent,
+	TentState,
+	TentFormData,
+	TentPaginationOptions,
+	TentApiResponse,
+} from '@/types/tent';
 import { AxiosError } from 'axios';
 
 // Track if we're currently fetching to prevent duplicate requests
@@ -39,7 +46,7 @@ export const useTentStore = create<TentState>((set, get) => {
 
 	// Helper function to make authenticated API requests
 	const makeAuthenticatedRequest = async <T>(
-		method: 'get' | 'put' | 'post' | 'delete',
+		method: 'get' | 'put' | 'post' | 'delete' | 'patch',
 		endpoint: string,
 		data?: unknown,
 	): Promise<T | null> => {
@@ -67,6 +74,9 @@ export const useTentStore = create<TentState>((set, get) => {
 				case 'delete':
 					response = await api.delete(endpoint, config);
 					break;
+				case 'patch':
+					response = await api.patch(endpoint, data, config);
+					break;
 			}
 
 			set({ isLoading: false });
@@ -85,6 +95,7 @@ export const useTentStore = create<TentState>((set, get) => {
 	return {
 		// State
 		tents: [],
+		pagination: null,
 		isCreateOpen: false,
 		isEditOpen: false,
 		isDeleteOpen: false,
@@ -164,7 +175,7 @@ export const useTentStore = create<TentState>((set, get) => {
 			}),
 
 		// API Actions
-		getTents: async () => {
+		getTents: async (options?: TentPaginationOptions) => {
 			// If we're already fetching, don't start another request
 			if (isFetching) {
 				return;
@@ -174,12 +185,44 @@ export const useTentStore = create<TentState>((set, get) => {
 			set({ isLoading: true });
 
 			try {
-				const response = await makeAuthenticatedRequest<ApiResponse<Tent[]>>(
-					'get',
-					'/tents',
-				);
+				// Build query parameters
+				const queryParams = new URLSearchParams();
+
+				if (options?.page) {
+					queryParams.append('page', options.page.toString());
+				}
+				if (options?.page_size) {
+					queryParams.append('page_size', options.page_size.toString());
+				}
+				if (options?.search) {
+					queryParams.append('search', options.search);
+				}
+				if (options?.status && options.status !== 'all') {
+					queryParams.append('status', options.status);
+				}
+				if (options?.category && options.category !== 'all') {
+					queryParams.append('category', options.category);
+				}
+				if (options?.sort) {
+					queryParams.append('sort', options.sort);
+				}
+				if (options?.order) {
+					queryParams.append('order', options.order);
+				}
+
+				const endpoint = `/tents${
+					queryParams.toString() ? `?${queryParams.toString()}` : ''
+				}`;
+
+				const response = await makeAuthenticatedRequest<
+					TentApiResponse<Tent[]>
+				>('get', endpoint);
+
 				if (response?.data) {
-					set({ tents: response.data });
+					set({
+						tents: response.data,
+						pagination: response.pagination || null,
+					});
 				}
 			} catch (error) {
 				console.error('Failed to fetch tents:', error);
@@ -315,6 +358,34 @@ export const useTentStore = create<TentState>((set, get) => {
 			} catch (error) {
 				console.error('Failed to delete tent:', error);
 				return { success: false, message: 'Failed to delete tent' };
+			}
+		},
+
+		updateTentStatus: async (
+			tentId: string,
+			status: 'available' | 'unavailable' | 'maintenance',
+		) => {
+			try {
+				if (!tentId) {
+					throw new Error('Tent ID is required for status update');
+				}
+
+				await makeAuthenticatedRequest('patch', `/tents/${tentId}/status`, {
+					status: status,
+				});
+
+				// Update the tent in the local state
+				const { tents } = get();
+				const updatedTents = tents.map((tent) =>
+					tent.id === tentId ? { ...tent, status: status } : tent,
+				);
+				set({ tents: updatedTents });
+
+				toast.success(`Tent status updated to ${status}`);
+				return { success: true, message: 'Tent status updated successfully' };
+			} catch (error) {
+				console.error('Failed to update tent status:', error);
+				return { success: false, message: 'Failed to update tent status' };
 			}
 		},
 	};

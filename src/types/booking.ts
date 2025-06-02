@@ -2,9 +2,11 @@
 export type Guest = {
 	id: string;
 	name: string;
-	email: string;
+	email?: string;
 	phone: string;
 	address: string;
+	guest_count: number;
+	source: string;
 	created_at: string;
 	updated_at: string;
 };
@@ -27,7 +29,7 @@ export type TentCategory = {
 export type Tent = {
 	id: string;
 	name: string;
-	tent_image: string;
+	tent_images: string[];
 	description: string;
 	facilities: string[];
 	category_id: string;
@@ -35,6 +37,7 @@ export type Tent = {
 	status: string;
 	weekday_price: number;
 	weekend_price: number;
+	capacity: number;
 	created_at: string;
 	updated_at: string;
 };
@@ -75,6 +78,8 @@ export type Booking = {
 	end_date: string;
 	status: string;
 	detail_booking: DetailBooking[];
+	is_external: boolean;
+	external: string;
 	created_at: string;
 	updated_at: string;
 };
