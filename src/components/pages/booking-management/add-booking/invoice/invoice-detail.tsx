@@ -9,16 +9,17 @@ export interface InvoiceDetailProps {
 	bookingId: string;
 	paymentDate: string;
 	guestName: string;
-	guestEmail: string;
+	guestEmail?: string;
 	guestPhone: string;
 	guestCount: string;
 	external: string;
+	source: string;
 	checkInDate: string;
 	checkOutDate: string;
 	tents: Array<{
 		id: string;
 		name: string;
-		image: string;
+		tent_images: Array<string>;
 		category: string;
 		capacity: number;
 		price: number;
@@ -36,6 +37,7 @@ export default function InvoiceDetail({
 	guestPhone,
 	guestCount,
 	external,
+	source,
 	checkInDate,
 	checkOutDate,
 	tents = [],
@@ -85,7 +87,9 @@ export default function InvoiceDetail({
 						<div className='text-primary text-right'>{guestName}</div>
 
 						<div className='text-muted-foreground'>Guest Email</div>
-						<div className='text-primary text-right'>{guestEmail}</div>
+						<div className='text-primary text-right'>
+							{guestEmail || 'Not provided'}
+						</div>
 
 						<div className='text-muted-foreground'>Guest Phone</div>
 						<div className='text-primary text-right'>{guestPhone}</div>
@@ -95,6 +99,9 @@ export default function InvoiceDetail({
 
 						<div className='text-muted-foreground'>Booking From</div>
 						<div className='text-primary text-right'>{external}</div>
+
+						<div className='text-muted-foreground'>Source</div>
+						<div className='text-primary text-right'>{source}</div>
 					</div>
 				</section>
 
@@ -108,7 +115,7 @@ export default function InvoiceDetail({
 							<div className='flex gap-4'>
 								<div className='relative rounded-md w-28 h-20 overflow-hidden'>
 									<Image
-										src={'/tent-image.jpg'}
+										src={tent.tent_images?.[0] || '/tent-image.jpg'}
 										alt={tent.name}
 										fill
 										className='object-cover'

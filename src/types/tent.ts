@@ -1,6 +1,7 @@
 export interface TentState {
 	// State
 	tents: Tent[];
+	pagination: TentPagination | null;
 	isCreateOpen: boolean;
 	isEditOpen: boolean;
 	isDeleteOpen: boolean;
@@ -17,7 +18,7 @@ export interface TentState {
 	resetForm: () => void;
 
 	// API Actions
-	getTents: (force?: boolean) => Promise<void>;
+	getTents: (options?: TentPaginationOptions) => Promise<void>;
 	getTentDetails: (tentId: string) => Promise<Tent | null>;
 	createTent: () => Promise<{
 		success: boolean;
@@ -29,6 +30,10 @@ export interface TentState {
 	) => Promise<{ success: boolean; message: string }>;
 	deleteTent: (
 		tentId: string,
+	) => Promise<{ success: boolean; message: string }>;
+	updateTentStatus: (
+		tentId: string,
+		status: 'available' | 'unavailable' | 'maintenance',
 	) => Promise<{ success: boolean; message: string }>;
 }
 
@@ -87,7 +92,7 @@ export interface Tents {
 	facilities: string[];
 	category_id: string;
 	category: TentCategory;
-	status: 'available' | 'unavailable';
+	status: 'available' | 'unavailable' | 'maintenance';
 	weekday_price: number;
 	weekend_price: number;
 	created_at: string;
@@ -103,4 +108,28 @@ export interface ApiResponse<T> {
 	status: number;
 	message: string;
 	data: T;
+}
+
+export interface TentPagination {
+	currentPage: number;
+	totalPages: number;
+	totalItems: number;
+	itemsPerPage: number;
+}
+
+export interface TentPaginationOptions {
+	page?: number;
+	page_size?: number;
+	search?: string;
+	status?: string;
+	category?: string;
+	sort?: string;
+	order?: 'asc' | 'desc';
+}
+
+export interface TentApiResponse<T> {
+	status: number;
+	message: string;
+	data: T;
+	pagination?: TentPagination;
 }
