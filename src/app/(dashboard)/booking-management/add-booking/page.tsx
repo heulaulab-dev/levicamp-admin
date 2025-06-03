@@ -179,7 +179,7 @@ export default function AddBookingPage() {
 			const reservationRequest = {
 				name: personalInfo.name,
 				email: personalInfo.email,
-				phone: personalInfo.phone,
+				phone: `+62${personalInfo.phone}`,
 				address: personalInfo.address,
 				external: personalInfo.external,
 				guest_count: guestCount,

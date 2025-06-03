@@ -209,15 +209,33 @@ export function EditAdminForm() {
 								<FormItem>
 									<FormLabel>Phone Number</FormLabel>
 									<FormControl>
-										<Input
-											autoComplete='off'
-											placeholder='+1234567890'
-											{...field}
-											onChange={(e: ChangeEvent<HTMLInputElement>) => {
-												field.onChange(e);
-												handleFormChange('phone', e.target.value);
-											}}
-										/>
+										<div className='flex shadow-black/5 shadow-xs rounded-lg'>
+											<span className='inline-flex items-center bg-background px-3 border border-input rounded-s-lg text-muted-foreground text-sm'>
+												+62
+											</span>
+											<Input
+												autoComplete='off'
+												className='z-10 shadow-none -ms-px rounded-s-none'
+												placeholder='Input your phone number'
+												{...field}
+												onChange={(e: ChangeEvent<HTMLInputElement>) => {
+													// Remove +62 prefix if user accidentally includes it
+													let value = e.target.value;
+													if (value.startsWith('+62')) {
+														value = value.slice(3);
+													} else if (value.startsWith('62')) {
+														value = value.slice(2);
+													} else if (value.startsWith('0')) {
+														value = value.slice(1);
+													}
+													// Only allow numbers
+													value = value.replace(/\D/g, '');
+
+													field.onChange(value);
+													handleFormChange('phone', value);
+												}}
+											/>
+										</div>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
