@@ -199,8 +199,20 @@ export function AddAdminForm() {
 												placeholder='Input your phone number'
 												{...field}
 												onChange={(e: ChangeEvent<HTMLInputElement>) => {
-													field.onChange(e);
-													handleFormChange('phone', e.target.value);
+													// Remove +62 prefix if user accidentally includes it
+													let value = e.target.value;
+													if (value.startsWith('+62')) {
+														value = value.slice(3);
+													} else if (value.startsWith('62')) {
+														value = value.slice(2);
+													} else if (value.startsWith('0')) {
+														value = value.slice(1);
+													}
+													// Only allow numbers
+													value = value.replace(/\D/g, '');
+
+													field.onChange(value);
+													handleFormChange('phone', value);
 												}}
 											/>
 										</div>

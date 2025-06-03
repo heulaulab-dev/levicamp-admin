@@ -125,7 +125,13 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 		try {
 			const { formData } = get();
 
-			const { data } = await api.post('/admins', formData, {
+			// Add +62 prefix to phone number before sending to API
+			const dataToSend = {
+				...formData,
+				phone: `+62${formData.phone}`,
+			};
+
+			const { data } = await api.post('/admins', dataToSend, {
 				headers: {
 					Authorization: `Bearer ${currentToken}`,
 				},
@@ -166,7 +172,13 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 		}
 
 		try {
-			const { data } = await api.put(`/admins/${idToUse}`, formData, {
+			// Add +62 prefix to phone number before sending to API
+			const dataToSend = {
+				...formData,
+				phone: `+62${formData.phone}`,
+			};
+
+			const { data } = await api.put(`/admins/${idToUse}`, dataToSend, {
 				headers: {
 					Authorization: `Bearer ${currentToken}`,
 				},

@@ -1,9 +1,12 @@
 import { CopyIcon, Download } from 'lucide-react';
 import Image from 'next/image';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { downloadInvoice, triggerFileDownload } from '@/lib/api';
 
 export interface InvoiceDetailProps {
 	bookingId: string;
@@ -42,11 +45,38 @@ export default function InvoiceDetail({
 	checkOutDate,
 	tents = [],
 	totalPrice = 0,
-	onDownload = () => alert('Download functionality will be implemented here'),
+	onDownload,
 	onContactUs = () => (window.location.href = 'mailto:support@levicamp.com'),
 }: InvoiceDetailProps) {
+	const [isDownloading, setIsDownloading] = useState(false);
 	const bookingCode = bookingId;
 	const subtotal = tents.reduce((sum, tent) => sum + tent.price, 0);
+
+	const handleDownload = async () => {
+		if (onDownload) {
+			onDownload();
+			return;
+		}
+
+		setIsDownloading(true);
+		try {
+			toast.info('Preparing invoice for download...');
+			const blob = await downloadInvoice(bookingId);
+			const filename = `invoice-${bookingCode}.pdf`;
+			triggerFileDownload(blob, filename);
+			toast.success('Invoice downloaded successfully!');
+		} catch (error) {
+			console.error('Download failed:', error);
+			toast.error('Failed to download invoice. Please try again.');
+		} finally {
+			setIsDownloading(false);
+		}
+	};
+
+	const handleCopyBookingCode = () => {
+		navigator.clipboard.writeText(bookingCode);
+		toast.success('Booking code copied to clipboard!');
+	};
 
 	return (
 		<Card className='shadow-sm m-10 mx-auto w-full max-w-4xl'>
@@ -57,7 +87,11 @@ export default function InvoiceDetail({
 							<h1 className='font-semibold text-xl'>Your Invoice</h1>
 							<div className='flex items-center gap-1 font-medium text-primary'>
 								#{bookingCode}
-								<button className='text-gray-400 hover:text-gray-600'>
+								<button
+									className='text-gray-400 hover:text-gray-600 transition-colors'
+									onClick={handleCopyBookingCode}
+									title='Copy booking code'
+								>
 									<CopyIcon size={16} />
 								</button>
 							</div>
@@ -67,8 +101,13 @@ export default function InvoiceDetail({
 							download or screenshot this page for quick access.
 						</p>
 					</div>
-					<Button onClick={onDownload} className='w-full md:w-auto'>
-						<Download className='mr-2 w-4 h-4' /> Download Invoice
+					<Button
+						onClick={handleDownload}
+						className='w-full md:w-auto'
+						disabled={isDownloading}
+					>
+						<Download className='mr-2 w-4 h-4' />
+						{isDownloading ? 'Downloading...' : 'Download Invoice'}
 					</Button>
 				</div>
 
@@ -92,7 +131,9 @@ export default function InvoiceDetail({
 						</div>
 
 						<div className='text-muted-foreground'>Guest Phone</div>
-						<div className='text-primary text-right'>{guestPhone}</div>
+						<div className='text-primary text-right'>
+							{guestPhone.startsWith('+62') ? guestPhone : `+62${guestPhone}`}
+						</div>
 
 						<div className='text-muted-foreground'>Total Guests</div>
 						<div className='text-primary text-right'>{guestCount} Guests</div>

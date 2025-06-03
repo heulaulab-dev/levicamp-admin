@@ -145,7 +145,7 @@ export default function InvoicePage() {
 			paymentDate,
 			guestName: personalInfo?.name || '',
 			guestEmail: personalInfo?.email || '',
-			guestPhone: personalInfo?.phone || '',
+			guestPhone: personalInfo?.phone ? `+62${personalInfo.phone}` : '',
 			guestCount: personalInfo?.guestCount || '1',
 			external: personalInfo?.external || '',
 			source: personalInfo?.source || 'Not provided',
@@ -186,7 +186,11 @@ export default function InvoicePage() {
 			paymentDate,
 			guestName: fetchedBooking.guest?.name || '',
 			guestEmail: fetchedBooking.guest?.email || '',
-			guestPhone: fetchedBooking.guest?.phone || '',
+			guestPhone: fetchedBooking.guest?.phone
+				? fetchedBooking.guest.phone.startsWith('+62')
+					? fetchedBooking.guest.phone
+					: `+62${fetchedBooking.guest.phone}`
+				: '',
 			guestCount: fetchedBooking.guest?.guest_count?.toString() || '1',
 			external: fetchedBooking.external || 'Direct',
 			source: fetchedBooking.guest?.source || 'Not specified',
