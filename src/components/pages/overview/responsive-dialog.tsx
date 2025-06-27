@@ -123,7 +123,9 @@ export function ResponsiveDialog({ booking, children, type }: DialogProps) {
 					: 'Cancel Booking',
 			description:
 				type === 'checkin'
-					? `Are you sure you want to check in ${booking.guest.name}?`
+					? `Are you sure you want to check in ${
+							booking.guest?.name || 'this guest'
+					  }?`
 					: type === 'modify'
 					? 'Update the booking details below.'
 					: `Are you sure you want to cancel booking ${booking.id}?`,
@@ -153,11 +155,16 @@ export function ResponsiveDialog({ booking, children, type }: DialogProps) {
 							<div className='gap-2 grid'>
 								<div>
 									<p className='mb-2 font-medium'>Booking Details</p>
-									<p>Guest: {booking.guest.name}</p>
-									<p>Phone: {booking.guest.phone}</p>
+									<p>Guest: {booking.guest?.name || 'N/A'}</p>
+									<p>Phone: {booking.guest?.phone || 'N/A'}</p>
 									<p>
-										Tent: {booking.detail_booking[0]?.reservation.tent.name} (
-										{booking.detail_booking[0]?.reservation.tent.category.name})
+										Tent:{' '}
+										{booking.detail_booking?.[0]?.reservation?.tent?.name ||
+											'N/A'}{' '}
+										(
+										{booking.detail_booking?.[0]?.reservation?.tent?.category
+											?.name || 'N/A'}
+										)
 									</p>
 									<p>
 										Dates: {new Date(booking.start_date).toLocaleDateString()} -{' '}
@@ -244,11 +251,16 @@ export function ResponsiveDialog({ booking, children, type }: DialogProps) {
 						<div className='gap-2 grid'>
 							<div>
 								<p className='mb-2 font-medium'>Booking Details</p>
-								<p>Guest: {booking.guest.name}</p>
-								<p>Phone: {booking.guest.phone}</p>
+								<p>Guest: {booking.guest?.name || 'N/A'}</p>
+								<p>Phone: {booking.guest?.phone || 'N/A'}</p>
 								<p>
-									Tent: {booking.detail_booking[0]?.reservation.tent.name} (
-									{booking.detail_booking[0]?.reservation.tent.category.name})
+									Tent:{' '}
+									{booking.detail_booking?.[0]?.reservation?.tent?.name ||
+										'N/A'}{' '}
+									(
+									{booking.detail_booking?.[0]?.reservation?.tent?.category
+										?.name || 'N/A'}
+									)
 								</p>
 								<p>
 									Dates: {new Date(booking.start_date).toLocaleDateString()} -{' '}

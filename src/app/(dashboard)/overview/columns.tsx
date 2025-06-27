@@ -63,10 +63,11 @@ export const columns: ColumnDef<Booking>[] = [
 			return (
 				<div>
 					<div className='font-medium'>
-						{booking.detail_booking[0]?.reservation.tent.name}
+						{booking.detail_booking?.[0]?.reservation?.tent?.name || 'N/A'}
 					</div>
 					<div className='text-muted-foreground text-sm'>
-						{booking.detail_booking[0]?.reservation.tent.category.name}
+						{booking.detail_booking?.[0]?.reservation?.tent?.category?.name ||
+							'N/A'}
 					</div>
 				</div>
 			);
@@ -81,9 +82,9 @@ export const columns: ColumnDef<Booking>[] = [
 			const booking = row.original;
 			return (
 				<div>
-					<div className='font-medium'>{booking.guest.name}</div>
+					<div className='font-medium'>{booking.guest?.name || 'N/A'}</div>
 					<div className='text-muted-foreground text-sm'>
-						{booking.guest.phone}
+						{booking.guest?.phone || 'N/A'}
 					</div>
 				</div>
 			);

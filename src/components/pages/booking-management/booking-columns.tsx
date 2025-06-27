@@ -61,9 +61,9 @@ export const columns: ColumnDef<Booking>[] = [
 		accessorKey: 'guest',
 		cell: ({ row }) => (
 			<div>
-				<h1 className='font-medium'>{row.original.guest.name}</h1>
+				<h1 className='font-medium'>{row.original.guest?.name || 'N/A'}</h1>
 				<p className='text-muted-foreground text-sm'>
-					{row.original.guest.phone}
+					{row.original.guest?.phone || 'N/A'}
 				</p>
 			</div>
 		),
@@ -74,7 +74,7 @@ export const columns: ColumnDef<Booking>[] = [
 		cell: ({ row }) => (
 			<div className='text-center'>
 				<span className='inline-flex items-center bg-blue-100 px-2.5 py-0.5 rounded-full font-medium text-blue-800 text-xs'>
-					{row.original.guest.guest_count}
+					{row.original.guest?.guest_count || 0}
 				</span>
 			</div>
 		),
@@ -85,7 +85,7 @@ export const columns: ColumnDef<Booking>[] = [
 		cell: ({ row }) => (
 			<div>
 				<span className='inline-flex items-center bg-green-100 px-2.5 py-0.5 rounded-full font-medium text-green-800 text-xs'>
-					{row.original.guest.source}
+					{row.original.guest?.source || 'N/A'}
 				</span>
 			</div>
 		),
@@ -94,8 +94,10 @@ export const columns: ColumnDef<Booking>[] = [
 		header: 'Tent',
 		accessorKey: 'tent',
 		cell: ({ row }) => {
-			const bookings = row.original.detail_booking;
-			const tentNames = bookings.map((b) => b.reservation.tent.name);
+			const bookings = row.original.detail_booking || [];
+			const tentNames = bookings
+				.map((b) => b.reservation?.tent?.name || 'N/A')
+				.filter((name) => name !== 'N/A');
 
 			return (
 				<div className='flex flex-wrap gap-1'>

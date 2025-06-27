@@ -41,6 +41,10 @@ export const columns: ColumnDef<Booking>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Guest Name' />
 		),
+		cell: ({ row }) => {
+			const guest = row.original.guest;
+			return <div className='font-medium'>{guest?.name || 'N/A'}</div>;
+		},
 	},
 	{
 		accessorKey: 'total_amount',

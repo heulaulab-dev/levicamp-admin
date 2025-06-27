@@ -69,15 +69,18 @@ export function BookingDetailsModal({
 						</CardTitle>
 					</CardHeader>
 					<CardContent className='space-y-2'>
-						<DetailRow label='Name' value={booking.guest.name} />
-						<DetailRow label='Phone' value={booking.guest.phone} />
-						<DetailRow label='Email' value={booking.guest.email} />
-						<DetailRow label='Address' value={booking.guest.address} />
+						<DetailRow label='Name' value={booking.guest?.name || 'N/A'} />
+						<DetailRow label='Phone' value={booking.guest?.phone || 'N/A'} />
+						<DetailRow label='Email' value={booking.guest?.email || 'N/A'} />
+						<DetailRow
+							label='Address'
+							value={booking.guest?.address || 'N/A'}
+						/>
 						<DetailRow
 							label='Guest Count'
-							value={`${booking.guest.guest_count} guests`}
+							value={`${booking.guest?.guest_count || 0} guests`}
 						/>
-						<DetailRow label='Source' value={booking.guest.source} />
+						<DetailRow label='Source' value={booking.guest?.source || 'N/A'} />
 					</CardContent>
 				</Card>
 
@@ -161,23 +164,25 @@ export function BookingDetailsModal({
 							<div className='space-y-2'>
 								<DetailRow
 									label='Tent Name'
-									value={detail.reservation.tent.name}
+									value={detail.reservation?.tent?.name || 'N/A'}
 								/>
 								<DetailRow
 									label='Category'
-									value={detail.reservation.tent.category.name}
+									value={detail.reservation?.tent?.category?.name || 'N/A'}
 								/>
 								<DetailRow
 									label='Price'
 									value={new Intl.NumberFormat('id-ID', {
 										style: 'currency',
 										currency: 'IDR',
-									}).format(detail.reservation.price)}
+									}).format(detail.reservation?.price || 0)}
 								/>
 								<DetailRow
 									label='Status'
 									value={
-										<Badge variant='outline'>{detail.reservation.status}</Badge>
+										<Badge variant='outline'>
+											{detail.reservation?.status || 'N/A'}
+										</Badge>
 									}
 								/>
 								{detail.reservation.tent.facilities?.length > 0 && (
