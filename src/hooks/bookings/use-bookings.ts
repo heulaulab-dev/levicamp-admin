@@ -8,6 +8,7 @@ import {
 	BookingState,
 	UpdateBookingRequest,
 	UpdateAddonsRequest,
+	UpdateBookingStatusRequest,
 	PaginationOptions,
 } from '@/types/booking';
 import { AxiosError } from 'axios';
@@ -177,10 +178,52 @@ export const useBookings = create<BookingState>((set, get) => {
 
 		// Update a booking by ID
 		updateBooking: async (id: string, data: UpdateBookingRequest) => {
+			// Get the current booking to provide required fields if needed
+			let currentBooking =
+				get().bookings.find((booking) => booking.id === id) ||
+				get().selectedBooking;
+
+			console.log('updateBooking - Input data:', data);
+			console.log('updateBooking - Current booking found:', currentBooking);
+
+			if (!currentBooking) {
+				console.log('updateBooking - No booking found, fetching from API...');
+				// Try to fetch the booking from API if not in store
+				const apiBooking = await makeAuthenticatedRequest<BookingResponse>(
+					'get',
+					`/bookings/${id}`,
+				);
+
+				if (!apiBooking?.data) {
+					toast.error('Booking not found');
+					return null;
+				}
+
+				// Update the booking in store and use it
+				set({ selectedBooking: apiBooking.data });
+				currentBooking = apiBooking.data;
+			}
+
+			// Helper function to format date to YYYY-MM-DD
+			const formatDate = (dateString: string) => {
+				return dateString.split('T')[0];
+			};
+
+			// Create update data - API requires these fields, so provide current values if not being updated
+			const updateData: UpdateBookingRequest = {
+				...data,
+				// Always include required fields with current values if not being updated
+				start_date: data.start_date || formatDate(currentBooking.start_date),
+				end_date: data.end_date || formatDate(currentBooking.end_date),
+				total_amount: data.total_amount || currentBooking.total_amount,
+			};
+
+			console.log('updateBooking - Final payload:', updateData);
+
 			const response = await makeAuthenticatedRequest<BookingResponse>(
 				'put',
 				`/bookings/${id}`,
-				data,
+				updateData,
 			);
 
 			if (response && response.data) {
@@ -275,6 +318,37 @@ export const useBookings = create<BookingState>((set, get) => {
 				set({ bookings: updatedBookings });
 
 				toast.success('Booking checked out successfully');
+				return response.data;
+			}
+
+			return null;
+		},
+
+		// Cancel a booking by updating its status
+		cancelBooking: async (id: string, status: string) => {
+			const requestData: UpdateBookingStatusRequest = {
+				status,
+			};
+
+			const response = await makeAuthenticatedRequest<BookingResponse>(
+				'post',
+				`/bookings/${id}/status`,
+				requestData,
+			);
+
+			if (response && response.data) {
+				// Update the selected booking
+				set({ selectedBooking: response.data });
+
+				// Also update this booking in the bookings list if it exists there
+				const { bookings } = get();
+				const updatedBookings = bookings.map((booking) =>
+					booking.id === id ? response.data : booking,
+				);
+
+				set({ bookings: updatedBookings });
+
+				toast.success(`Booking status updated to ${status} successfully`);
 				return response.data;
 			}
 

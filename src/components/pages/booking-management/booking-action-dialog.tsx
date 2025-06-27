@@ -59,13 +59,14 @@ export function BookingActionDialog({
 	const isDesktop = useMediaQuery('(min-width: 768px)');
 	const [status, setStatus] = useState(booking.status);
 	const [totalAmount, setTotalAmount] = useState(
-		booking.total_amount.toString(),
+		(booking.total_amount || 0).toString(),
 	);
-	const [startDate, setStartDate] = useState(booking.start_date);
-	const [endDate, setEndDate] = useState(booking.end_date);
+	const [startDate, setStartDate] = useState(booking.start_date || '');
+	const [endDate, setEndDate] = useState(booking.end_date || '');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const { updateBooking, checkInBooking, checkOutBooking } = useBookings();
+	const { updateBooking, checkInBooking, checkOutBooking, cancelBooking } =
+		useBookings();
 
 	const handleAction = async () => {
 		setIsSubmitting(true);
@@ -114,7 +115,7 @@ export function BookingActionDialog({
 					break;
 				}
 				case 'cancel':
-					await updateBooking(booking.id, { status: 'cancelled' });
+					await cancelBooking(booking.id, 'cancelled');
 					break;
 				case 'addons':
 					// This would be implemented in a separate component for addon management
@@ -161,8 +162,12 @@ export function BookingActionDialog({
 		};
 
 		const descriptions = {
-			checkin: `Are you sure you want to check in ${booking.guest.name}?`,
-			checkout: `Are you sure you want to check out ${booking.guest.name}?`,
+			checkin: `Are you sure you want to check in ${
+				booking.guest?.name || 'this guest'
+			}?`,
+			checkout: `Are you sure you want to check out ${
+				booking.guest?.name || 'this guest'
+			}?`,
 			modify: 'Update the booking details below.',
 			cancel: `Are you sure you want to cancel booking ${booking.id}?`,
 			addons: 'Manage additional items for this booking.',
@@ -191,13 +196,16 @@ export function BookingActionDialog({
 			<div className='gap-2 grid'>
 				<div>
 					<p className='mb-2 font-medium'>Booking Details</p>
-					<p>Guest: {booking.guest.name}</p>
-					<p>Phone: {booking.guest.phone}</p>
-					<p>Guest Count: {booking.guest.guest_count} guests</p>
-					<p>Source: {booking.guest.source}</p>
+					<p>Guest: {booking.guest?.name || 'N/A'}</p>
+					<p>Phone: {booking.guest?.phone || 'N/A'}</p>
+					<p>Guest Count: {booking.guest?.guest_count || 0} guests</p>
+					<p>Source: {booking.guest?.source || 'N/A'}</p>
 					<p>
-						Tent: {booking.detail_booking[0]?.reservation.tent.name} (
-						{booking.detail_booking[0]?.reservation.tent.category.name})
+						Tent:{' '}
+						{booking.detail_booking?.[0]?.reservation?.tent?.name || 'N/A'} (
+						{booking.detail_booking?.[0]?.reservation?.tent?.category?.name ||
+							'N/A'}
+						)
 					</p>
 				</div>
 
@@ -208,7 +216,7 @@ export function BookingActionDialog({
 							<Input
 								id='start-date'
 								type='date'
-								value={startDate.split('T')[0]}
+								value={startDate ? startDate.split('T')[0] : ''}
 								onChange={(e) => setStartDate(e.target.value)}
 							/>
 						</div>
@@ -218,7 +226,7 @@ export function BookingActionDialog({
 							<Input
 								id='end-date'
 								type='date'
-								value={endDate.split('T')[0]}
+								value={endDate ? endDate.split('T')[0] : ''}
 								onChange={(e) => setEndDate(e.target.value)}
 							/>
 						</div>
@@ -255,9 +263,20 @@ export function BookingActionDialog({
 		</div>
 	);
 
+	const renderCancelContent = () => (
+		<div className='gap-4 grid py-4'>
+			<div className='space-y-2'>
+				<p className='text-muted-foreground text-sm'>
+					This booking will be marked as cancelled and cannot be undone.
+				</p>
+			</div>
+		</div>
+	);
+
 	const content = (
 		<>
 			{type === 'modify' && renderModifyContent()}
+			{type === 'cancel' && renderCancelContent()}
 
 			{/* Add other specific form content for addons or other types here */}
 		</>

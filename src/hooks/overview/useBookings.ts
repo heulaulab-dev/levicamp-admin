@@ -5,9 +5,9 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/hooks/auth/useAuth';
 import {
 	BookingState,
-	Booking,
 	AddOn,
 	PaginationOptions,
+	UpdateBookingRequest,
 } from '@/types/booking';
 
 // Track if we're currently fetching to prevent duplicate requests
@@ -88,7 +88,7 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 
 	// Helper function to make authenticated API calls
 	const makeAuthenticatedRequest = async (
-		method: 'get' | 'put' | 'patch',
+		method: 'get' | 'put' | 'patch' | 'post',
 		endpoint: string,
 		data?: any,
 	) => {
@@ -105,7 +105,9 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 				? api.get(endpoint, config)
 				: method === 'put'
 				? api.put(endpoint, data, config)
-				: api.patch(endpoint, data, config));
+				: method === 'patch'
+				? api.patch(endpoint, data, config)
+				: api.post(endpoint, data, config));
 
 			set({ isLoading: false });
 			return response.data;
@@ -142,25 +144,52 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 		},
 
 		// Update a booking
-		updateBooking: async (id: string, data: Partial<Booking>) => {
-			// Get the current booking to preserve existing data
-			const currentBooking = get().bookings.find(
-				(booking) => booking.id === id,
+		updateBooking: async (id: string, data: UpdateBookingRequest) => {
+			console.log('Overview updateBooking - Input data:', data);
+
+			// Get the current booking to provide required fields if needed
+			let currentBooking = get().bookings.find((booking) => booking.id === id);
+
+			console.log(
+				'Overview updateBooking - Current booking found:',
+				currentBooking,
 			);
 
 			if (!currentBooking) {
-				toast.error('Booking not found');
-				return null;
+				console.log(
+					'Overview updateBooking - No booking found, fetching from API...',
+				);
+				// Try to fetch the booking from API if not in store
+				const apiResponse = await makeAuthenticatedRequest(
+					'get',
+					`/bookings/${id}`,
+				);
+
+				if (!apiResponse?.data) {
+					toast.error('Booking not found');
+					return null;
+				}
+
+				// Update the booking in store and use it
+				set({ selectedBooking: apiResponse.data });
+				currentBooking = apiResponse.data;
 			}
 
-			// Create update data with formatted dates
+			// Create update data - API requires these fields, so provide current values if not being updated
 			const { start_date, end_date, ...otherData } = data;
-			const updateData = {
+			const updateData: any = {
 				...otherData,
-				start_date: formatDate(start_date || currentBooking.start_date),
-				end_date: formatDate(end_date || currentBooking.end_date),
-				total_amount: data.total_amount || currentBooking.total_amount,
+				// Always include required fields with current values if not being updated
+				start_date: start_date
+					? formatDate(start_date)
+					: formatDate(currentBooking!.start_date),
+				end_date: end_date
+					? formatDate(end_date)
+					: formatDate(currentBooking!.end_date),
+				total_amount: data.total_amount || currentBooking!.total_amount,
 			};
+
+			console.log('Overview updateBooking - Final payload:', updateData);
 
 			const response = await makeAuthenticatedRequest(
 				'put',
@@ -229,6 +258,26 @@ export const useBookingsStore = create<BookingState>((set, get) => {
 			if (response) {
 				await fetchBookings();
 				toast.success('Guest checked out successfully');
+				return response.data;
+			}
+			return null;
+		},
+
+		// Cancel a booking by updating its status
+		cancelBooking: async (id: string, status: string) => {
+			const requestData = {
+				status,
+			};
+
+			const response = await makeAuthenticatedRequest(
+				'post',
+				`/bookings/${id}/status`,
+				requestData,
+			);
+
+			if (response) {
+				await fetchBookings();
+				toast.success(`Booking status updated to ${status} successfully`);
 				return response.data;
 			}
 			return null;
