@@ -116,6 +116,11 @@ export type UpdateBookingRequest = {
 	status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
 };
 
+// Request type for updating booking status
+export type UpdateBookingStatusRequest = {
+	status: string;
+};
+
 export type UpdateAddonsRequest = AddOn[];
 
 // Pagination options for API requests
@@ -150,6 +155,7 @@ export type BookingState = {
 	) => Promise<Booking | null>;
 	checkInBooking: (id: string) => Promise<Booking | null>;
 	checkOutBooking: (id: string) => Promise<Booking | null>;
+	cancelBooking: (id: string, status: string) => Promise<Booking | null>;
 	resetBookings: () => void;
 };
 
