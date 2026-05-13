@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	login: async (data) => {
 		set({ isLoading: true });
 		try {
-			const res = await api.post('/login', data);
+			const res = await api.post('/auth/login', data);
 
 			const { data: responseData } = res.data;
 			const { token, refresh_token } = responseData;
@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				return false;
 			}
 
-			const response = await api.get('/me', {
+			const response = await api.get('/auth/me', {
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},
@@ -151,7 +151,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		set({ user: null, token: null, refreshToken: null });
 		try {
 			await api.post(
-				'/logout',
+				'/auth/logout',
 				{},
 				{
 					headers: {
@@ -209,7 +209,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 		try {
 			const response = await api.post(
-				'/check-token',
+				'/auth/check-token',
 				{},
 				{
 					headers: {
