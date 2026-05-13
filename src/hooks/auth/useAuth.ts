@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 
 type User = {
+	id: string;
 	username: string;
 	name: string;
 	phone: string;
@@ -110,10 +111,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			if (responseData) {
 				const userData: User = {
-					username: responseData.data.username,
-					name: responseData.data.name,
-					phone: responseData.data.phone,
-					email: responseData.data.email,
+					id: responseData.data.ID,
+					username: responseData.data.Username,
+					name: responseData.data.Name,
+					phone: responseData.data.Phone,
+					email: responseData.data.Email,
 				};
 
 				set({ user: userData });
