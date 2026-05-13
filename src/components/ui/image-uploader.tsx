@@ -196,7 +196,7 @@ export function ImageUploader({
 					<button
 						type='button'
 						onClick={handleCancel}
-						className='top-1 right-1 absolute bg-background/80 p-1 rounded-full'
+						className='top-1 right-1 absolute bg-background/80 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full'
 					>
 						<X className='w-4 h-4' />
 					</button>

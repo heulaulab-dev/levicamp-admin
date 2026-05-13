@@ -71,13 +71,19 @@ export default function SummaryTent({
 					);
 
 					if (data !== null && data.data) {
-						setTotalPrice(data.data.total_price);
+						setTotalPrice(data.data.TotalPrice);
 						const priceMap: Record<string, number> = {};
 						const categoryMap: Record<string, string> = {};
 						const capacityMap: Record<string, string> = {};
 						const loadingMap: Record<string, boolean> = {};
 
-						data.data.tents.forEach(
+						const tents = data?.data?.Tents || [];
+
+						if (!Array.isArray(tents)) {
+							throw new Error('Invalid data format: Tents should be an array');
+						}
+
+						tents.forEach(
 							(t: {
 								id: string;
 								price: number;

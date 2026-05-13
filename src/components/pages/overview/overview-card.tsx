@@ -40,7 +40,7 @@ export function OverviewCard({
 				</TooltipProvider>
 			</CardHeader>
 			<CardContent>
-				<div className='font-bold text-2xl'>{amount}</div>
+				<div className='font-bold text-2xl tabular-nums'>{amount}</div>
 				<p className='text-muted-foreground text-xs'>{percentage}</p>
 			</CardContent>
 		</Card>
