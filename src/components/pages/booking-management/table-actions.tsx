@@ -15,7 +15,7 @@ export default function TableActions({ booking }: { booking: Booking }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant='ghost' className='p-0 w-8 h-8'>
+				<Button variant='ghost' className='p-0 min-h-[44px] min-w-[44px] w-8 h-8'>
 					<span className='sr-only'>Open menu</span>
 					<MoreHorizontal className='w-4 h-4' />
 				</Button>
