@@ -75,73 +75,82 @@ export default function CalendarManagementPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold">Calendar Management</h1>
-        <p className="text-muted-foreground">
-          Manage tent availability and block dates for maintenance or events
-        </p>
-      </div>
+		<div className='space-y-6 p-6'>
+			<div>
+				<h1 className='font-bold text-3xl'>Calendar Management</h1>
+				<p className='text-muted-foreground'>
+					Manage tent availability and block dates for maintenance or events
+				</p>
+			</div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Block Dates</h2>
-          <AvailabilityCalendar
-            selected={selectedDates}
-            onSelect={setSelectedDates}
-          />
+			<div className='gap-6 grid grid-cols-1 lg:grid-cols-2'>
+				<div className='space-y-4'>
+					<h2 className='font-semibold text-lg'>Block Dates</h2>
+					<AvailabilityCalendar
+						selected={selectedDates}
+						onSelect={setSelectedDates}
+					/>
 
-          <div className="space-y-2">
-            <Select value={tentId} onValueChange={setTentId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select tent" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="placeholder" disabled>Select a tent</SelectItem>
-              </SelectContent>
-            </Select>
+					<div className='space-y-2'>
+						<Select value={tentId} onValueChange={setTentId}>
+							<SelectTrigger>
+								<SelectValue placeholder='Select tent' />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='placeholder' disabled>
+									Select a tent
+								</SelectItem>
+							</SelectContent>
+						</Select>
 
-            <Input
-              placeholder="Reason (e.g., Maintenance)"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            />
+						<Input
+							placeholder='Reason (e.g., Maintenance)'
+							value={reason}
+							onChange={(e) => setReason(e.target.value)}
+						/>
 
-            <Button onClick={handleCreateBlock} className="w-full">
-              Create Block
-            </Button>
-          </div>
-        </div>
+						<Button onClick={handleCreateBlock} className='w-full'>
+							Create Block
+						</Button>
+					</div>
+				</div>
 
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Active Blocks</h2>
-          <div className="border rounded-lg divide-y">
-            {blocks.map((block) => (
-              <div key={block.id} className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{block.tent_name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {block.start_date} to {block.end_date}
-                  </p>
-                  {block.reason && (
-                    <p className="text-sm text-muted-foreground">{block.reason}</p>
-                  )}
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeleteBlock(block.id)}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            {blocks.length === 0 && (
-              <p className="p-4 text-center text-muted-foreground">No active blocks</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+				<div className='space-y-4'>
+					<h2 className='font-semibold text-lg'>Active Blocks</h2>
+					<div className='border rounded-lg divide-y'>
+						{blocks.map((block) => (
+							<div
+								key={block.id}
+								className='flex justify-between items-center p-4'
+							>
+								<div>
+									<p className='font-medium'>{block.tent_name}</p>
+									<p className='text-muted-foreground text-sm'>
+										{block.start_date} to {block.end_date}
+									</p>
+									{block.reason && (
+										<p className='text-muted-foreground text-sm'>
+											{block.reason}
+										</p>
+									)}
+								</div>
+								<Button
+									variant='destructive'
+									size='sm'
+									onClick={() => handleDeleteBlock(block.id)}
+								>
+									Remove
+								</Button>
+							</div>
+						))}
+						{blocks.length === 0 && (
+							<p className='p-4 text-muted-foreground text-center'>
+								No active blocks
+							</p>
+						)}
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }
