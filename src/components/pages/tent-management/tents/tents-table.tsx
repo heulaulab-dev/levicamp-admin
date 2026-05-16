@@ -20,6 +20,11 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
+function getAriaSortValue(sortDirection: false | 'asc' | 'desc'): 'none' | 'ascending' | 'descending' | undefined {
+	if (!sortDirection) return 'none';
+	return sortDirection === 'asc' ? 'ascending' : 'descending';
+}
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
@@ -57,8 +62,14 @@ export default function TentsTable<TData, TValue>({
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className='hover:bg-transparent'>
 								{headerGroup.headers.map((header) => {
+									const canSort = header.column.getCanSort();
+									const sortDirection = header.column.getIsSorted();
 									return (
-										<TableHead key={header.id} className='h-11'>
+										<TableHead
+											key={header.id}
+											className='h-11'
+											aria-sort={canSort ? getAriaSortValue(sortDirection) : undefined}
+										>
 											{header.isPlaceholder ? null : header.column.getCanSort() ? (
 												<div
 													className={cn(
@@ -135,6 +146,8 @@ export default function TentsTable<TData, TValue>({
 								<TableCell
 									colSpan={columns.length}
 									className='h-24 text-center'
+									role='status'
+									aria-live='polite'
 								>
 									No results.
 								</TableCell>

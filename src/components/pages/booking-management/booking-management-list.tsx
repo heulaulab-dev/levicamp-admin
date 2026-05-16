@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,9 +44,10 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function BookingManagementList() {
-	const { getBookings, bookings, pagination } = useBookings();
+	const { getBookings, bookings, pagination, isLoading } = useBookings();
 	const { exportBookings, exportDailyGuestCount } = useExport();
 	const initialFetchDone = useRef(false);
 	const [pageSize, setPageSize] = useState<number>(10);
@@ -374,11 +377,31 @@ export function BookingManagementList() {
 					</p>
 				)}
 			</div>
-			<BookingTable
-				columns={columns}
-				data={bookings}
-				key={`data-table-${pageSize}`}
-			/>
+			{isLoading ? (
+				<div className='border rounded-md overflow-hidden'>
+					<div className='w-full min-w-max'>
+						<div className='space-y-3 p-4'>
+							{Array.from({ length: 5 }).map((_, i) => (
+								<div key={i} className='flex items-center gap-4'>
+									<Skeleton className='h-4 w-4' />
+									<Skeleton className='h-4 w-32' />
+									<Skeleton className='h-4 w-40' />
+									<Skeleton className='h-4 w-20' />
+									<Skeleton className='h-4 w-24' />
+									<Skeleton className='h-4 w-28' />
+									<Skeleton className='h-4 w-24' />
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			) : (
+				<BookingTable
+					columns={columns}
+					data={bookings}
+					key={`data-table-${pageSize}`}
+				/>
+			)}
 
 			{/* Pagination */}
 			{pagination && (
