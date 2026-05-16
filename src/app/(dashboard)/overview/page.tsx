@@ -9,6 +9,9 @@ import { useOverviewStore } from '@/hooks/overview/use-overview';
 import { RevenueBreakdownChart } from '@/components/pages/overview/revenue-breakdown-card';
 import { BookingManagementList } from '@/components/pages/booking-management/booking-management-list';
 import { RevenueOverviewChart } from '@/components/pages/overview/revenue-overview-card';
+import { useLeviCampSocket } from '@/hooks/use-levicamp-socket';
+import { useSensorStore } from '@/stores/use-sensor-store';
+import { SiteCard } from '@/components/monitoring/site-card';
 
 export default function OverviewPage() {
 	// Store hooks
@@ -19,6 +22,10 @@ export default function OverviewPage() {
 		totalBookings,
 		totalRevenue,
 	} = useOverviewStore();
+
+	useLeviCampSocket(); // cukup panggil sekali di sini
+
+	const { history, connected, lastUpdate } = useSensorStore();
 
 	useEffect(() => {
 		const loadDashboardData = async () => {
@@ -90,6 +97,36 @@ export default function OverviewPage() {
 						<BookingManagementList />
 					</CardContent>
 				</Card>
+			</div>
+			<div className='space-y-6 p-6'>
+				{/* Status bar */}
+				<div className='flex justify-between items-center'>
+					<h1 className='font-semibold text-xl'>Live Site Monitor</h1>
+					<div className='flex items-center gap-2 text-sm'>
+						<span
+							className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}
+						/>
+						<span>{connected ? 'Live' : 'Reconnecting...'}</span>
+						{lastUpdate && (
+							<span className='text-muted-foreground'>
+								{lastUpdate.toLocaleTimeString()}
+							</span>
+						)}
+					</div>
+				</div>
+
+				{/* Grid */}
+				<div className='gap-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4'>
+					{Object.entries(history).map(([id, entries]) => (
+						<SiteCard key={id} siteId={id} history={entries} />
+					))}
+				</div>
+
+				{Object.keys(history).length === 0 && (
+					<p className='text-muted-foreground text-sm'>
+						Waiting for sensor data...
+					</p>
+				)}
 			</div>
 		</div>
 	);

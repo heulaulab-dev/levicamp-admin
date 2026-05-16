@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { AvailabilityCalendar } from '@/components/ui/calendar/availability-calendar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useToast } from '@/hooks/use-toast'
 import {
   getCalendarBlocks,
   createCalendarBlock,
@@ -20,7 +20,6 @@ import {
 } from '@/lib/calendar-api'
 
 export default function CalendarManagementPage() {
-  const { toast } = useToast()
   const [blocks, setBlocks] = useState<CalendarBlock[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDates, setSelectedDates] = useState<Date[]>([])
@@ -37,11 +36,7 @@ export default function CalendarManagementPage() {
       const data = await getCalendarBlocks()
       setBlocks(data)
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load calendar blocks',
-        variant: 'destructive',
-      })
+      toast.error('Failed to load calendar blocks')
     } finally {
       setLoading(false)
     }
@@ -49,11 +44,7 @@ export default function CalendarManagementPage() {
 
   const handleCreateBlock = async () => {
     if (selectedDates.length < 2 || !tentId) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please select date range and tent',
-        variant: 'destructive',
-      })
+      toast.error('Please select date range and tent')
       return
     }
 
@@ -64,36 +55,22 @@ export default function CalendarManagementPage() {
         end_date: selectedDates[1].toISOString().split('T')[0],
         reason,
       })
-      toast({
-        title: 'Success',
-        description: 'Block created successfully',
-      })
+      toast.success('Block created successfully')
       setSelectedDates([])
       setReason('')
       fetchBlocks()
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create block',
-        variant: 'destructive',
-      })
+      toast.error('Failed to create block')
     }
   }
 
   const handleDeleteBlock = async (blockId: string) => {
     try {
       await deleteCalendarBlock(blockId)
-      toast({
-        title: 'Success',
-        description: 'Block deleted successfully',
-      })
+      toast.success('Block deleted successfully')
       fetchBlocks()
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete block',
-        variant: 'destructive',
-      })
+      toast.error('Failed to delete block')
     }
   }
 

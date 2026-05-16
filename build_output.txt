@@ -1,0 +1,6 @@
+   ▲ Next.js 15.1.7
+   - Environments: .env
+   - Experiments (use with caution):
+     · turbo
+
+   Creating an optimized production build ...
