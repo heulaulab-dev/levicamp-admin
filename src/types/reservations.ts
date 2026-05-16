@@ -133,14 +133,14 @@ export interface PriceCheckResponse {
 	status: number;
 	message: string;
 	data: {
-		total_price: number;
-		tents: Array<{
+		TotalPrice: number;
+		Tents: Array<{
 			id: string;
 			category: string;
 			capacities: string;
 			price: number;
 		}>;
-		start_date: string;
-		end_date: string;
+		StartDate: string;
+		EndDate: string;
 	};
 }

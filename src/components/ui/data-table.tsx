@@ -20,6 +20,11 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
+function getAriaSortValue(sortDirection: false | 'asc' | 'desc'): 'none' | 'ascending' | 'descending' | undefined {
+	if (!sortDirection) return 'none';
+	return sortDirection === 'asc' ? 'ascending' : 'descending';
+}
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
@@ -51,14 +56,19 @@ export function DataTable<TData, TValue>({
 							{table.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id}>
 									{headerGroup.headers.map((header) => {
+										const canSort = header.column.getCanSort();
+										const sortDirection = header.column.getIsSorted();
 										return (
-											<TableHead key={header.id}>
+											<TableHead
+												key={header.id}
+												aria-sort={canSort ? getAriaSortValue(sortDirection) : undefined}
+											>
 												{header.isPlaceholder
 													? null
 													: flexRender(
 															header.column.columnDef.header,
 															header.getContext(),
-													  )}
+														)}
 											</TableHead>
 										);
 									})}
@@ -87,6 +97,8 @@ export function DataTable<TData, TValue>({
 									<TableCell
 										colSpan={columns.length}
 										className='h-24 text-center'
+										role='status'
+										aria-live='polite'
 									>
 										No results.
 									</TableCell>
