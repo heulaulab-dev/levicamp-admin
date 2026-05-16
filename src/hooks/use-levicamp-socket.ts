@@ -5,7 +5,9 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useSensorStore } from '@/stores/use-sensor-store';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000';
-const RECONNECT_DELAY = 3000;
+const RECONNECT_DELAY = process.env.NEXT_PUBLIC_RECONNECT_DELAY
+	? parseInt(process.env.NEXT_PUBLIC_RECONNECT_DELAY)
+	: 3000;
 
 export function useLeviCampSocket() {
 	const wsRef = useRef<WebSocket | null>(null);
@@ -35,7 +37,7 @@ export function useLeviCampSocket() {
 
 		ws.onclose = () => {
 			setConnected(false);
-			reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY);
+			reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY); 
 		};
 
 		ws.onerror = () => {
