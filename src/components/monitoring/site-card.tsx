@@ -2,6 +2,7 @@
 
 import { SensorEntry } from '@/stores/use-sensor-store';
 import { LineChart, Line, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useEffect, useState } from 'react';
 
 type Props = {
 	siteId: string;
@@ -16,9 +17,28 @@ const METRICS = [
 
 export function SiteCard({ siteId, history }: Props) {
 	const latest = history[history.length - 1];
+	const [now, setNow] = useState(Date.now());
+
+	useEffect(() => {
+		const interval = setInterval(() => setNow(Date.now()), 1000);
+		return () => clearInterval(interval);
+	}, []);
+
+	const isStale = latest
+		? now - new Date(latest.timestamp).getTime() > 5 * 1000
+		: true;
+
+	console.log(isStale);
 
 	return (
 		<div className='space-y-3 bg-card p-4 border rounded-xl'>
+			{isStale && (
+				<div className='text-red-500 text-sm text-center'>
+					⚠ No recent data (last update:{' '}
+					{latest ? new Date(latest.timestamp).toLocaleTimeString() : 'N/A'})
+				</div>
+			)}
+
 			{/* Header */}
 			<div className='flex justify-between items-center'>
 				<p className='font-medium text-sm'>{latest?.name ?? siteId}</p>

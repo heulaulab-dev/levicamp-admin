@@ -30,7 +30,7 @@ export function useLeviCampSocket() {
 
 		ws.onmessage = (event) => {
 			const reading = JSON.parse(event.data);
-			const timestamp = new Date(reading.timestamp).toLocaleTimeString();
+			const timestamp = new Date(reading.timestamp).toISOString();
 			setLastUpdate(new Date(reading.timestamp));
 			appendReading(timestamp, reading.sites);
 		};
