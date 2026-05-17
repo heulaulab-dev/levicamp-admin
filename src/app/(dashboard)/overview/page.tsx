@@ -12,6 +12,14 @@ import { RevenueOverviewChart } from '@/components/pages/overview/revenue-overvi
 import { useLeviCampSocket } from '@/hooks/use-levicamp-socket';
 import { useSensorStore } from '@/stores/use-sensor-store';
 import { SiteCard } from '@/components/monitoring/site-card';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import { useState } from 'react';
 
 export default function OverviewPage() {
 	// Store hooks
@@ -26,6 +34,18 @@ export default function OverviewPage() {
 	useLeviCampSocket(); // cukup panggil sekali di sini
 
 	const { history, connected, lastUpdate } = useSensorStore();
+	const [statusFilter, setStatusFilter] = useState<
+		'all' | 'occupied' | 'vacant'
+	>('all');
+
+	const filteredHistory = Object.fromEntries(
+		Object.entries(history).filter(([_, entries]) => {
+			const latest = entries[entries.length - 1];
+			if (statusFilter === 'occupied') return latest?.occupied;
+			if (statusFilter === 'vacant') return !latest?.occupied;
+			return true; // 'all'
+		}),
+	);
 
 	useEffect(() => {
 		const loadDashboardData = async () => {
@@ -115,12 +135,30 @@ export default function OverviewPage() {
 					</div>
 				</div>
 
+				<Select value={statusFilter} onValueChange={setStatusFilter}>
+					<SelectTrigger>
+						<SelectValue placeholder='Filter by status...' />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value='all'>All Statuses</SelectItem>
+						<SelectItem value='occupied'>Occupied</SelectItem>
+						<SelectItem value='vacant'>Vacant</SelectItem>
+					</SelectContent>
+				</Select>
+
 				{/* Grid */}
 				<div className='gap-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4'>
-					{Object.entries(history).map(([id, entries]) => (
+					{Object.entries(filteredHistory).map(([id, entries]) => (
 						<SiteCard key={id} siteId={id} history={entries} />
 					))}
 				</div>
+
+				{Object.keys(filteredHistory).length === 0 &&
+					Object.keys(history).length > 0 && (
+						<p className='text-muted-foreground text-sm'>
+							No sites match the selected filter.
+						</p>
+					)}
 
 				{Object.keys(history).length === 0 && (
 					<p className='text-muted-foreground text-sm'>
